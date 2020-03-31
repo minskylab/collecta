@@ -1,14 +1,14 @@
 package collecta
 
 type Span struct {
-	After  *string `json:"after"`
-	Before *string `json:"before"`
-	Text   string  `json:"text"`
+	After  *string
+	Before *string
+	Text   string
 }
 
 type Survey struct {
-	Title     string                 `json:"title"`
-	Metadata  map[string]interface{} `json:"metadata"`
-	Questions []Question             `json:"questions"`
-	Spans     []Span                 `json:"spans"`
+	Title     string
+	Metadata  map[string]interface{}
+	Questions []Question
+	Spans     []Span
 }

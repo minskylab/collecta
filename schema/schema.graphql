@@ -1,0 +1,66 @@
+enum SpanPosition {
+    AFTER
+    BEFORE
+}
+
+enum InputType {
+    TEXT
+    OPTIONS
+    SATISFACTION
+    YESNO
+}
+
+type Span {
+    id: ID!
+    where: SpanPosition!
+    at: String
+    text: String!
+}
+
+interface QuestionInput {
+    id: ID!
+    type: InputType!
+}
+
+type TextInput implements QuestionInput {
+    defaultValue: String
+    expected: String
+    maxChars: Int
+}
+
+type SatisfactionOption {
+    key: Int
+    values: String
+}
+
+type SatisfactionInput implements QuestionInput {
+    options: [SatisfactionOption!]!
+    defaultValue: Int
+}
+
+type OptionsInput implements QuestionInput {
+    options: [String!]!
+    defaultValue: [Int!]!
+    multipleSelection: Boolean
+}
+
+type YesNoInput implements QuestionInput {
+    defaultValue: Boolean
+}
+
+type Question {
+    id: ID!
+    order: Int!
+    hash: String!
+    title: String!
+    anonymous: Boolean
+    input: [QuestionInput!]!
+    parent: Survey! @hasInverse(field: questions)
+}
+
+type Survey {
+    id: ID!
+    title: String!
+    spans: [Span!]!
+    questions: [Question!]! @hasInverse(field: parent)
+}

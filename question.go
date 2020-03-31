@@ -6,11 +6,11 @@ import (
 )
 
 type Question struct {
-	Order     int    `json:"order"`
-	ID        string `json:"id"`
-	Title     string `json:"title"`
-	Anonymous bool   `json:"anonymous"`
-	Input     Input  `json:"input"`
+	Order     int
+	ID        string
+	Title     string
+	Anonymous bool
+	Input     Input
 }
 
 func (q *Question) CalculateID() {
