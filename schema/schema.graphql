@@ -20,47 +20,87 @@ type Span {
 interface QuestionInput {
     id: ID!
     type: InputType!
+    defaults: [String!]!
+    multiple: Boolean
 }
 
 type TextInput implements QuestionInput {
-    defaultValue: String
     expected: String
     maxChars: Int
 }
 
 type SatisfactionOption {
-    key: Int
-    values: String
+    feeling: Int
+    value: String
 }
 
 type SatisfactionInput implements QuestionInput {
     options: [SatisfactionOption!]!
-    defaultValue: Int
 }
 
 type OptionsInput implements QuestionInput {
-    options: [String!]!
-    defaultValue: [Int!]!
+    alternatives: [String!]!
     multipleSelection: Boolean
 }
 
 type YesNoInput implements QuestionInput {
-    defaultValue: Boolean
+    triplet: Boolean!
 }
 
 type Question {
     id: ID!
-    order: Int!
-    hash: String!
-    title: String!
+    order: Int! @search
+    hash: String! @search(by: [hash])
+    title: String! @search(by: [term, fulltext])
     anonymous: Boolean
     input: [QuestionInput!]!
     parent: Survey! @hasInverse(field: questions)
+    answer: Answer @hasInverse(field: question)
 }
 
 type Survey {
     id: ID!
-    title: String!
+    title: String! @search(by: [term])
     spans: [Span!]!
     questions: [Question!]! @hasInverse(field: parent)
+}
+
+enum UserDevice {
+    PHONE
+    LAPTOP
+    TABLET
+    OTHER
+}
+
+type IPLockup {
+    ip: String! @search(by: [hash])
+    city: String
+    region: String
+    regionCode: String
+    country: String
+    countryCode: String
+    latitude: Float
+    longitude: Float
+    timezone: String
+    asn: String
+    org: String
+}
+
+type User {
+    id: ID!
+    sub: String!
+    origin: String!
+    email: String! @id
+    domain: String!
+
+    device: UserDevice!
+    ip: IPLockup
+}
+
+type Answer {
+    id: ID!
+    question: Question! @hasInverse(field: answer)
+    at: DateTime! @search
+    by: User!
+    responses: [String!]! @search(by: [fulltext])
 }
