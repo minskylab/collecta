@@ -1,9 +1,9 @@
 package collecta
 
 type Span struct {
-	After  string `json:"after"`
-	Before string `json:"before"`
-	Text   string `json:"text"`
+	After  *string `json:"after"`
+	Before *string `json:"before"`
+	Text   string  `json:"text"`
 }
 
 type Survey struct {

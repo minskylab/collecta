@@ -3,6 +3,7 @@ package questions
 import (
 	"strconv"
 
+	"github.com/minskylab/collecta"
 	"github.com/minskylab/collecta/inputs/options"
 	"github.com/minskylab/collecta/inputs/satisfaction"
 	"github.com/minskylab/collecta/inputs/text"
@@ -14,7 +15,7 @@ type QuestionFactory struct {
 	Order             int
 	Title             string
 	Anonymous         bool
-	Type              InputType
+	Type              collecta.InputType
 	Default           *string
 	Defaults          *[]string
 	Options           *[]string
@@ -23,12 +24,12 @@ type QuestionFactory struct {
 	MultipleSelection *bool
 }
 
-func NewQuestionFromFactory(factory QuestionFactory) (*Question, error) {
-	var input Input
+func NewQuestionFromFactory(factory QuestionFactory) (*collecta.Question, error) {
+	var input collecta.Input
 	var err error
 
 	switch factory.Type {
-	case Text:
+	case collecta.Text:
 		mods := make([]text.Mod, 0)
 
 		if factory.Defaults != nil {
@@ -54,7 +55,7 @@ func NewQuestionFromFactory(factory QuestionFactory) (*Question, error) {
 		if err != nil {
 			return nil, errors.Wrap(err, "error at create new input")
 		}
-	case Satisfaction:
+	case collecta.Satisfaction:
 		mods := make([]satisfaction.Mod, 0)
 		if factory.Defaults != nil {
 			if len(*factory.Defaults) > 0 {
@@ -88,7 +89,7 @@ func NewQuestionFromFactory(factory QuestionFactory) (*Question, error) {
 			return nil, errors.Wrap(err, "error at create new satisfaction input")
 		}
 
-	case Options:
+	case collecta.Options:
 		mods := make([]options.Mod, 0)
 
 		if factory.Defaults != nil {
@@ -124,7 +125,7 @@ func NewQuestionFromFactory(factory QuestionFactory) (*Question, error) {
 			return nil, errors.Wrap(err, "error at create new options input")
 		}
 
-	case YesNo:
+	case collecta.YesNo:
 		mods := make([]yesno.Mod, 0)
 		if factory.Defaults != nil {
 			if len(*factory.Defaults) > 0 {
@@ -154,14 +155,14 @@ func NewQuestionFromFactory(factory QuestionFactory) (*Question, error) {
 		return nil, errors.New("unsupported question type, select one of: text, satisfaction, options, yesNo")
 	}
 
-	q := &Question{
+	q := &collecta.Question{
 		Order:     factory.Order,
 		Title:     factory.Title,
 		Anonymous: factory.Anonymous,
 		Input:     input,
 	}
 
-	q.calculateID()
+	q.CalculateID()
 
 	return q, nil
 }

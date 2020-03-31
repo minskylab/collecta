@@ -8,37 +8,45 @@ metadata:
     email: "bregy.malpartida@utec.edu.pe"
 
 span:
-  start: "Hola, a continuación por favor..."
-  end: "Gracias por llenar la encuesta!..."
+  - before: start
+    text: "Hola, a continuación por favor..."
+  - after: end
+    text: "Gracias por llenar la encuesta!..."
 
 questions:
   - title: "¿La conexión permitio que se pueda transmitir adeacuadamente?"
-    type: satisfaction
+    input:
+      type: satisfaction
 
   - title: "¿Que tan provechosa fue esta clase para tu aprendizaje?"
-    type: satisfaction
+    input:
+      type: satisfaction
 
   - title: "¿Crees que adquiriste nuevas habilidades en esta clase?"
-    type: satisfaction
-    options:
-      - Nada
-      - Poco
-      - Regular
-      - Suficiente
-      - Bastante
+    input:
+      type: satisfaction
+      options:
+        - Nada
+        - Poco
+        - Regular
+        - Suficiente
+        - Bastante
 
   - title: "Selecciona las dinamicas que uso el profesor y fueron de provecho"
-    type: options
-    options:
-      - Breakout Sessions
-      - Chat
-      - Kahooot u otra encuesta
-      - Juego-simulación
-      - Otra
+    input:
+      type: options
+      options:
+        - Breakout Sessions
+        - Chat
+        - Kahooot u otra encuesta
+        - Juego-simulación
+        - Otra
 
   - title: "Por problemas de conectividad, ¿crees que es necesario repetir la clase?"
-    type: yesno
+    input:
+      type: yesno
 
   - title: "Si tienes algún comentario extra, por favor escribelo a continuación"
     anonymus: true
-    type: text
+    input:
+      type: text
