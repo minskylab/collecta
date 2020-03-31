@@ -1,0 +1,30 @@
+inputs:
+  text:
+    name: Text
+    props:
+      default: string
+      value: string
+      maxChars: int
+      expected: regex? # '?' means optional
+
+  options:
+    name: Options
+    props:
+      default: option
+      options: [option]
+      value: option
+      multiple: boolean
+
+  satisfaction:
+    name: Satisfaction
+    props:
+      default: float
+      value: float
+      totalOptions: int
+      options: [string] # ["GOOD", "BAD"...], [""]
+
+  yesno:
+    name: YesNo
+    props:
+      default: boolean
+      value: boolean

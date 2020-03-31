@@ -1,0 +1,44 @@
+apiVersion: Collecta.v1
+
+title: "Feedback por Sesión | Estudiantes"
+
+metadata:
+  author:
+    name: "Bregy Malpartida"
+    email: "bregy.malpartida@utec.edu.pe"
+
+span:
+  start: "Hola, a continuación por favor..."
+  end: "Gracias por llenar la encuesta!..."
+
+questions:
+  - title: "¿La conexión permitio que se pueda transmitir adeacuadamente?"
+    type: satisfaction
+
+  - title: "¿Que tan provechosa fue esta clase para tu aprendizaje?"
+    type: satisfaction
+
+  - title: "¿Crees que adquiriste nuevas habilidades en esta clase?"
+    type: satisfaction
+    options:
+      - Nada
+      - Poco
+      - Regular
+      - Suficiente
+      - Bastante
+
+  - title: "Selecciona las dinamicas que uso el profesor y fueron de provecho"
+    type: options
+    options:
+      - Breakout Sessions
+      - Chat
+      - Kahooot u otra encuesta
+      - Juego-simulación
+      - Otra
+
+  - title: "Por problemas de conectividad, ¿crees que es necesario repetir la clase?"
+    type: yesno
+
+  - title: "Si tienes algún comentario extra, por favor escribelo a continuación"
+    anonymus: true
+    type: text

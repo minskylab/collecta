@@ -1,0 +1,5 @@
+package constructor
+
+func main() {
+
+}
