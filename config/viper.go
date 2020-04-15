@@ -1,6 +1,8 @@
 package config
 
 import (
+	"strings"
+
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
@@ -17,6 +19,7 @@ func readConfig() error {
 		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
 			viper.SetEnvPrefix("collecta")
 			viper.AutomaticEnv()
+			viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 		} else {
 			return errors.Wrap(err, "error at read config with viper")
 		}
