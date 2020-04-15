@@ -60,7 +60,12 @@ type Question {
 
 type Survey {
     id: ID!
+    createdAt: DateTime! @search
+    dueDate: DateTime! @search
+    owner: Partner! @hasInverse(field: surveys)
     title: String! @search(by: [term])
+    for: User! @hasInverse(field: surveys)
+    done: Boolean! @search
     spans: [Span!]!
     questions: [Question!]! @hasInverse(field: parent)
 }
@@ -86,21 +91,31 @@ type IPLockup {
     org: String
 }
 
+type Partner {
+    id: ID!
+    name: String! @id
+    domain: String! @id
+
+    surveys: [Survey!]! @hasInverse(field: owner)
+    users: [User!]! @hasInverse(field: from)
+}
+
 type User {
     id: ID!
     sub: String!
     origin: String!
     email: String! @id
-    domain: String!
-
-    device: UserDevice!
+    surveys: [Survey!]!
+    from: Partner! @hasInverse(field: users)
     ip: IPLockup
+    device: UserDevice!
+    answers: [Answer!]! @hasInverse(field: by)
 }
 
 type Answer {
     id: ID!
     question: Question! @hasInverse(field: answer)
     at: DateTime! @search
-    by: User!
+    by: User! @hasInverse(field: answers)
     responses: [String!]! @search(by: [fulltext])
 }

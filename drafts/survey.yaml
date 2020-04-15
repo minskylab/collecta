@@ -3,6 +3,7 @@ apiVersion: Collecta.v1
 title: "Feedback por Sesión | Estudiantes"
 
 metadata:
+  description: "Hello World"
   author:
     name: "Bregy Malpartida"
     email: "bregy.malpartida@utec.edu.pe"

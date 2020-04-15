@@ -1,4 +1,4 @@
-package main
+package constructor
 
 import (
 	"github.com/davecgh/go-spew/spew"
