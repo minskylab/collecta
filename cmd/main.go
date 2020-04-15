@@ -21,7 +21,7 @@ func main() {
 
 	collectaAuth.Start("https://core.collecta.site")
 
-	if err = httpEngine.Run(":8081"); err != nil {
+	if err = httpEngine.Run(":8080"); err != nil {
 		panic(err)
 	}
 }
