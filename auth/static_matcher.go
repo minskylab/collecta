@@ -6,5 +6,6 @@ import "github.com/markbates/goth"
 // complex admin configuration
 
 func staticMatcher(user goth.User) (string, error) {
-	user.
+	// user.
+	return "", nil
 }
