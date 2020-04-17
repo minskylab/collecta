@@ -63,13 +63,14 @@ func (collectaAuth *CollectaAuth) startGoogleAuth(callbackURL string) {
 			c.Redirect(http.StatusPermanentRedirect, "/")
 			return
 		}
-
+		
 		u, err := url.Parse(redirect)
 		if err != nil {
 			log.WithError(err).Info("error at parse redirect url")
 			return
 		}
-		params := c.Request.URL.Query()
+
+		params := url.Values{}
 		params.Add("token", jwtToken)
 		u.RawQuery = params.Encode()
 
