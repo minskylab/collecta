@@ -21,11 +21,11 @@ func (r *queryResolver) Domain(ctx context.Context, id string) (*model.Domain, e
 	}
 
 	return &model.Domain{
-		ID:     e.ID.String(),
-		Tags:   e.Tags,
-		Name:   e.Name,
-		Email:  e.Email,
-		Domain: e.Domain,
+		ID:             e.ID.String(),
+		Tags:           e.Tags,
+		Name:           e.Name,
+		Email:          e.Email,
+		Domain:         e.Domain,
 		CollectaDomain: e.CollectaDomain,
 	}, nil
 }
@@ -72,7 +72,7 @@ func (r *queryResolver) User(ctx context.Context, id string) (*model.User, error
 		Name:         e.Name,
 		Username:     e.Username,
 		LastActivity: e.LastActivity,
-		Picture: e.Picture,
+		Picture:      e.Picture,
 	}, nil
 }
 

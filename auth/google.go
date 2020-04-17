@@ -20,7 +20,6 @@ func (collectaAuth *CollectaAuth) startGoogleAuth(callbackURL string) {
 		google.New(clientID, secretKey, callbackURL),
 	)
 
-
 	r := collectaAuth.mainRouter.Group("/auth")
 
 	r.GET("/google", func(c *gin.Context) {

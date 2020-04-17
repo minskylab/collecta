@@ -40,7 +40,7 @@ func (collectaAuth *CollectaAuth) ingressWithGoogle(ctx context.Context, rawUser
 		if err != nil {
 			return "", errors.Wrap(err, "error at try to register new google user")
 		}
-	}else {
+	} else {
 		googleUser, err = collectaAuth.db.Ent.User.Query().
 			Where(user.HasAccountsWith(
 				account.And(
@@ -102,7 +102,6 @@ func (collectaAuth *CollectaAuth) registerNewUserFromGoogle(ctx context.Context,
 		return nil, errors.Wrap(err, "error at create new account")
 	}
 
-
 	_, err = collectaAuth.db.Ent.Contact.Create().
 		SetID(uuid.New()).
 		SetName("Google Email").
@@ -131,7 +130,7 @@ func (collectaAuth *CollectaAuth) registerNewUserFromGoogle(ctx context.Context,
 func (collectaAuth *CollectaAuth) createJWTToken(u *ent.User) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.StandardClaims{
 		Audience:  "user",
-		ExpiresAt: time.Now().Add(24*time.Hour).Unix(),
+		ExpiresAt: time.Now().Add(24 * time.Hour).Unix(),
 		Id:        u.ID.String(),
 		IssuedAt:  time.Now().Unix(),
 		Issuer:    "collecta",

@@ -9,8 +9,8 @@ import (
 )
 
 type CollectaAuth struct {
-	mainRouter      *gin.Engine
-	db *collecta.DB
+	mainRouter *gin.Engine
+	db         *collecta.DB
 }
 
 func New(engine *gin.Engine, db *collecta.DB) (*CollectaAuth, error) {

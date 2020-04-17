@@ -38,7 +38,7 @@ func (r *accountResolver) Owner(ctx context.Context, obj *model.Account) (*model
 		Name:         e.Name,
 		Username:     e.Username,
 		LastActivity: e.LastActivity,
-		Picture: e.Picture,
+		Picture:      e.Picture,
 	}
 
 	return m, nil
@@ -79,7 +79,7 @@ func (r *contactResolver) Owner(ctx context.Context, obj *model.Contact) (*model
 		Name:         e.Name,
 		Username:     e.Username,
 		LastActivity: e.LastActivity,
-		Picture: e.Picture,
+		Picture:      e.Picture,
 	}
 
 	return m, nil
@@ -313,7 +313,7 @@ func (r *surveyResolver) For(ctx context.Context, obj *model.Survey) (*model.Use
 		Name:         e.Name,
 		Username:     e.Username,
 		LastActivity: e.LastActivity,
-		Picture: e.Picture,
+		Picture:      e.Picture,
 	}
 
 	return m, nil
@@ -425,11 +425,11 @@ func (r *userResolver) Domain(ctx context.Context, obj *model.User) (*model.Doma
 	}
 
 	m := &model.Domain{
-		ID:     e.ID.String(),
-		Tags:   e.Tags,
-		Name:   e.Name,
-		Email:  e.Email,
-		Domain: e.Domain,
+		ID:             e.ID.String(),
+		Tags:           e.Tags,
+		Name:           e.Name,
+		Email:          e.Email,
+		Domain:         e.Domain,
 		CollectaDomain: e.CollectaDomain,
 	}
 

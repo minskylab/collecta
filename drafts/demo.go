@@ -13,11 +13,11 @@ import (
 )
 
 type basicQuestion struct {
-	questionTitle string
+	questionTitle       string
 	questionDescription string
-	inputType input.Kind
-	isMultiple bool
-	options map[string]string
+	inputType           input.Kind
+	isMultiple          bool
+	options             map[string]string
 }
 
 func genQuestion(ctx context.Context, db *collecta.DB, q basicQuestion) (*ent.Question, error) {
@@ -46,17 +46,16 @@ func genQuestion(ctx context.Context, db *collecta.DB, q basicQuestion) (*ent.Qu
 	return newQuestion, nil
 }
 
-
 func generateUTECDemoSurvey(ctx context.Context, db *collecta.DB, domainID uuid.UUID, userID uuid.UUID) (*ent.Survey, error) {
 	q1, err := genQuestion(ctx, db, basicQuestion{
-		questionTitle:      "PREGUNTA 1/8",
+		questionTitle:       "PREGUNTA 1/8",
 		questionDescription: "Selecciona las dinámicas que usó el profesor que aportaron a la clase.",
 		inputType:           input.KindOptions,
 		isMultiple:          true,
-		options:             map[string]string{
-			"rooms": "Breakout Rooms",
-			"chat": "Chat",
-			"game": "Juegos-Simulación",
+		options: map[string]string{
+			"rooms":  "Breakout Rooms",
+			"chat":   "Chat",
+			"game":   "Juegos-Simulación",
 			"kahoot": "Kahoot u otra encuesta",
 			"others": "Otra",
 		},
@@ -67,7 +66,7 @@ func generateUTECDemoSurvey(ctx context.Context, db *collecta.DB, domainID uuid.
 	log.Info("qi= ", q1.ID)
 
 	q2, err := genQuestion(ctx, db, basicQuestion{
-		questionTitle:      "PREGUNTA 2/8",
+		questionTitle:       "PREGUNTA 2/8",
 		questionDescription: "Por problemas de conectividad, ¿crees que es necesario repetir la clase?",
 		inputType:           input.KindBoolean,
 	})
@@ -77,7 +76,7 @@ func generateUTECDemoSurvey(ctx context.Context, db *collecta.DB, domainID uuid.
 	log.Info("qi= ", q2.ID)
 
 	q3, err := genQuestion(ctx, db, basicQuestion{
-		questionTitle:      "PREGUNTA 3/8",
+		questionTitle:       "PREGUNTA 3/8",
 		questionDescription: "Si tienes algún comentario extra, por favor escríbelo a continuación.",
 		inputType:           input.KindText,
 	})
@@ -87,7 +86,7 @@ func generateUTECDemoSurvey(ctx context.Context, db *collecta.DB, domainID uuid.
 	log.Info("qi= ", q3.ID)
 
 	q4, err := genQuestion(ctx, db, basicQuestion{
-		questionTitle:      "PREGUNTA 4/8",
+		questionTitle:       "PREGUNTA 4/8",
 		questionDescription: "¿Que tan provechosa fue esta clase para tu aprendizaje?",
 		inputType:           input.KindSatisfaction,
 	})
@@ -97,10 +96,9 @@ func generateUTECDemoSurvey(ctx context.Context, db *collecta.DB, domainID uuid.
 	log.Info("qi= ", q4.ID)
 
 	flowProgram :=
-	 	"00 " + q1.ID.String() + " -> " + q2.ID.String() +
-		"01 " + q2.ID.String() + " -> " + q3.ID.String() +
-		"02 " + q3.ID.String() + " -> " + q4.ID.String()
-
+		"00 " + q1.ID.String() + " -> " + q2.ID.String() +
+			"01 " + q2.ID.String() + " -> " + q3.ID.String() +
+			"02 " + q3.ID.String() + " -> " + q4.ID.String()
 
 	qFlow, err := db.Ent.Flow.Create().
 		SetID(uuid.New()).

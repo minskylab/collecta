@@ -9,5 +9,5 @@ import (
 )
 
 func GenerateUTECDemo(ctx context.Context, db *collecta.DB, domainID uuid.UUID, userID uuid.UUID) (*ent.Survey, error) {
-	return generateUTECDemoSurvey(ctx , db , domainID, userID )
+	return generateUTECDemoSurvey(ctx, db, domainID, userID)
 }
