@@ -60,7 +60,8 @@ func interpretFlow(ctx context.Context, db *ent.Client, f *ent.Flow) (*ent.Flow,
 
 			answers, err := q.QueryAnswers().IDs(ctx)
 			if err != nil {
-				return nil, errors.Wrap(err, "error at query all answers of question")
+				// return nil, errors.Wrap(err, "error at query all answers of question")
+				return f, nil
 			}
 
 			if questionWasAnswered && len(answers) > 1 {
