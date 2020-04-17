@@ -51,8 +51,10 @@ func (collectaAuth *CollectaAuth) startGoogleAuth(callbackURL string) {
 		jwtToken, err := collectaAuth.ingressWithGoogle(c, user)
 		if err != nil {
 			log.WithError(err).Info("error at try to ingress with user")
+			return
 		}
 
+		log.Info(jwtToken)
 		c.Header("Collecta-Token", jwtToken)
 
 		redirect, err := collectaAuth.matchGoogleUserWithCollectaDomain(c, user)
