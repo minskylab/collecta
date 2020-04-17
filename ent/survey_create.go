@@ -297,7 +297,7 @@ func (sc *SurveyCreate) sqlSave(ctx context.Context) (*Survey, error) {
 	if nodes := sc._for; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
-			Inverse: false,
+			Inverse: true,
 			Table:   survey.ForTable,
 			Columns: []string{survey.ForColumn},
 			Bidi:    false,

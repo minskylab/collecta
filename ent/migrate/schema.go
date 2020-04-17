@@ -198,7 +198,6 @@ var (
 		{Name: "done", Type: field.TypeBool, Default: survey.DefaultDone},
 		{Name: "domain_surveys", Type: field.TypeUUID, Nullable: true},
 		{Name: "survey_flow", Type: field.TypeUUID, Nullable: true},
-		{Name: "survey_for", Type: field.TypeUUID, Nullable: true},
 		{Name: "user_surveys", Type: field.TypeUUID, Nullable: true},
 	}
 	// SurveysTable holds the schema information for the "surveys" table.
@@ -222,15 +221,8 @@ var (
 				OnDelete:   schema.SetNull,
 			},
 			{
-				Symbol:  "surveys_users_for",
-				Columns: []*schema.Column{SurveysColumns[10]},
-
-				RefColumns: []*schema.Column{UsersColumns[0]},
-				OnDelete:   schema.SetNull,
-			},
-			{
 				Symbol:  "surveys_users_surveys",
-				Columns: []*schema.Column{SurveysColumns[11]},
+				Columns: []*schema.Column{SurveysColumns[10]},
 
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,
@@ -286,6 +278,5 @@ func init() {
 	SurveysTable.ForeignKeys[0].RefTable = DomainsTable
 	SurveysTable.ForeignKeys[1].RefTable = FlowsTable
 	SurveysTable.ForeignKeys[2].RefTable = UsersTable
-	SurveysTable.ForeignKeys[3].RefTable = UsersTable
 	UsersTable.ForeignKeys[0].RefTable = DomainsTable
 }

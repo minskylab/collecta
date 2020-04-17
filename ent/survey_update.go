@@ -337,7 +337,7 @@ func (su *SurveyUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if su.clearedFor {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
-			Inverse: false,
+			Inverse: true,
 			Table:   survey.ForTable,
 			Columns: []string{survey.ForColumn},
 			Bidi:    false,
@@ -353,7 +353,7 @@ func (su *SurveyUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if nodes := su._for; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
-			Inverse: false,
+			Inverse: true,
 			Table:   survey.ForTable,
 			Columns: []string{survey.ForColumn},
 			Bidi:    false,
@@ -721,7 +721,7 @@ func (suo *SurveyUpdateOne) sqlSave(ctx context.Context) (s *Survey, err error) 
 	if suo.clearedFor {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
-			Inverse: false,
+			Inverse: true,
 			Table:   survey.ForTable,
 			Columns: []string{survey.ForColumn},
 			Bidi:    false,
@@ -737,7 +737,7 @@ func (suo *SurveyUpdateOne) sqlSave(ctx context.Context) (s *Survey, err error) 
 	if nodes := suo._for; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
-			Inverse: false,
+			Inverse: true,
 			Table:   survey.ForTable,
 			Columns: []string{survey.ForColumn},
 			Bidi:    false,

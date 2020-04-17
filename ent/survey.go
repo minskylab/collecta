@@ -40,7 +40,6 @@ type Survey struct {
 	Edges          SurveyEdges `json:"edges"`
 	domain_surveys *uuid.UUID
 	survey_flow    *uuid.UUID
-	survey_for     *uuid.UUID
 	user_surveys   *uuid.UUID
 }
 
@@ -118,7 +117,6 @@ func (*Survey) fkValues() []interface{} {
 	return []interface{}{
 		&uuid.UUID{}, // domain_surveys
 		&uuid.UUID{}, // survey_flow
-		&uuid.UUID{}, // survey_for
 		&uuid.UUID{}, // user_surveys
 	}
 }
@@ -187,11 +185,6 @@ func (s *Survey) assignValues(values ...interface{}) error {
 			return fmt.Errorf("unexpected type %T for field survey_flow", values[0])
 		} else if value != nil {
 			s.survey_flow = value
-		}
-		if value, ok := values[0].(*uuid.UUID); !ok {
-			return fmt.Errorf("unexpected type %T for field survey_for", values[0])
-		} else if value != nil {
-			s.survey_for = value
 		}
 		if value, ok := values[0].(*uuid.UUID); !ok {
 			return fmt.Errorf("unexpected type %T for field user_surveys", values[0])

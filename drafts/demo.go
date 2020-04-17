@@ -116,6 +116,7 @@ func generateUTECDemoSurvey(ctx context.Context, db *collecta.DB, domainID uuid.
 
 	log.Info("flow= ", qFlow.ID)
 
+	// surv, err := db.Ent.Survey.Create().
 	return db.Ent.Survey.Create().
 		SetID(uuid.New()).
 		SetForID(userID).
@@ -130,4 +131,17 @@ func generateUTECDemoSurvey(ctx context.Context, db *collecta.DB, domainID uuid.
 			"creator": "Collecta Labs",
 		}).
 		Save(ctx)
+	//
+	// if err != nil {
+	// 	return nil, errors.Wrap(err, "error at create new survey")
+	// }
+	//
+	// _, err = db.Ent.User.UpdateOneID(userID).
+	// 	AddSurveys(surv).
+	// 	Save(ctx)
+	// if err != nil {
+	// 	return nil, errors.Wrap(err, "error at try to update user")
+	// }
+	//
+	// return surv, nil
 }

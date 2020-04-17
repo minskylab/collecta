@@ -579,7 +579,7 @@ func HasFor() predicate.Survey {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
 			sqlgraph.To(ForTable, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, false, ForTable, ForColumn),
+			sqlgraph.Edge(sqlgraph.M2O, true, ForTable, ForColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
@@ -591,7 +591,7 @@ func HasForWith(preds ...predicate.User) predicate.Survey {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
 			sqlgraph.To(ForInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, false, ForTable, ForColumn),
+			sqlgraph.Edge(sqlgraph.M2O, true, ForTable, ForColumn),
 		)
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {

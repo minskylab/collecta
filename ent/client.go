@@ -954,7 +954,7 @@ func (c *SurveyClient) QueryFor(s *Survey) *UserQuery {
 	step := sqlgraph.NewStep(
 		sqlgraph.From(survey.Table, survey.FieldID, id),
 		sqlgraph.To(user.Table, user.FieldID),
-		sqlgraph.Edge(sqlgraph.M2O, false, survey.ForTable, survey.ForColumn),
+		sqlgraph.Edge(sqlgraph.M2O, true, survey.ForTable, survey.ForColumn),
 	)
 	query.sql = sqlgraph.Neighbors(s.driver.Dialect(), step)
 

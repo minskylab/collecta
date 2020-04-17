@@ -43,7 +43,7 @@ const (
 	// It exists in this package in order to avoid circular dependency with the "user" package.
 	ForInverseTable = "users"
 	// ForColumn is the table column denoting the for relation/edge.
-	ForColumn = "survey_for"
+	ForColumn = "user_surveys"
 	// OwnerTable is the table the holds the owner relation/edge.
 	OwnerTable = "surveys"
 	// OwnerInverseTable is the table name for the Domain entity.
@@ -69,7 +69,6 @@ var Columns = []string{
 var ForeignKeys = []string{
 	"domain_surveys",
 	"survey_flow",
-	"survey_for",
 	"user_surveys",
 }
 

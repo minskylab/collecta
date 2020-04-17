@@ -78,7 +78,7 @@ func (sq *SurveyQuery) QueryFor() *UserQuery {
 	step := sqlgraph.NewStep(
 		sqlgraph.From(survey.Table, survey.FieldID, sq.sqlQuery()),
 		sqlgraph.To(user.Table, user.FieldID),
-		sqlgraph.Edge(sqlgraph.M2O, false, survey.ForTable, survey.ForColumn),
+		sqlgraph.Edge(sqlgraph.M2O, true, survey.ForTable, survey.ForColumn),
 	)
 	query.sql = sqlgraph.SetNeighbors(sq.driver.Dialect(), step)
 	return query
@@ -409,7 +409,7 @@ func (sq *SurveyQuery) sqlAll(ctx context.Context) ([]*Survey, error) {
 		ids := make([]uuid.UUID, 0, len(nodes))
 		nodeids := make(map[uuid.UUID][]*Survey)
 		for i := range nodes {
-			if fk := nodes[i].survey_for; fk != nil {
+			if fk := nodes[i].user_surveys; fk != nil {
 				ids = append(ids, *fk)
 				nodeids[*fk] = append(nodeids[*fk], nodes[i])
 			}
@@ -422,7 +422,7 @@ func (sq *SurveyQuery) sqlAll(ctx context.Context) ([]*Survey, error) {
 		for _, n := range neighbors {
 			nodes, ok := nodeids[n.ID]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "survey_for" returned %v`, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "user_surveys" returned %v`, n.ID)
 			}
 			for i := range nodes {
 				nodes[i].Edges.For = n
