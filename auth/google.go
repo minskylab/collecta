@@ -64,6 +64,7 @@ func (collectaAuth *CollectaAuth) startGoogleAuth(callbackURL string) {
 		}
 
 		c.Redirect(http.StatusPermanentRedirect, redirect)
+		c.Header("Collecta-Token", jwtToken)
 	})
 
 }

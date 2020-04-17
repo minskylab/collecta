@@ -23,7 +23,7 @@ func main() {
 	httpEngine.Use(cors.New(cors.Config{
 		AllowOrigins:     []string{"http://localhost:3000", "https://core.collecta.site", "https://utec.collecta.site"},
 		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "HEAD"},
-		AllowHeaders:     []string{"Origin", "Content-Length", "Content-Type"},
+		AllowHeaders:     []string{"Origin", "Content-Length", "Content-Type", "Collecta-Token"},
 		// AllowAllOrigins:  true,
 		// ExposeHeaders:    []string{"Content-Length"},
 		AllowCredentials: true,
