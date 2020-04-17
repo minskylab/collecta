@@ -2,6 +2,7 @@ package collecta
 
 import (
 	"context"
+	"os"
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
@@ -25,7 +26,11 @@ func NewDB(ctx context.Context) (*DB, error) {
 }
 
 func openDBConnection(ctx context.Context) (*ent.Client, error) {
-	drv, err := sql.Open("postgres", "host=localhost port=5432 user=postgres dbname=collecta password=collecta sslmode=disable")
+	databaseDSN := os.Getenv("DATABASE_URL")
+	if databaseDSN == "" {
+		return nil, errors.New("invalid database dsn")
+	}
+	drv, err := sql.Open("postgres", databaseDSN)
 	if err != nil {
 		return nil, errors.Wrap(err, "error at open sql connection")
 	}
