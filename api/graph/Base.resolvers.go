@@ -6,7 +6,9 @@ package graph
 import (
 	"context"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/pkg/errors"
+	log "github.com/sirupsen/logrus"
 
 	"github.com/google/uuid"
 	"github.com/minskylab/collecta/api/graph/generated"
@@ -380,10 +382,13 @@ func (r *userResolver) Contacts(ctx context.Context, obj *model.User) (*model.Co
 }
 
 func (r *userResolver) Surveys(ctx context.Context, obj *model.User) ([]*model.Survey, error) {
+	log.Info("at survey query")
 	e, err := r.DB.Ent.User.Query().
 		Where(user.ID(uuid.MustParse(obj.ID))).
 		QuerySurveys().
 		All(ctx)
+
+	log.Info(spew.Sdump(e))
 
 	if err != nil {
 		return nil, errors.Wrap(err, "error at ent query")
@@ -404,6 +409,8 @@ func (r *userResolver) Surveys(ctx context.Context, obj *model.User) ([]*model.S
 		}
 	}
 
+	log.Info(spew.Sdump(arr))
+	
 	return arr, nil
 }
 
