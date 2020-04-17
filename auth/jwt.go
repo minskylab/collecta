@@ -157,6 +157,8 @@ func (collectaAuth *CollectaAuth) verifyJWTToken(ctx context.Context, tokenStrin
 		return nil, errors.Wrap(err, "error caused by jwt SignedString method")
 	}
 
+	spew.Dump(token)
+	
 	if claims, ok := token.Claims.(jwt.StandardClaims); ok && token.Valid {
 		return collectaAuth.db.Ent.User.Get(ctx, uuid.MustParse(claims.Subject))
 	}
