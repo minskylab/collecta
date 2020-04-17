@@ -2,6 +2,7 @@ package auth
 
 import (
 	"net/http"
+	"net/url"
 
 	"github.com/davecgh/go-spew/spew"
 	"github.com/gin-gonic/gin"
@@ -63,8 +64,16 @@ func (collectaAuth *CollectaAuth) startGoogleAuth(callbackURL string) {
 			return
 		}
 
-		c.Redirect(http.StatusPermanentRedirect, redirect)
-		c.Header("Collecta-Token", jwtToken)
+		u, err := url.Parse(redirect)
+		if err != nil {
+			log.WithError(err).Info("error at parse redirect url")
+			return
+		}
+		params := c.Request.URL.Query()
+		params.Add("token", jwtToken)
+		u.RawQuery = params.Encode()
+
+		c.Redirect(http.StatusPermanentRedirect, u.String())
 	})
 
 }
