@@ -1,6 +1,6 @@
 # Where are all the schema files located? globs are supported eg  src/**/*.graphqls
 schema:
-  - graph/*.graphqls
+  - graph/schema/*.graphqls
 
 # Where should the generated server code go?
 exec:
@@ -46,3 +46,57 @@ models:
   ID:
     model:
       - github.com/99designs/gqlgen/graphql.ID
+  User:
+    fields:
+      accounts:
+        resolver: true
+      contacts:
+        resolver: true
+      surveys:
+        resolver: true
+      domain:
+        resolver: true
+  Survey:
+    fields:
+      flow:
+        resolver: true
+      for:
+        resolver: true
+      owner:
+        resolver: true
+  Domain:
+    fields:
+        surveys:
+          resolver: true
+        users:
+          resolver: true
+  Contact:
+    fields:
+      owner:
+        resolver: true
+  Account:
+    fields:
+      owner:
+        resolver: true
+  Question:
+    fields:
+      answers:
+        resolver: true
+      input:
+        resolver: true
+      flow:
+        resolver: true
+  Input:
+    fields:
+       options:
+         resolver: true
+       question:
+         resolver: true
+  Answer:
+    fields:
+      question:
+        resolver: true
+  Flow:
+    fields:
+      questions:
+        resolver: true

@@ -27,6 +27,8 @@ type UserUpdate struct {
 	username        *string
 	clearusername   bool
 	lastActivity    *time.Time
+	picture         *string
+	clearpicture    bool
 	accounts        map[uuid.UUID]struct{}
 	contacts        map[uuid.UUID]struct{}
 	surveys         map[uuid.UUID]struct{}
@@ -82,6 +84,27 @@ func (uu *UserUpdate) SetNillableLastActivity(t *time.Time) *UserUpdate {
 	if t != nil {
 		uu.SetLastActivity(*t)
 	}
+	return uu
+}
+
+// SetPicture sets the picture field.
+func (uu *UserUpdate) SetPicture(s string) *UserUpdate {
+	uu.picture = &s
+	return uu
+}
+
+// SetNillablePicture sets the picture field if the given value is not nil.
+func (uu *UserUpdate) SetNillablePicture(s *string) *UserUpdate {
+	if s != nil {
+		uu.SetPicture(*s)
+	}
+	return uu
+}
+
+// ClearPicture clears the value of picture.
+func (uu *UserUpdate) ClearPicture() *UserUpdate {
+	uu.picture = nil
+	uu.clearpicture = true
 	return uu
 }
 
@@ -313,6 +336,19 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Column: user.FieldLastActivity,
 		})
 	}
+	if value := uu.picture; value != nil {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: user.FieldPicture,
+		})
+	}
+	if uu.clearpicture {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Column: user.FieldPicture,
+		})
+	}
 	if nodes := uu.removedAccounts; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -481,6 +517,8 @@ type UserUpdateOne struct {
 	username        *string
 	clearusername   bool
 	lastActivity    *time.Time
+	picture         *string
+	clearpicture    bool
 	accounts        map[uuid.UUID]struct{}
 	contacts        map[uuid.UUID]struct{}
 	surveys         map[uuid.UUID]struct{}
@@ -529,6 +567,27 @@ func (uuo *UserUpdateOne) SetNillableLastActivity(t *time.Time) *UserUpdateOne {
 	if t != nil {
 		uuo.SetLastActivity(*t)
 	}
+	return uuo
+}
+
+// SetPicture sets the picture field.
+func (uuo *UserUpdateOne) SetPicture(s string) *UserUpdateOne {
+	uuo.picture = &s
+	return uuo
+}
+
+// SetNillablePicture sets the picture field if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillablePicture(s *string) *UserUpdateOne {
+	if s != nil {
+		uuo.SetPicture(*s)
+	}
+	return uuo
+}
+
+// ClearPicture clears the value of picture.
+func (uuo *UserUpdateOne) ClearPicture() *UserUpdateOne {
+	uuo.picture = nil
+	uuo.clearpicture = true
 	return uuo
 }
 
@@ -752,6 +811,19 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (u *User, err error) {
 			Type:   field.TypeTime,
 			Value:  *value,
 			Column: user.FieldLastActivity,
+		})
+	}
+	if value := uuo.picture; value != nil {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: user.FieldPicture,
+		})
+	}
+	if uuo.clearpicture {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Column: user.FieldPicture,
 		})
 	}
 	if nodes := uuo.removedAccounts; len(nodes) > 0 {

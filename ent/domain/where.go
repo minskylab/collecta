@@ -113,6 +113,13 @@ func Domain(v string) predicate.Domain {
 	})
 }
 
+// CollectaDomain applies equality check predicate on the "collectaDomain" field. It's identical to CollectaDomainEQ.
+func CollectaDomain(v string) predicate.Domain {
+	return predicate.Domain(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldCollectaDomain), v))
+	})
+}
+
 // NameEQ applies the EQ predicate on the "name" field.
 func NameEQ(v string) predicate.Domain {
 	return predicate.Domain(func(s *sql.Selector) {
@@ -443,6 +450,117 @@ func DomainEqualFold(v string) predicate.Domain {
 func DomainContainsFold(v string) predicate.Domain {
 	return predicate.Domain(func(s *sql.Selector) {
 		s.Where(sql.ContainsFold(s.C(FieldDomain), v))
+	})
+}
+
+// CollectaDomainEQ applies the EQ predicate on the "collectaDomain" field.
+func CollectaDomainEQ(v string) predicate.Domain {
+	return predicate.Domain(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldCollectaDomain), v))
+	})
+}
+
+// CollectaDomainNEQ applies the NEQ predicate on the "collectaDomain" field.
+func CollectaDomainNEQ(v string) predicate.Domain {
+	return predicate.Domain(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldCollectaDomain), v))
+	})
+}
+
+// CollectaDomainIn applies the In predicate on the "collectaDomain" field.
+func CollectaDomainIn(vs ...string) predicate.Domain {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Domain(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(vs) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.In(s.C(FieldCollectaDomain), v...))
+	})
+}
+
+// CollectaDomainNotIn applies the NotIn predicate on the "collectaDomain" field.
+func CollectaDomainNotIn(vs ...string) predicate.Domain {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Domain(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(vs) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.NotIn(s.C(FieldCollectaDomain), v...))
+	})
+}
+
+// CollectaDomainGT applies the GT predicate on the "collectaDomain" field.
+func CollectaDomainGT(v string) predicate.Domain {
+	return predicate.Domain(func(s *sql.Selector) {
+		s.Where(sql.GT(s.C(FieldCollectaDomain), v))
+	})
+}
+
+// CollectaDomainGTE applies the GTE predicate on the "collectaDomain" field.
+func CollectaDomainGTE(v string) predicate.Domain {
+	return predicate.Domain(func(s *sql.Selector) {
+		s.Where(sql.GTE(s.C(FieldCollectaDomain), v))
+	})
+}
+
+// CollectaDomainLT applies the LT predicate on the "collectaDomain" field.
+func CollectaDomainLT(v string) predicate.Domain {
+	return predicate.Domain(func(s *sql.Selector) {
+		s.Where(sql.LT(s.C(FieldCollectaDomain), v))
+	})
+}
+
+// CollectaDomainLTE applies the LTE predicate on the "collectaDomain" field.
+func CollectaDomainLTE(v string) predicate.Domain {
+	return predicate.Domain(func(s *sql.Selector) {
+		s.Where(sql.LTE(s.C(FieldCollectaDomain), v))
+	})
+}
+
+// CollectaDomainContains applies the Contains predicate on the "collectaDomain" field.
+func CollectaDomainContains(v string) predicate.Domain {
+	return predicate.Domain(func(s *sql.Selector) {
+		s.Where(sql.Contains(s.C(FieldCollectaDomain), v))
+	})
+}
+
+// CollectaDomainHasPrefix applies the HasPrefix predicate on the "collectaDomain" field.
+func CollectaDomainHasPrefix(v string) predicate.Domain {
+	return predicate.Domain(func(s *sql.Selector) {
+		s.Where(sql.HasPrefix(s.C(FieldCollectaDomain), v))
+	})
+}
+
+// CollectaDomainHasSuffix applies the HasSuffix predicate on the "collectaDomain" field.
+func CollectaDomainHasSuffix(v string) predicate.Domain {
+	return predicate.Domain(func(s *sql.Selector) {
+		s.Where(sql.HasSuffix(s.C(FieldCollectaDomain), v))
+	})
+}
+
+// CollectaDomainEqualFold applies the EqualFold predicate on the "collectaDomain" field.
+func CollectaDomainEqualFold(v string) predicate.Domain {
+	return predicate.Domain(func(s *sql.Selector) {
+		s.Where(sql.EqualFold(s.C(FieldCollectaDomain), v))
+	})
+}
+
+// CollectaDomainContainsFold applies the ContainsFold predicate on the "collectaDomain" field.
+func CollectaDomainContainsFold(v string) predicate.Domain {
+	return predicate.Domain(func(s *sql.Selector) {
+		s.Where(sql.ContainsFold(s.C(FieldCollectaDomain), v))
 	})
 }
 

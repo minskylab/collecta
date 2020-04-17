@@ -21,6 +21,7 @@ func (User) Fields() []ent.Field {
 		field.String("name").NotEmpty(),
 		field.String("username").Optional(),
 		field.Time("lastActivity").Default(time.Now),
+		field.String("picture").Optional(),
 	}
 }
 

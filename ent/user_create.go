@@ -25,6 +25,7 @@ type UserCreate struct {
 	name         *string
 	username     *string
 	lastActivity *time.Time
+	picture      *string
 	accounts     map[uuid.UUID]struct{}
 	contacts     map[uuid.UUID]struct{}
 	surveys      map[uuid.UUID]struct{}
@@ -61,6 +62,20 @@ func (uc *UserCreate) SetLastActivity(t time.Time) *UserCreate {
 func (uc *UserCreate) SetNillableLastActivity(t *time.Time) *UserCreate {
 	if t != nil {
 		uc.SetLastActivity(*t)
+	}
+	return uc
+}
+
+// SetPicture sets the picture field.
+func (uc *UserCreate) SetPicture(s string) *UserCreate {
+	uc.picture = &s
+	return uc
+}
+
+// SetNillablePicture sets the picture field if the given value is not nil.
+func (uc *UserCreate) SetNillablePicture(s *string) *UserCreate {
+	if s != nil {
+		uc.SetPicture(*s)
 	}
 	return uc
 }
@@ -218,6 +233,14 @@ func (uc *UserCreate) sqlSave(ctx context.Context) (*User, error) {
 			Column: user.FieldLastActivity,
 		})
 		u.LastActivity = *value
+	}
+	if value := uc.picture; value != nil {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: user.FieldPicture,
+		})
+		u.Picture = *value
 	}
 	if nodes := uc.accounts; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

@@ -20,6 +20,7 @@ func (Domain) Fields() []ent.Field {
 		field.String("name").NotEmpty(),
 		field.String("email").NotEmpty().Unique(),
 		field.String("domain").Unique(),
+		field.String("collectaDomain").Unique(),
 	}
 }
 

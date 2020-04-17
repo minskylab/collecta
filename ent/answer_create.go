@@ -12,13 +12,12 @@ import (
 	"github.com/google/uuid"
 	"github.com/minskylab/collecta/ent/answer"
 	"github.com/minskylab/collecta/ent/question"
-	"github.com/rs/xid"
 )
 
 // AnswerCreate is the builder for creating a Answer entity.
 type AnswerCreate struct {
 	config
-	id        *xid.ID
+	id        *uuid.UUID
 	at        *time.Time
 	responses *[]string
 	valid     *bool
@@ -28,6 +27,14 @@ type AnswerCreate struct {
 // SetAt sets the at field.
 func (ac *AnswerCreate) SetAt(t time.Time) *AnswerCreate {
 	ac.at = &t
+	return ac
+}
+
+// SetNillableAt sets the at field if the given value is not nil.
+func (ac *AnswerCreate) SetNillableAt(t *time.Time) *AnswerCreate {
+	if t != nil {
+		ac.SetAt(*t)
+	}
 	return ac
 }
 
@@ -52,8 +59,8 @@ func (ac *AnswerCreate) SetNillableValid(b *bool) *AnswerCreate {
 }
 
 // SetID sets the id field.
-func (ac *AnswerCreate) SetID(x xid.ID) *AnswerCreate {
-	ac.id = &x
+func (ac *AnswerCreate) SetID(u uuid.UUID) *AnswerCreate {
+	ac.id = &u
 	return ac
 }
 
@@ -74,7 +81,8 @@ func (ac *AnswerCreate) SetQuestion(q *Question) *AnswerCreate {
 // Save creates the Answer in the database.
 func (ac *AnswerCreate) Save(ctx context.Context) (*Answer, error) {
 	if ac.at == nil {
-		return nil, errors.New("ent: missing required field \"at\"")
+		v := answer.DefaultAt()
+		ac.at = &v
 	}
 	if ac.responses == nil {
 		return nil, errors.New("ent: missing required field \"responses\"")

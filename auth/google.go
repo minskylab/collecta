@@ -20,6 +20,7 @@ func (collectaAuth *CollectaAuth) startGoogleAuth(callbackURL string) {
 		google.New(clientID, secretKey, callbackURL),
 	)
 
+
 	r := collectaAuth.mainRouter.Group("/auth")
 
 	r.GET("/google", func(c *gin.Context) {
@@ -39,14 +40,22 @@ func (collectaAuth *CollectaAuth) startGoogleAuth(callbackURL string) {
 		modQuery := c.Request.URL.Query()
 		modQuery.Add("provider", "google")
 		c.Request.URL.RawQuery = modQuery.Encode()
+
 		user, err := gothic.CompleteUserAuth(c.Writer, c.Request)
 		if err != nil {
 			log.WithError(err).Info("fail at complete google user auth")
 			return
 		}
+		// TODO: Verify the correctness of the google auth token
 		log.Info(user)
+		jwtToken, err := collectaAuth.ingressWithGoogle(c, user)
+		if err != nil {
+			log.WithError(err).Info("error at try to ingress with user")
+		}
 
-		redirect, err := collectaAuth.callbackMatcher(user)
+		c.Header("Collecta-Token", jwtToken)
+
+		redirect, err := collectaAuth.matchGoogleUserWithCollectaDomain(c, user)
 		if err != nil {
 			log.WithError(err).Info("error at try to create a redirect link")
 			c.Redirect(http.StatusPermanentRedirect, "/")

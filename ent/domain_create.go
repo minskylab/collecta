@@ -18,13 +18,14 @@ import (
 // DomainCreate is the builder for creating a Domain entity.
 type DomainCreate struct {
 	config
-	id      *uuid.UUID
-	tags    *[]string
-	name    *string
-	email   *string
-	domain  *string
-	surveys map[uuid.UUID]struct{}
-	users   map[uuid.UUID]struct{}
+	id             *uuid.UUID
+	tags           *[]string
+	name           *string
+	email          *string
+	domain         *string
+	collectaDomain *string
+	surveys        map[uuid.UUID]struct{}
+	users          map[uuid.UUID]struct{}
 }
 
 // SetTags sets the tags field.
@@ -48,6 +49,12 @@ func (dc *DomainCreate) SetEmail(s string) *DomainCreate {
 // SetDomain sets the domain field.
 func (dc *DomainCreate) SetDomain(s string) *DomainCreate {
 	dc.domain = &s
+	return dc
+}
+
+// SetCollectaDomain sets the collectaDomain field.
+func (dc *DomainCreate) SetCollectaDomain(s string) *DomainCreate {
+	dc.collectaDomain = &s
 	return dc
 }
 
@@ -117,6 +124,9 @@ func (dc *DomainCreate) Save(ctx context.Context) (*Domain, error) {
 	if dc.domain == nil {
 		return nil, errors.New("ent: missing required field \"domain\"")
 	}
+	if dc.collectaDomain == nil {
+		return nil, errors.New("ent: missing required field \"collectaDomain\"")
+	}
 	return dc.sqlSave(ctx)
 }
 
@@ -175,6 +185,14 @@ func (dc *DomainCreate) sqlSave(ctx context.Context) (*Domain, error) {
 			Column: domain.FieldDomain,
 		})
 		d.Domain = *value
+	}
+	if value := dc.collectaDomain; value != nil {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: domain.FieldCollectaDomain,
+		})
+		d.CollectaDomain = *value
 	}
 	if nodes := dc.surveys; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

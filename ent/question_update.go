@@ -16,7 +16,6 @@ import (
 	"github.com/minskylab/collecta/ent/input"
 	"github.com/minskylab/collecta/ent/predicate"
 	"github.com/minskylab/collecta/ent/question"
-	"github.com/rs/xid"
 )
 
 // QuestionUpdate is the builder for updating Question entities.
@@ -28,10 +27,10 @@ type QuestionUpdate struct {
 	metadata       *map[string]string
 	clearmetadata  bool
 	anonymous      *bool
-	answers        map[xid.ID]struct{}
+	answers        map[uuid.UUID]struct{}
 	input          map[uuid.UUID]struct{}
 	flow           map[uuid.UUID]struct{}
-	removedAnswers map[xid.ID]struct{}
+	removedAnswers map[uuid.UUID]struct{}
 	clearedInput   bool
 	clearedFlow    bool
 	predicates     []predicate.Question
@@ -89,9 +88,9 @@ func (qu *QuestionUpdate) SetNillableAnonymous(b *bool) *QuestionUpdate {
 }
 
 // AddAnswerIDs adds the answers edge to Answer by ids.
-func (qu *QuestionUpdate) AddAnswerIDs(ids ...xid.ID) *QuestionUpdate {
+func (qu *QuestionUpdate) AddAnswerIDs(ids ...uuid.UUID) *QuestionUpdate {
 	if qu.answers == nil {
-		qu.answers = make(map[xid.ID]struct{})
+		qu.answers = make(map[uuid.UUID]struct{})
 	}
 	for i := range ids {
 		qu.answers[ids[i]] = struct{}{}
@@ -101,7 +100,7 @@ func (qu *QuestionUpdate) AddAnswerIDs(ids ...xid.ID) *QuestionUpdate {
 
 // AddAnswers adds the answers edges to Answer.
 func (qu *QuestionUpdate) AddAnswers(a ...*Answer) *QuestionUpdate {
-	ids := make([]xid.ID, len(a))
+	ids := make([]uuid.UUID, len(a))
 	for i := range a {
 		ids[i] = a[i].ID
 	}
@@ -153,9 +152,9 @@ func (qu *QuestionUpdate) SetFlow(f *Flow) *QuestionUpdate {
 }
 
 // RemoveAnswerIDs removes the answers edge to Answer by ids.
-func (qu *QuestionUpdate) RemoveAnswerIDs(ids ...xid.ID) *QuestionUpdate {
+func (qu *QuestionUpdate) RemoveAnswerIDs(ids ...uuid.UUID) *QuestionUpdate {
 	if qu.removedAnswers == nil {
-		qu.removedAnswers = make(map[xid.ID]struct{})
+		qu.removedAnswers = make(map[uuid.UUID]struct{})
 	}
 	for i := range ids {
 		qu.removedAnswers[ids[i]] = struct{}{}
@@ -165,7 +164,7 @@ func (qu *QuestionUpdate) RemoveAnswerIDs(ids ...xid.ID) *QuestionUpdate {
 
 // RemoveAnswers removes answers edges to Answer.
 func (qu *QuestionUpdate) RemoveAnswers(a ...*Answer) *QuestionUpdate {
-	ids := make([]xid.ID, len(a))
+	ids := make([]uuid.UUID, len(a))
 	for i := range a {
 		ids[i] = a[i].ID
 	}
@@ -410,10 +409,10 @@ type QuestionUpdateOne struct {
 	metadata       *map[string]string
 	clearmetadata  bool
 	anonymous      *bool
-	answers        map[xid.ID]struct{}
+	answers        map[uuid.UUID]struct{}
 	input          map[uuid.UUID]struct{}
 	flow           map[uuid.UUID]struct{}
-	removedAnswers map[xid.ID]struct{}
+	removedAnswers map[uuid.UUID]struct{}
 	clearedInput   bool
 	clearedFlow    bool
 }
@@ -464,9 +463,9 @@ func (quo *QuestionUpdateOne) SetNillableAnonymous(b *bool) *QuestionUpdateOne {
 }
 
 // AddAnswerIDs adds the answers edge to Answer by ids.
-func (quo *QuestionUpdateOne) AddAnswerIDs(ids ...xid.ID) *QuestionUpdateOne {
+func (quo *QuestionUpdateOne) AddAnswerIDs(ids ...uuid.UUID) *QuestionUpdateOne {
 	if quo.answers == nil {
-		quo.answers = make(map[xid.ID]struct{})
+		quo.answers = make(map[uuid.UUID]struct{})
 	}
 	for i := range ids {
 		quo.answers[ids[i]] = struct{}{}
@@ -476,7 +475,7 @@ func (quo *QuestionUpdateOne) AddAnswerIDs(ids ...xid.ID) *QuestionUpdateOne {
 
 // AddAnswers adds the answers edges to Answer.
 func (quo *QuestionUpdateOne) AddAnswers(a ...*Answer) *QuestionUpdateOne {
-	ids := make([]xid.ID, len(a))
+	ids := make([]uuid.UUID, len(a))
 	for i := range a {
 		ids[i] = a[i].ID
 	}
@@ -528,9 +527,9 @@ func (quo *QuestionUpdateOne) SetFlow(f *Flow) *QuestionUpdateOne {
 }
 
 // RemoveAnswerIDs removes the answers edge to Answer by ids.
-func (quo *QuestionUpdateOne) RemoveAnswerIDs(ids ...xid.ID) *QuestionUpdateOne {
+func (quo *QuestionUpdateOne) RemoveAnswerIDs(ids ...uuid.UUID) *QuestionUpdateOne {
 	if quo.removedAnswers == nil {
-		quo.removedAnswers = make(map[xid.ID]struct{})
+		quo.removedAnswers = make(map[uuid.UUID]struct{})
 	}
 	for i := range ids {
 		quo.removedAnswers[ids[i]] = struct{}{}
@@ -540,7 +539,7 @@ func (quo *QuestionUpdateOne) RemoveAnswerIDs(ids ...xid.ID) *QuestionUpdateOne 
 
 // RemoveAnswers removes answers edges to Answer.
 func (quo *QuestionUpdateOne) RemoveAnswers(a ...*Answer) *QuestionUpdateOne {
-	ids := make([]xid.ID, len(a))
+	ids := make([]uuid.UUID, len(a))
 	for i := range a {
 		ids[i] = a[i].ID
 	}

@@ -25,6 +25,8 @@ type Domain struct {
 	Email string `json:"email,omitempty"`
 	// Domain holds the value of the "domain" field.
 	Domain string `json:"domain,omitempty"`
+	// CollectaDomain holds the value of the "collectaDomain" field.
+	CollectaDomain string `json:"collectaDomain,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the DomainQuery when eager-loading is set.
 	Edges DomainEdges `json:"edges"`
@@ -67,6 +69,7 @@ func (*Domain) scanValues() []interface{} {
 		&sql.NullString{}, // name
 		&sql.NullString{}, // email
 		&sql.NullString{}, // domain
+		&sql.NullString{}, // collectaDomain
 	}
 }
 
@@ -104,6 +107,11 @@ func (d *Domain) assignValues(values ...interface{}) error {
 		return fmt.Errorf("unexpected type %T for field domain", values[3])
 	} else if value.Valid {
 		d.Domain = value.String
+	}
+	if value, ok := values[4].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field collectaDomain", values[4])
+	} else if value.Valid {
+		d.CollectaDomain = value.String
 	}
 	return nil
 }
@@ -149,6 +157,8 @@ func (d *Domain) String() string {
 	builder.WriteString(d.Email)
 	builder.WriteString(", domain=")
 	builder.WriteString(d.Domain)
+	builder.WriteString(", collectaDomain=")
+	builder.WriteString(d.CollectaDomain)
 	builder.WriteByte(')')
 	return builder.String()
 }

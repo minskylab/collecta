@@ -34,13 +34,14 @@ type Contact struct {
 }
 
 type Domain struct {
-	ID      string    `json:"id"`
-	Tags    []string  `json:"tags"`
-	Name    string    `json:"name"`
-	Email   string    `json:"email"`
-	Domain  string    `json:"domain"`
-	Surveys []*Survey `json:"surveys"`
-	Users   []*User   `json:"users"`
+	ID             string    `json:"id"`
+	Tags           []string  `json:"tags"`
+	Name           string    `json:"name"`
+	Email          string    `json:"email"`
+	Domain         string    `json:"domain"`
+	CollectaDomain string    `json:"collectaDomain"`
+	Surveys        []*Survey `json:"surveys"`
+	Users          []*User   `json:"users"`
 }
 
 type Flow struct {
@@ -72,6 +73,11 @@ type Question struct {
 	Flow        *Flow                  `json:"flow"`
 }
 
+type QuestionResponse struct {
+	ID     string   `json:"id"`
+	Answer []string `json:"answer"`
+}
+
 type Survey struct {
 	ID              string                 `json:"id"`
 	Tags            []string               `json:"tags"`
@@ -91,8 +97,9 @@ type User struct {
 	Name         string    `json:"name"`
 	Username     string    `json:"username"`
 	LastActivity time.Time `json:"lastActivity"`
+	Picture      string    `json:"picture"`
 	Accounts     *Account  `json:"accounts"`
 	Contacts     *Contact  `json:"contacts"`
-	Survey       *Survey   `json:"survey"`
+	Surveys      []*Survey `json:"surveys"`
 	Domain       *Domain   `json:"domain"`
 }

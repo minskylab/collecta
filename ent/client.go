@@ -9,7 +9,6 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/minskylab/collecta/ent/migrate"
-	"github.com/rs/xid"
 
 	"github.com/minskylab/collecta/ent/account"
 	"github.com/minskylab/collecta/ent/answer"
@@ -258,7 +257,7 @@ func (c *AnswerClient) UpdateOne(a *Answer) *AnswerUpdateOne {
 }
 
 // UpdateOneID returns an update builder for the given id.
-func (c *AnswerClient) UpdateOneID(id xid.ID) *AnswerUpdateOne {
+func (c *AnswerClient) UpdateOneID(id uuid.UUID) *AnswerUpdateOne {
 	return &AnswerUpdateOne{config: c.config, id: id}
 }
 
@@ -273,7 +272,7 @@ func (c *AnswerClient) DeleteOne(a *Answer) *AnswerDeleteOne {
 }
 
 // DeleteOneID returns a delete builder for the given id.
-func (c *AnswerClient) DeleteOneID(id xid.ID) *AnswerDeleteOne {
+func (c *AnswerClient) DeleteOneID(id uuid.UUID) *AnswerDeleteOne {
 	return &AnswerDeleteOne{c.Delete().Where(answer.ID(id))}
 }
 
@@ -283,12 +282,12 @@ func (c *AnswerClient) Query() *AnswerQuery {
 }
 
 // Get returns a Answer entity by its id.
-func (c *AnswerClient) Get(ctx context.Context, id xid.ID) (*Answer, error) {
+func (c *AnswerClient) Get(ctx context.Context, id uuid.UUID) (*Answer, error) {
 	return c.Query().Where(answer.ID(id)).Only(ctx)
 }
 
 // GetX is like Get, but panics if an error occurs.
-func (c *AnswerClient) GetX(ctx context.Context, id xid.ID) *Answer {
+func (c *AnswerClient) GetX(ctx context.Context, id uuid.UUID) *Answer {
 	a, err := c.Get(ctx, id)
 	if err != nil {
 		panic(err)

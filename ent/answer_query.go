@@ -15,7 +15,6 @@ import (
 	"github.com/minskylab/collecta/ent/answer"
 	"github.com/minskylab/collecta/ent/predicate"
 	"github.com/minskylab/collecta/ent/question"
-	"github.com/rs/xid"
 )
 
 // AnswerQuery is the builder for querying Answer entities.
@@ -91,8 +90,8 @@ func (aq *AnswerQuery) FirstX(ctx context.Context) *Answer {
 }
 
 // FirstID returns the first Answer id in the query. Returns *NotFoundError when no id was found.
-func (aq *AnswerQuery) FirstID(ctx context.Context) (id xid.ID, err error) {
-	var ids []xid.ID
+func (aq *AnswerQuery) FirstID(ctx context.Context) (id uuid.UUID, err error) {
+	var ids []uuid.UUID
 	if ids, err = aq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
@@ -104,7 +103,7 @@ func (aq *AnswerQuery) FirstID(ctx context.Context) (id xid.ID, err error) {
 }
 
 // FirstXID is like FirstID, but panics if an error occurs.
-func (aq *AnswerQuery) FirstXID(ctx context.Context) xid.ID {
+func (aq *AnswerQuery) FirstXID(ctx context.Context) uuid.UUID {
 	id, err := aq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -138,8 +137,8 @@ func (aq *AnswerQuery) OnlyX(ctx context.Context) *Answer {
 }
 
 // OnlyID returns the only Answer id in the query, returns an error if not exactly one id was returned.
-func (aq *AnswerQuery) OnlyID(ctx context.Context) (id xid.ID, err error) {
-	var ids []xid.ID
+func (aq *AnswerQuery) OnlyID(ctx context.Context) (id uuid.UUID, err error) {
+	var ids []uuid.UUID
 	if ids, err = aq.Limit(2).IDs(ctx); err != nil {
 		return
 	}
@@ -155,7 +154,7 @@ func (aq *AnswerQuery) OnlyID(ctx context.Context) (id xid.ID, err error) {
 }
 
 // OnlyXID is like OnlyID, but panics if an error occurs.
-func (aq *AnswerQuery) OnlyXID(ctx context.Context) xid.ID {
+func (aq *AnswerQuery) OnlyXID(ctx context.Context) uuid.UUID {
 	id, err := aq.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -178,8 +177,8 @@ func (aq *AnswerQuery) AllX(ctx context.Context) []*Answer {
 }
 
 // IDs executes the query and returns a list of Answer ids.
-func (aq *AnswerQuery) IDs(ctx context.Context) ([]xid.ID, error) {
-	var ids []xid.ID
+func (aq *AnswerQuery) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	var ids []uuid.UUID
 	if err := aq.Select(answer.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
@@ -187,7 +186,7 @@ func (aq *AnswerQuery) IDs(ctx context.Context) ([]xid.ID, error) {
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (aq *AnswerQuery) IDsX(ctx context.Context) []xid.ID {
+func (aq *AnswerQuery) IDsX(ctx context.Context) []uuid.UUID {
 	ids, err := aq.IDs(ctx)
 	if err != nil {
 		panic(err)

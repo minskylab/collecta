@@ -5,6 +5,7 @@ go 1.14
 require (
 	github.com/99designs/gqlgen v0.11.3
 	github.com/davecgh/go-spew v1.1.1
+	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/facebookincubator/ent v0.1.4
 	github.com/gin-gonic/gin v1.6.2
 	github.com/google/uuid v1.1.1

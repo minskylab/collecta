@@ -6,9 +6,10 @@ type User {
     name: String!
     username: String!
     lastActivity: Time!
+    picture: String!
     accounts: Account!
     contacts: Contact!
-    survey: Survey!
+    surveys: [Survey!]!
     domain: Domain!
 }
 
@@ -32,6 +33,7 @@ type Domain {
     name: String!
     email: String!
     domain: String!
+    collectaDomain: String!
     surveys: [Survey!]!
     users: [User!]!
 }

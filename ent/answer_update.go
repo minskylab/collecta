@@ -13,7 +13,6 @@ import (
 	"github.com/minskylab/collecta/ent/answer"
 	"github.com/minskylab/collecta/ent/predicate"
 	"github.com/minskylab/collecta/ent/question"
-	"github.com/rs/xid"
 )
 
 // AnswerUpdate is the builder for updating Answer entities.
@@ -187,7 +186,7 @@ func (au *AnswerUpdate) sqlSave(ctx context.Context) (n int, err error) {
 // AnswerUpdateOne is the builder for updating a single Answer entity.
 type AnswerUpdateOne struct {
 	config
-	id xid.ID
+	id uuid.UUID
 
 	valid           *bool
 	clearvalid      bool

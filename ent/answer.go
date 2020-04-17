@@ -12,14 +12,13 @@ import (
 	"github.com/google/uuid"
 	"github.com/minskylab/collecta/ent/answer"
 	"github.com/minskylab/collecta/ent/question"
-	"github.com/rs/xid"
 )
 
 // Answer is the model entity for the Answer schema.
 type Answer struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID xid.ID `json:"id,omitempty"`
+	ID uuid.UUID `json:"id,omitempty"`
 	// At holds the value of the "at" field.
 	At time.Time `json:"at,omitempty"`
 	// Responses holds the value of the "responses" field.
@@ -58,7 +57,7 @@ func (e AnswerEdges) QuestionOrErr() (*Question, error) {
 // scanValues returns the types for scanning values from sql.Rows.
 func (*Answer) scanValues() []interface{} {
 	return []interface{}{
-		&xid.ID{},       // id
+		&uuid.UUID{},    // id
 		&sql.NullTime{}, // at
 		&[]byte{},       // responses
 		&sql.NullBool{}, // valid
@@ -78,7 +77,7 @@ func (a *Answer) assignValues(values ...interface{}) error {
 	if m, n := len(values), len(answer.Columns); m < n {
 		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
-	if value, ok := values[0].(*xid.ID); !ok {
+	if value, ok := values[0].(*uuid.UUID); !ok {
 		return fmt.Errorf("unexpected type %T for field id", values[0])
 	} else if value != nil {
 		a.ID = *value

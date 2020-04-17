@@ -23,6 +23,7 @@ type DomainUpdate struct {
 	name           *string
 	email          *string
 	domain         *string
+	collectaDomain *string
 	surveys        map[uuid.UUID]struct{}
 	users          map[uuid.UUID]struct{}
 	removedSurveys map[uuid.UUID]struct{}
@@ -57,6 +58,12 @@ func (du *DomainUpdate) SetEmail(s string) *DomainUpdate {
 // SetDomain sets the domain field.
 func (du *DomainUpdate) SetDomain(s string) *DomainUpdate {
 	du.domain = &s
+	return du
+}
+
+// SetCollectaDomain sets the collectaDomain field.
+func (du *DomainUpdate) SetCollectaDomain(s string) *DomainUpdate {
+	du.collectaDomain = &s
 	return du
 }
 
@@ -223,6 +230,13 @@ func (du *DomainUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Column: domain.FieldDomain,
 		})
 	}
+	if value := du.collectaDomain; value != nil {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: domain.FieldCollectaDomain,
+		})
+	}
 	if nodes := du.removedSurveys; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -318,6 +332,7 @@ type DomainUpdateOne struct {
 	name           *string
 	email          *string
 	domain         *string
+	collectaDomain *string
 	surveys        map[uuid.UUID]struct{}
 	users          map[uuid.UUID]struct{}
 	removedSurveys map[uuid.UUID]struct{}
@@ -345,6 +360,12 @@ func (duo *DomainUpdateOne) SetEmail(s string) *DomainUpdateOne {
 // SetDomain sets the domain field.
 func (duo *DomainUpdateOne) SetDomain(s string) *DomainUpdateOne {
 	duo.domain = &s
+	return duo
+}
+
+// SetCollectaDomain sets the collectaDomain field.
+func (duo *DomainUpdateOne) SetCollectaDomain(s string) *DomainUpdateOne {
+	duo.collectaDomain = &s
 	return duo
 }
 
@@ -503,6 +524,13 @@ func (duo *DomainUpdateOne) sqlSave(ctx context.Context) (d *Domain, err error) 
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: domain.FieldDomain,
+		})
+	}
+	if value := duo.collectaDomain; value != nil {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: domain.FieldCollectaDomain,
 		})
 	}
 	if nodes := duo.removedSurveys; len(nodes) > 0 {

@@ -19,6 +19,8 @@ const (
 	FieldEmail = "email"
 	// FieldDomain holds the string denoting the domain vertex property in the database.
 	FieldDomain = "domain"
+	// FieldCollectaDomain holds the string denoting the collectadomain vertex property in the database.
+	FieldCollectaDomain = "collecta_domain"
 
 	// Table holds the table name of the domain in the database.
 	Table = "domains"
@@ -45,6 +47,7 @@ var Columns = []string{
 	FieldName,
 	FieldEmail,
 	FieldDomain,
+	FieldCollectaDomain,
 }
 
 var (

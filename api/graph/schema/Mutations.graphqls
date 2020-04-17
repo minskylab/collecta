@@ -1,0 +1,8 @@
+type Mutation {
+    answerQuestion(input: QuestionResponse): Survey!
+}
+
+input QuestionResponse {
+    id: ID!
+    answer: [String!]!
+}

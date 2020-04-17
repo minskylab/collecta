@@ -3,12 +3,15 @@ package main
 import (
 	"context"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"github.com/minskylab/collecta"
 	"github.com/minskylab/collecta/api"
 	"github.com/minskylab/collecta/auth"
 	"github.com/minskylab/collecta/config"
 	"github.com/pkg/errors"
+	log "github.com/sirupsen/logrus"
 )
 
 func main() {
@@ -18,30 +21,32 @@ func main() {
 
 	httpEngine := gin.New()
 
-	collectaAuth, err := auth.New(httpEngine)
-	if err != nil {
-		panic(errors.Cause(err))
-	}
-
-	collectaAuth.RegisterCallback("https://core.collecta.site")
 
 	db, err := collecta.NewDB(context.Background())
 	if err != nil {
 		panic(errors.Cause(err))
 	}
 
+	collectaAuth, err := auth.New(httpEngine, db)
+	if err != nil {
+		panic(errors.Cause(err))
+	}
+
+	collectaAuth.RegisterCallback("https://core.collecta.site")
+
 	api.RegisterGraphQLHandlers(httpEngine, db)
 
-	// utec, err := db.Ent.Debug().Domain.Create().
-	// 	SetID(uuid.New()).
-	// 	SetDomain("utec.collecta.site").
-	// 	SetName("UTEC").
-	// 	SetTags([]string{"utec", "academic", "university"}).
-	// 	SetEmail("contacto@utec.edu.pe").
-	// 	Save(context.Background())
-	// if err != nil {
-	// 	panic(errors.Cause(err))
-	// }
+	utec, err := db.Ent.Debug().Domain.Create().
+		SetID(uuid.New()).
+		SetDomain("utec.collecta.site").
+		SetName("UTEC").
+		SetTags([]string{"utec", "academic", "university"}).
+		SetEmail("contacto@utec.edu.pe").
+		SetCollectaDomain("https://utec.collecta.site").
+		Save(context.Background())
+	if err != nil {
+		log.Error(errors.Cause(err))
+	}
 
 	// user, err := db.Ent.Debug().User.Create().
 	// 	SetID(uuid.New()).
@@ -53,7 +58,7 @@ func main() {
 	// 	panic(errors.Cause(err))
 	// }
 
-	// spew.Dump(user)
+	spew.Dump(utec)
 
 	if err = httpEngine.Run(":8080"); err != nil {
 		panic(errors.Cause(err))

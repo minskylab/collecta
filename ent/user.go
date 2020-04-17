@@ -24,6 +24,8 @@ type User struct {
 	Username string `json:"username,omitempty"`
 	// LastActivity holds the value of the "lastActivity" field.
 	LastActivity time.Time `json:"lastActivity,omitempty"`
+	// Picture holds the value of the "picture" field.
+	Picture string `json:"picture,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the UserQuery when eager-loading is set.
 	Edges        UserEdges `json:"edges"`
@@ -93,6 +95,7 @@ func (*User) scanValues() []interface{} {
 		&sql.NullString{}, // name
 		&sql.NullString{}, // username
 		&sql.NullTime{},   // lastActivity
+		&sql.NullString{}, // picture
 	}
 }
 
@@ -130,7 +133,12 @@ func (u *User) assignValues(values ...interface{}) error {
 	} else if value.Valid {
 		u.LastActivity = value.Time
 	}
-	values = values[3:]
+	if value, ok := values[3].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field picture", values[3])
+	} else if value.Valid {
+		u.Picture = value.String
+	}
+	values = values[4:]
 	if len(values) == len(user.ForeignKeys) {
 		if value, ok := values[0].(*uuid.UUID); !ok {
 			return fmt.Errorf("unexpected type %T for field domain_users", values[0])
@@ -190,6 +198,8 @@ func (u *User) String() string {
 	builder.WriteString(u.Username)
 	builder.WriteString(", lastActivity=")
 	builder.WriteString(u.LastActivity.Format(time.ANSIC))
+	builder.WriteString(", picture=")
+	builder.WriteString(u.Picture)
 	builder.WriteByte(')')
 	return builder.String()
 }

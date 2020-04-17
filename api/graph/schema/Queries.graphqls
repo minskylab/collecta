@@ -1,0 +1,8 @@
+type Query {
+    domain(id: ID!): Domain!
+    survey(id: ID!): Survey!
+    question(id: ID!): Question!
+    user(id: ID!): User!
+
+    lastQuestionOfSurvey(id: ID!): Question!
+}

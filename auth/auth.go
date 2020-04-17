@@ -4,18 +4,17 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
+	"github.com/minskylab/collecta"
 	log "github.com/sirupsen/logrus"
-
-	"github.com/markbates/goth"
 )
 
 type CollectaAuth struct {
 	mainRouter      *gin.Engine
-	callbackMatcher func(user goth.User) (string, error)
+	db *collecta.DB
 }
 
-func New(engine *gin.Engine) (*CollectaAuth, error) {
-	return &CollectaAuth{mainRouter: engine}, nil
+func New(engine *gin.Engine, db *collecta.DB) (*CollectaAuth, error) {
+	return &CollectaAuth{mainRouter: engine, db: db}, nil
 }
 
 func (collectaAuth *CollectaAuth) RegisterCallback(host string) {

@@ -2,6 +2,12 @@
 
 package answer
 
+import (
+	"time"
+
+	"github.com/minskylab/collecta/ent/schema"
+)
+
 const (
 	// Label holds the string label denoting the answer type in the database.
 	Label = "answer"
@@ -37,3 +43,12 @@ var Columns = []string{
 var ForeignKeys = []string{
 	"question_answers",
 }
+
+var (
+	fields = schema.Answer{}.Fields()
+
+	// descAt is the schema descriptor for at field.
+	descAt = fields[1].Descriptor()
+	// DefaultAt holds the default value on creation for the at field.
+	DefaultAt = descAt.Default.(func() time.Time)
+)

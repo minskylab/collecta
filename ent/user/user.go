@@ -19,6 +19,8 @@ const (
 	FieldUsername = "username"
 	// FieldLastActivity holds the string denoting the lastactivity vertex property in the database.
 	FieldLastActivity = "last_activity"
+	// FieldPicture holds the string denoting the picture vertex property in the database.
+	FieldPicture = "picture"
 
 	// Table holds the table name of the user in the database.
 	Table = "users"
@@ -58,6 +60,7 @@ var Columns = []string{
 	FieldName,
 	FieldUsername,
 	FieldLastActivity,
+	FieldPicture,
 }
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the User type.

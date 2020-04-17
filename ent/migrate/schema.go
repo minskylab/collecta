@@ -103,6 +103,7 @@ var (
 		{Name: "name", Type: field.TypeString},
 		{Name: "email", Type: field.TypeString, Unique: true},
 		{Name: "domain", Type: field.TypeString, Unique: true},
+		{Name: "collecta_domain", Type: field.TypeString, Unique: true},
 	}
 	// DomainsTable holds the schema information for the "domains" table.
 	DomainsTable = &schema.Table{
@@ -139,7 +140,7 @@ var (
 	// InputsColumns holds the columns for the "inputs" table.
 	InputsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
-		{Name: "kind", Type: field.TypeEnum, Enums: []string{"Text", "Options", "Satisfaction", "Boolean", "Span"}},
+		{Name: "kind", Type: field.TypeEnum, Enums: []string{"Text", "Options", "Satisfaction", "Boolean"}},
 		{Name: "multiple", Type: field.TypeBool, Nullable: true, Default: input.DefaultMultiple},
 		{Name: "defaults", Type: field.TypeJSON, Nullable: true},
 		{Name: "options", Type: field.TypeJSON, Nullable: true},
@@ -242,6 +243,7 @@ var (
 		{Name: "name", Type: field.TypeString},
 		{Name: "username", Type: field.TypeString, Nullable: true},
 		{Name: "last_activity", Type: field.TypeTime},
+		{Name: "picture", Type: field.TypeString, Nullable: true},
 		{Name: "domain_users", Type: field.TypeUUID, Nullable: true},
 	}
 	// UsersTable holds the schema information for the "users" table.
@@ -252,7 +254,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:  "users_domains_users",
-				Columns: []*schema.Column{UsersColumns[4]},
+				Columns: []*schema.Column{UsersColumns[5]},
 
 				RefColumns: []*schema.Column{DomainsColumns[0]},
 				OnDelete:   schema.SetNull,

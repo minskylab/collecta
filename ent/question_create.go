@@ -14,7 +14,6 @@ import (
 	"github.com/minskylab/collecta/ent/flow"
 	"github.com/minskylab/collecta/ent/input"
 	"github.com/minskylab/collecta/ent/question"
-	"github.com/rs/xid"
 )
 
 // QuestionCreate is the builder for creating a Question entity.
@@ -26,7 +25,7 @@ type QuestionCreate struct {
 	description *string
 	metadata    *map[string]string
 	anonymous   *bool
-	answers     map[xid.ID]struct{}
+	answers     map[uuid.UUID]struct{}
 	input       map[uuid.UUID]struct{}
 	flow        map[uuid.UUID]struct{}
 }
@@ -76,9 +75,9 @@ func (qc *QuestionCreate) SetID(u uuid.UUID) *QuestionCreate {
 }
 
 // AddAnswerIDs adds the answers edge to Answer by ids.
-func (qc *QuestionCreate) AddAnswerIDs(ids ...xid.ID) *QuestionCreate {
+func (qc *QuestionCreate) AddAnswerIDs(ids ...uuid.UUID) *QuestionCreate {
 	if qc.answers == nil {
-		qc.answers = make(map[xid.ID]struct{})
+		qc.answers = make(map[uuid.UUID]struct{})
 	}
 	for i := range ids {
 		qc.answers[ids[i]] = struct{}{}
@@ -88,7 +87,7 @@ func (qc *QuestionCreate) AddAnswerIDs(ids ...xid.ID) *QuestionCreate {
 
 // AddAnswers adds the answers edges to Answer.
 func (qc *QuestionCreate) AddAnswers(a ...*Answer) *QuestionCreate {
-	ids := make([]xid.ID, len(a))
+	ids := make([]uuid.UUID, len(a))
 	for i := range a {
 		ids[i] = a[i].ID
 	}
