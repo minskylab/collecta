@@ -6,10 +6,6 @@ package graph
 import (
 	"context"
 
-	"github.com/davecgh/go-spew/spew"
-	"github.com/pkg/errors"
-	log "github.com/sirupsen/logrus"
-
 	"github.com/google/uuid"
 	"github.com/minskylab/collecta/api/graph/generated"
 	"github.com/minskylab/collecta/api/graph/model"
@@ -22,6 +18,7 @@ import (
 	"github.com/minskylab/collecta/ent/question"
 	"github.com/minskylab/collecta/ent/survey"
 	"github.com/minskylab/collecta/ent/user"
+	"github.com/pkg/errors"
 )
 
 func (r *accountResolver) Owner(ctx context.Context, obj *model.Account) (*model.User, error) {
@@ -382,14 +379,13 @@ func (r *userResolver) Contacts(ctx context.Context, obj *model.User) (*model.Co
 }
 
 func (r *userResolver) Surveys(ctx context.Context, obj *model.User) ([]*model.Survey, error) {
-	log.WithField("userID", obj.ID).Info("at survey query")
 	u, err := r.DB.Ent.User.Get(ctx, uuid.MustParse(obj.ID))
 	if err != nil {
 		return nil, errors.Wrap(err, "error at fetch user by user id")
 	}
 
 	e, err := r.DB.Ent.User.QuerySurveys(u).All(ctx)
-	log.Info(spew.Sdump(e))
+
 
 	if err != nil {
 		return nil, errors.Wrap(err, "error at ent query")
@@ -409,8 +405,6 @@ func (r *userResolver) Surveys(ctx context.Context, obj *model.User) ([]*model.S
 			})
 		}
 	}
-
-	log.Info(spew.Sdump(arr))
 
 	return arr, nil
 }

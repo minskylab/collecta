@@ -5,8 +5,8 @@ package graph
 
 import (
 	"context"
-	"fmt"
 
+	"github.com/minskylab/collecta/flows"
 	"github.com/pkg/errors"
 
 	"github.com/google/uuid"
@@ -77,7 +77,39 @@ func (r *queryResolver) User(ctx context.Context, id string) (*model.User, error
 }
 
 func (r *queryResolver) LastQuestionOfSurvey(ctx context.Context, id string) (*model.Question, error) {
-	panic(fmt.Errorf("not implemented"))
+	surv, err := r.DB.Ent.Survey.Get(ctx, uuid.MustParse(id))
+	if err != nil {
+		return nil, errors.Wrap(err, "error at fetch survey")
+	}
+
+	f, err := surv.QueryFlow().Only(ctx)
+	if err != nil {
+		return nil, errors.Wrap(err, "error at fetch flow")
+	}
+
+	f, err = flows.PerformFlowStateUpdate(ctx, r.DB.Ent, f)
+	if err != nil {
+		return nil, errors.Wrap(err, "error at perform flow state update")
+	}
+
+	finalFlow, err := r.DB.Ent.Flow.Get(ctx, f.ID)
+	if err != nil {
+		return nil, errors.Wrap(err, "error at fetch final flow")
+	}
+
+	currentQuestion, err := r.DB.Ent.Question.Get(ctx, finalFlow.State)
+	if err != nil {
+		return nil, errors.Wrap(err, "error at fetch last question")
+	}
+
+	return &model.Question{
+		ID:          currentQuestion.ID.String(),
+		Hash:        currentQuestion.Hash,
+		Title:       currentQuestion.Title,
+		Description: currentQuestion.Description,
+		Anonymous:   currentQuestion.Anonymous,
+		// Metadata:    nil,
+	}, nil
 }
 
 // Query returns generated.QueryResolver implementation.

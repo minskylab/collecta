@@ -96,8 +96,8 @@ func generateUTECDemoSurvey(ctx context.Context, db *collecta.DB, domainID uuid.
 	log.Info("qi= ", q4.ID)
 
 	flowProgram :=
-		"00 " + q1.ID.String() + " -> " + q2.ID.String() +
-			"01 " + q2.ID.String() + " -> " + q3.ID.String() +
+		"00 " + q1.ID.String() + " -> " + q2.ID.String() + "\n" +
+			"01 " + q2.ID.String() + " -> " + q3.ID.String() + "\n" +
 			"02 " + q3.ID.String() + " -> " + q4.ID.String()
 
 	qFlow, err := db.Ent.Flow.Create().
