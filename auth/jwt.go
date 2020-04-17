@@ -158,9 +158,12 @@ func (collectaAuth *CollectaAuth) verifyJWTToken(ctx context.Context, tokenStrin
 	}
 
 	spew.Dump(token)
-	
-	if claims, ok := token.Claims.(jwt.StandardClaims); ok && token.Valid {
-		return collectaAuth.db.Ent.User.Get(ctx, uuid.MustParse(claims.Subject))
+
+	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+		uID, ok := claims["sub"].(string)
+		if ok {
+			return collectaAuth.db.Ent.User.Get(ctx, uuid.MustParse(uID))
+		}
 	}
 
 	return nil, errors.New("invalid token claims")
