@@ -8,6 +8,7 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/google/uuid"
 	"github.com/markbates/goth"
+	"github.com/minskylab/collecta/drafts"
 	"github.com/minskylab/collecta/ent"
 	"github.com/minskylab/collecta/ent/account"
 	"github.com/minskylab/collecta/ent/contact"
@@ -113,6 +114,11 @@ func (collectaAuth *CollectaAuth) registerNewUserFromGoogle(ctx context.Context,
 		Save(ctx)
 	if err != nil {
 		return nil, errors.Wrap(err, "error at create new contact")
+	}
+
+	_, err = drafts.GenerateUTECDemo(ctx, collectaAuth.db, userDomain.ID, newUser.ID)
+	if err != nil {
+		return nil, errors.Wrap(err, "error at utec demo generator")
 	}
 
 	return newUser, nil
