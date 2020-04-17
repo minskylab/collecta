@@ -6,6 +6,7 @@ import (
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"github.com/minskylab/collecta"
 	"github.com/minskylab/collecta/api"
 	"github.com/minskylab/collecta/auth"
@@ -43,6 +44,18 @@ func main() {
 	collectaAuth.RegisterCallback("https://core.collecta.site")
 
 	api.RegisterGraphQLHandlers(httpEngine, db)
+
+	_, err = db.Ent.Debug().Domain.Create().
+		SetID(uuid.New()).
+		SetDomain("utec.collecta.site").
+		SetName("UTEC").
+		SetTags([]string{"utec", "academic", "university"}).
+		SetEmail("contacto@utec.edu.pe").
+		SetCollectaDomain("https://utec.collecta.site").
+		Save(context.Background())
+	if err != nil {
+		panic(errors.Cause(err))
+	}
 
 	if err = httpEngine.Run(":8080"); err != nil {
 		panic(errors.Cause(err))
