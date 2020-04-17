@@ -131,10 +131,10 @@ func (collectaAuth *CollectaAuth) createJWTToken(u *ent.User) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.StandardClaims{
 		Audience:  "user",
 		ExpiresAt: time.Now().Add(24 * time.Hour).Unix(),
-		Id:        u.ID.String(),
+		// Id:        u.ID.String(),
 		IssuedAt:  time.Now().Unix(),
 		Issuer:    "collecta",
-		Subject:   "collecta",
+		Subject:   u.ID.String(),
 	})
 
 	t, err := token.SignedString([]byte("collecta.temporal.stupid.secret.key"))
@@ -143,4 +143,27 @@ func (collectaAuth *CollectaAuth) createJWTToken(u *ent.User) (string, error) {
 	}
 
 	return t, nil
+}
+
+
+func (collectaAuth *CollectaAuth) verifyJWTToken(ctx context.Context, tokenString string) (*ent.User, error) {
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, errors.New( "unexpected signing method")
+		}
+		return []byte("collecta.temporal.stupid.secret.key"), nil
+	})
+	if err != nil {
+		return nil, errors.Wrap(err, "error caused by jwt SignedString method")
+	}
+
+	if claims, ok := token.Claims.(jwt.StandardClaims); ok && token.Valid {
+		return collectaAuth.db.Ent.User.Get(ctx, uuid.MustParse(claims.Subject))
+	}
+
+	return nil, errors.New("invalid token claims")
+}
+
+func (collectaAuth *CollectaAuth) VerifyJWTToken(ctx context.Context, token string) (*ent.User, error) {
+	return collectaAuth.verifyJWTToken(ctx, token)
 }

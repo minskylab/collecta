@@ -5,13 +5,14 @@ package graph
 
 import (
 	"context"
+	"fmt"
 
-	"github.com/minskylab/collecta/flows"
 	"github.com/pkg/errors"
 
 	"github.com/google/uuid"
 	"github.com/minskylab/collecta/api/graph/generated"
 	"github.com/minskylab/collecta/api/graph/model"
+	"github.com/minskylab/collecta/flows"
 )
 
 func (r *queryResolver) Domain(ctx context.Context, id string) (*model.Domain, error) {
@@ -74,6 +75,29 @@ func (r *queryResolver) User(ctx context.Context, id string) (*model.User, error
 		LastActivity: e.LastActivity,
 		Picture:      e.Picture,
 	}, nil
+}
+
+func (r *queryResolver) UserByToken(ctx context.Context, token string) (*model.User, error) {
+	e, err := r.Auth.VerifyJWTToken(ctx, token)
+	if err != nil {
+		return nil, errors.Wrap(err, "error at verify jwt")
+	}
+
+	return &model.User{
+		ID:           e.ID.String(),
+		Name:         e.Name,
+		Username:     e.Username,
+		LastActivity: e.LastActivity,
+		Picture:      e.Picture,
+	}, nil
+}
+
+func (r *queryResolver) IsFirstQuestion(ctx context.Context, id string) (bool, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
+func (r *queryResolver) IsFinalQuestion(ctx context.Context, id string) (bool, error) {
+	panic(fmt.Errorf("not implemented"))
 }
 
 func (r *queryResolver) LastQuestionOfSurvey(ctx context.Context, id string) (*model.Question, error) {

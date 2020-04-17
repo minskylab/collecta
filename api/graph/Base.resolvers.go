@@ -6,6 +6,8 @@ package graph
 import (
 	"context"
 
+	"github.com/pkg/errors"
+
 	"github.com/google/uuid"
 	"github.com/minskylab/collecta/api/graph/generated"
 	"github.com/minskylab/collecta/api/graph/model"
@@ -18,7 +20,6 @@ import (
 	"github.com/minskylab/collecta/ent/question"
 	"github.com/minskylab/collecta/ent/survey"
 	"github.com/minskylab/collecta/ent/user"
-	"github.com/pkg/errors"
 )
 
 func (r *accountResolver) Owner(ctx context.Context, obj *model.Account) (*model.User, error) {
@@ -385,7 +386,6 @@ func (r *userResolver) Surveys(ctx context.Context, obj *model.User) ([]*model.S
 	}
 
 	e, err := r.DB.Ent.User.QuerySurveys(u).All(ctx)
-
 
 	if err != nil {
 		return nil, errors.Wrap(err, "error at ent query")

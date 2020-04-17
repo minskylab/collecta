@@ -4,5 +4,8 @@ type Query {
     question(id: ID!): Question!
     user(id: ID!): User!
 
+    userByToken(token: String!): User!
+    isFirstQuestion(id: ID!): Boolean!
+    isFinalQuestion(id: ID!): Boolean!
     lastQuestionOfSurvey(id: ID!): Question!
 }
