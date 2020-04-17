@@ -120,11 +120,11 @@ func generateUTECDemoSurvey(ctx context.Context, db *collecta.DB, domainID uuid.
 
 	return db.Ent.Survey.Create().
 		SetID(uuid.New()).
+		SetForID(userID).
 		SetOwnerID(domainID).
+		SetDone(false).
 		SetTitle("Feedback por Sesión | Estudiantes").
 		SetDescription("<br>{{.Name}}</br>, responde esta pequeña encuesta sobre tu clase de Teoría de Decisiones del día martes 10 de Marzo.").
-		SetForID(userID).
-		SetDone(false).
 		SetLastInteraction(time.Now()).
 		SetTags([]string{"demo", "collecta", "utec", "teoriadedecisiones"}).
 		SetFlow(qFlow).

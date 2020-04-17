@@ -382,12 +382,13 @@ func (r *userResolver) Contacts(ctx context.Context, obj *model.User) (*model.Co
 }
 
 func (r *userResolver) Surveys(ctx context.Context, obj *model.User) ([]*model.Survey, error) {
-	log.Info("at survey query")
-	e, err := r.DB.Ent.User.Query().
-		Where(user.ID(uuid.MustParse(obj.ID))).
-		QuerySurveys().
-		All(ctx)
+	log.WithField("userID", obj.ID).Info("at survey query")
+	u, err := r.DB.Ent.User.Get(ctx, uuid.MustParse(obj.ID))
+	if err != nil {
+		return nil, errors.Wrap(err, "error at fetch user by user id")
+	}
 
+	e, err := r.DB.Ent.User.QuerySurveys(u).All(ctx)
 	log.Info(spew.Sdump(e))
 
 	if err != nil {
@@ -410,7 +411,7 @@ func (r *userResolver) Surveys(ctx context.Context, obj *model.User) ([]*model.S
 	}
 
 	log.Info(spew.Sdump(arr))
-	
+
 	return arr, nil
 }
 
