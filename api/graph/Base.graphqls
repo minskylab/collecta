@@ -1,8 +1,11 @@
+scalar Time
+scalar Map
+
 type User {
     id: ID!
     name: String!
     username: String!
-    lastActivity: time!
+    lastActivity: Time!
     accounts: Account!
     contacts: Contact!
     survey: Survey!

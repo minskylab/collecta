@@ -16,7 +16,7 @@ type Input struct {
 func (Input) Fields() []ent.Field {
 	return []ent.Field{
 		field.UUID("id", uuid.UUID{}),
-		field.Enum("kind").Values("Text", "Options", "Satisfaction", "Boolean", "Span").Immutable(),
+		field.Enum("kind").Values("Text", "Options", "Satisfaction", "Boolean").Immutable(),
 		field.Bool("multiple").Default(false).Optional(),
 		field.Strings("defaults").Optional(),
 		field.JSON("options", map[string]string{}).Optional(),
