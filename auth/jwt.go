@@ -15,6 +15,7 @@ import (
 	"github.com/minskylab/collecta/ent/domain"
 	"github.com/minskylab/collecta/ent/user"
 	"github.com/pkg/errors"
+	log "github.com/sirupsen/logrus"
 )
 
 func (collectaAuth *CollectaAuth) ingressWithGoogle(ctx context.Context, rawUser goth.User) (string, error) {
@@ -116,10 +117,13 @@ func (collectaAuth *CollectaAuth) registerNewUserFromGoogle(ctx context.Context,
 		return nil, errors.Wrap(err, "error at create new contact")
 	}
 
-	_, err = drafts.GenerateUTECDemo(ctx, collectaAuth.db, userDomain.ID, newUser.ID)
+	log.Info("generating demo survey")
+	surv, err := drafts.GenerateUTECDemo(ctx, collectaAuth.db, userDomain.ID, newUser.ID)
 	if err != nil {
 		return nil, errors.Wrap(err, "error at utec demo generator")
 	}
+
+	log.WithField("survey", surv).Info("demo generated ")
 
 	return newUser, nil
 }

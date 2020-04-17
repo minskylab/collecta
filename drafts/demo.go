@@ -9,6 +9,7 @@ import (
 	"github.com/minskylab/collecta/ent"
 	"github.com/minskylab/collecta/ent/input"
 	"github.com/pkg/errors"
+	log "github.com/sirupsen/logrus"
 )
 
 type basicQuestion struct {
@@ -47,7 +48,6 @@ func genQuestion(ctx context.Context, db *collecta.DB, q basicQuestion) (*ent.Qu
 
 
 func generateUTECDemoSurvey(ctx context.Context, db *collecta.DB, domainID uuid.UUID, userID uuid.UUID) (*ent.Survey, error) {
-
 	q1, err := genQuestion(ctx, db, basicQuestion{
 		questionTitle:      "PREGUNTA 1/8",
 		questionDescription: "Selecciona las dinámicas que usó el profesor que aportaron a la clase.",
@@ -64,7 +64,7 @@ func generateUTECDemoSurvey(ctx context.Context, db *collecta.DB, domainID uuid.
 	if err != nil {
 		return nil, errors.Wrap(err, "error at gen question q1")
 	}
-
+	log.Info("qi= ", q1.ID)
 
 	q2, err := genQuestion(ctx, db, basicQuestion{
 		questionTitle:      "PREGUNTA 2/8",
@@ -74,7 +74,7 @@ func generateUTECDemoSurvey(ctx context.Context, db *collecta.DB, domainID uuid.
 	if err != nil {
 		return nil, errors.Wrap(err, "error at gen question q2")
 	}
-
+	log.Info("qi= ", q2.ID)
 
 	q3, err := genQuestion(ctx, db, basicQuestion{
 		questionTitle:      "PREGUNTA 3/8",
@@ -84,7 +84,7 @@ func generateUTECDemoSurvey(ctx context.Context, db *collecta.DB, domainID uuid.
 	if err != nil {
 		return nil, errors.Wrap(err, "error at gen question q3")
 	}
-
+	log.Info("qi= ", q3.ID)
 
 	q4, err := genQuestion(ctx, db, basicQuestion{
 		questionTitle:      "PREGUNTA 4/8",
@@ -94,8 +94,7 @@ func generateUTECDemoSurvey(ctx context.Context, db *collecta.DB, domainID uuid.
 	if err != nil {
 		return nil, errors.Wrap(err, "error at gen questionq4")
 	}
-
-
+	log.Info("qi= ", q4.ID)
 
 	flowProgram :=
 	 	"00 " + q1.ID.String() + " -> " + q2.ID.String() +
@@ -116,6 +115,8 @@ func generateUTECDemoSurvey(ctx context.Context, db *collecta.DB, domainID uuid.
 	if err != nil {
 		return nil, errors.Wrap(err, "error at create flow")
 	}
+
+	log.Info("flow= ", qFlow.ID)
 
 	return db.Ent.Survey.Create().
 		SetID(uuid.New()).
