@@ -42,7 +42,7 @@ func main() {
 
 	collectaAuth.RegisterCallback("https://core.collecta.site")
 
-	api.RegisterGraphQLHandlers(httpEngine, db)
+	api.RegisterGraphQLHandlers(httpEngine, db, collectaAuth)
 
 	if err = httpEngine.Run(":8080"); err != nil {
 		panic(errors.Cause(err))

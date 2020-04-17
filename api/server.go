@@ -7,14 +7,16 @@ import (
 	"github.com/minskylab/collecta"
 	"github.com/minskylab/collecta/api/graph"
 	"github.com/minskylab/collecta/api/graph/generated"
+	"github.com/minskylab/collecta/auth"
 )
 
 // RegisterGraphQLHandlers register the playground and graphql query endpoint to my main gin engine
-func RegisterGraphQLHandlers(r *gin.Engine, db *collecta.DB) {
+func RegisterGraphQLHandlers(r *gin.Engine, db *collecta.DB, auth *auth.CollectaAuth) {
 	srv := handler.NewDefaultServer(
 		generated.NewExecutableSchema(
 			generated.Config{Resolvers: &graph.Resolver{
 				DB: db,
+				Auth: auth,
 			}},
 		),
 	)
