@@ -7,12 +7,12 @@ require (
 	github.com/davecgh/go-spew v1.1.1
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/facebookincubator/ent v0.1.4
+	github.com/gin-contrib/cors v1.3.1
 	github.com/gin-gonic/gin v1.6.2
 	github.com/google/uuid v1.1.1
 	github.com/lib/pq v1.3.0
 	github.com/markbates/goth v1.64.0
 	github.com/pkg/errors v0.9.1
-	github.com/rs/xid v1.2.1
 	github.com/sirupsen/logrus v1.2.0
 	github.com/spf13/viper v1.6.3
 	github.com/vektah/gqlparser/v2 v2.0.1

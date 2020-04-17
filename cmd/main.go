@@ -2,7 +2,9 @@ package main
 
 import (
 	"context"
+	"time"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/minskylab/collecta"
 	"github.com/minskylab/collecta/api"
@@ -18,7 +20,15 @@ func main() {
 
 	httpEngine := gin.New()
 
-
+	httpEngine.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"http://localhost:3000"},
+		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "HEAD"},
+		AllowHeaders:     []string{"Origin", "Content-Length", "Content-Type"},
+		ExposeHeaders:    []string{"Content-Length"},
+		AllowCredentials: true,
+		MaxAge: 12 * time.Hour,
+	}))
+	
 	db, err := collecta.NewDB(context.Background())
 	if err != nil {
 		panic(errors.Cause(err))
