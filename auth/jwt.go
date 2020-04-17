@@ -72,7 +72,7 @@ func (collectaAuth *CollectaAuth) registerNewUserFromGoogle(ctx context.Context,
 		return nil, errors.New("domain of rawUser not exist")
 	}
 
-	domainID, err := collectaAuth.db.Ent.Domain.Query().Where(domain.Domain(domainHost)).OnlyID(ctx)
+	userDomain, err := collectaAuth.db.Ent.Domain.Query().Where(domain.Domain(domainHost)).Only(ctx)
 	if err != nil {
 		return nil, errors.Wrap(err, "error at try to get the domain id")
 	}
@@ -80,7 +80,7 @@ func (collectaAuth *CollectaAuth) registerNewUserFromGoogle(ctx context.Context,
 	newUser, err := collectaAuth.db.Ent.User.Create().
 		SetID(uuid.New()).
 		SetName(rawUser.Name).
-		SetDomainID(domainID).
+		SetDomain(userDomain).
 		SetUsername(rawUser.Name).
 		SetLastActivity(time.Now()).
 		SetPicture(rawUser.AvatarURL).
