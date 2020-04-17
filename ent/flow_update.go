@@ -9,21 +9,21 @@ import (
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
 	"github.com/facebookincubator/ent/schema/field"
+	"github.com/google/uuid"
 	"github.com/minskylab/collecta/ent/flow"
 	"github.com/minskylab/collecta/ent/predicate"
 	"github.com/minskylab/collecta/ent/question"
-	"github.com/rs/xid"
 )
 
 // FlowUpdate is the builder for updating Flow entities.
 type FlowUpdate struct {
 	config
-	state      *xid.ID
+	state      *uuid.UUID
 	stateTable *string
 
 	clearinputs      bool
-	questions        map[xid.ID]struct{}
-	removedQuestions map[xid.ID]struct{}
+	questions        map[uuid.UUID]struct{}
+	removedQuestions map[uuid.UUID]struct{}
 	predicates       []predicate.Flow
 }
 
@@ -34,8 +34,8 @@ func (fu *FlowUpdate) Where(ps ...predicate.Flow) *FlowUpdate {
 }
 
 // SetState sets the state field.
-func (fu *FlowUpdate) SetState(x xid.ID) *FlowUpdate {
-	fu.state = &x
+func (fu *FlowUpdate) SetState(u uuid.UUID) *FlowUpdate {
+	fu.state = &u
 	return fu
 }
 
@@ -46,9 +46,9 @@ func (fu *FlowUpdate) SetStateTable(s string) *FlowUpdate {
 }
 
 // AddQuestionIDs adds the questions edge to Question by ids.
-func (fu *FlowUpdate) AddQuestionIDs(ids ...xid.ID) *FlowUpdate {
+func (fu *FlowUpdate) AddQuestionIDs(ids ...uuid.UUID) *FlowUpdate {
 	if fu.questions == nil {
-		fu.questions = make(map[xid.ID]struct{})
+		fu.questions = make(map[uuid.UUID]struct{})
 	}
 	for i := range ids {
 		fu.questions[ids[i]] = struct{}{}
@@ -58,7 +58,7 @@ func (fu *FlowUpdate) AddQuestionIDs(ids ...xid.ID) *FlowUpdate {
 
 // AddQuestions adds the questions edges to Question.
 func (fu *FlowUpdate) AddQuestions(q ...*Question) *FlowUpdate {
-	ids := make([]xid.ID, len(q))
+	ids := make([]uuid.UUID, len(q))
 	for i := range q {
 		ids[i] = q[i].ID
 	}
@@ -66,9 +66,9 @@ func (fu *FlowUpdate) AddQuestions(q ...*Question) *FlowUpdate {
 }
 
 // RemoveQuestionIDs removes the questions edge to Question by ids.
-func (fu *FlowUpdate) RemoveQuestionIDs(ids ...xid.ID) *FlowUpdate {
+func (fu *FlowUpdate) RemoveQuestionIDs(ids ...uuid.UUID) *FlowUpdate {
 	if fu.removedQuestions == nil {
-		fu.removedQuestions = make(map[xid.ID]struct{})
+		fu.removedQuestions = make(map[uuid.UUID]struct{})
 	}
 	for i := range ids {
 		fu.removedQuestions[ids[i]] = struct{}{}
@@ -78,7 +78,7 @@ func (fu *FlowUpdate) RemoveQuestionIDs(ids ...xid.ID) *FlowUpdate {
 
 // RemoveQuestions removes questions edges to Question.
 func (fu *FlowUpdate) RemoveQuestions(q ...*Question) *FlowUpdate {
-	ids := make([]xid.ID, len(q))
+	ids := make([]uuid.UUID, len(q))
 	for i := range q {
 		ids[i] = q[i].ID
 	}
@@ -207,18 +207,18 @@ func (fu *FlowUpdate) sqlSave(ctx context.Context) (n int, err error) {
 // FlowUpdateOne is the builder for updating a single Flow entity.
 type FlowUpdateOne struct {
 	config
-	id         xid.ID
-	state      *xid.ID
+	id         uuid.UUID
+	state      *uuid.UUID
 	stateTable *string
 
 	clearinputs      bool
-	questions        map[xid.ID]struct{}
-	removedQuestions map[xid.ID]struct{}
+	questions        map[uuid.UUID]struct{}
+	removedQuestions map[uuid.UUID]struct{}
 }
 
 // SetState sets the state field.
-func (fuo *FlowUpdateOne) SetState(x xid.ID) *FlowUpdateOne {
-	fuo.state = &x
+func (fuo *FlowUpdateOne) SetState(u uuid.UUID) *FlowUpdateOne {
+	fuo.state = &u
 	return fuo
 }
 
@@ -229,9 +229,9 @@ func (fuo *FlowUpdateOne) SetStateTable(s string) *FlowUpdateOne {
 }
 
 // AddQuestionIDs adds the questions edge to Question by ids.
-func (fuo *FlowUpdateOne) AddQuestionIDs(ids ...xid.ID) *FlowUpdateOne {
+func (fuo *FlowUpdateOne) AddQuestionIDs(ids ...uuid.UUID) *FlowUpdateOne {
 	if fuo.questions == nil {
-		fuo.questions = make(map[xid.ID]struct{})
+		fuo.questions = make(map[uuid.UUID]struct{})
 	}
 	for i := range ids {
 		fuo.questions[ids[i]] = struct{}{}
@@ -241,7 +241,7 @@ func (fuo *FlowUpdateOne) AddQuestionIDs(ids ...xid.ID) *FlowUpdateOne {
 
 // AddQuestions adds the questions edges to Question.
 func (fuo *FlowUpdateOne) AddQuestions(q ...*Question) *FlowUpdateOne {
-	ids := make([]xid.ID, len(q))
+	ids := make([]uuid.UUID, len(q))
 	for i := range q {
 		ids[i] = q[i].ID
 	}
@@ -249,9 +249,9 @@ func (fuo *FlowUpdateOne) AddQuestions(q ...*Question) *FlowUpdateOne {
 }
 
 // RemoveQuestionIDs removes the questions edge to Question by ids.
-func (fuo *FlowUpdateOne) RemoveQuestionIDs(ids ...xid.ID) *FlowUpdateOne {
+func (fuo *FlowUpdateOne) RemoveQuestionIDs(ids ...uuid.UUID) *FlowUpdateOne {
 	if fuo.removedQuestions == nil {
-		fuo.removedQuestions = make(map[xid.ID]struct{})
+		fuo.removedQuestions = make(map[uuid.UUID]struct{})
 	}
 	for i := range ids {
 		fuo.removedQuestions[ids[i]] = struct{}{}
@@ -261,7 +261,7 @@ func (fuo *FlowUpdateOne) RemoveQuestionIDs(ids ...xid.ID) *FlowUpdateOne {
 
 // RemoveQuestions removes questions edges to Question.
 func (fuo *FlowUpdateOne) RemoveQuestions(q ...*Question) *FlowUpdateOne {
-	ids := make([]xid.ID, len(q))
+	ids := make([]uuid.UUID, len(q))
 	for i := range q {
 		ids[i] = q[i].ID
 	}

@@ -6,7 +6,7 @@ import (
 	"github.com/facebookincubator/ent"
 	"github.com/facebookincubator/ent/schema/edge"
 	"github.com/facebookincubator/ent/schema/field"
-	"github.com/rs/xid"
+	"github.com/google/uuid"
 )
 
 // Survey holds the schema definition for the Survey entity.
@@ -17,7 +17,7 @@ type Survey struct {
 // Fields of the Survey.
 func (Survey) Fields() []ent.Field {
 	return []ent.Field{
-		field.UUID("id", xid.ID{}),
+		field.UUID("id", uuid.UUID{}),
 		field.Strings("tags"),
 		field.Time("lastInteraction"),
 		field.Time("dueDate").Immutable().Default(func() time.Time {

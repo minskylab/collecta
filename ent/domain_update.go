@@ -9,11 +9,11 @@ import (
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
 	"github.com/facebookincubator/ent/schema/field"
+	"github.com/google/uuid"
 	"github.com/minskylab/collecta/ent/domain"
 	"github.com/minskylab/collecta/ent/predicate"
 	"github.com/minskylab/collecta/ent/survey"
 	"github.com/minskylab/collecta/ent/user"
-	"github.com/rs/xid"
 )
 
 // DomainUpdate is the builder for updating Domain entities.
@@ -23,10 +23,10 @@ type DomainUpdate struct {
 	name           *string
 	email          *string
 	domain         *string
-	surveys        map[xid.ID]struct{}
-	users          map[xid.ID]struct{}
-	removedSurveys map[xid.ID]struct{}
-	removedUsers   map[xid.ID]struct{}
+	surveys        map[uuid.UUID]struct{}
+	users          map[uuid.UUID]struct{}
+	removedSurveys map[uuid.UUID]struct{}
+	removedUsers   map[uuid.UUID]struct{}
 	predicates     []predicate.Domain
 }
 
@@ -61,9 +61,9 @@ func (du *DomainUpdate) SetDomain(s string) *DomainUpdate {
 }
 
 // AddSurveyIDs adds the surveys edge to Survey by ids.
-func (du *DomainUpdate) AddSurveyIDs(ids ...xid.ID) *DomainUpdate {
+func (du *DomainUpdate) AddSurveyIDs(ids ...uuid.UUID) *DomainUpdate {
 	if du.surveys == nil {
-		du.surveys = make(map[xid.ID]struct{})
+		du.surveys = make(map[uuid.UUID]struct{})
 	}
 	for i := range ids {
 		du.surveys[ids[i]] = struct{}{}
@@ -73,7 +73,7 @@ func (du *DomainUpdate) AddSurveyIDs(ids ...xid.ID) *DomainUpdate {
 
 // AddSurveys adds the surveys edges to Survey.
 func (du *DomainUpdate) AddSurveys(s ...*Survey) *DomainUpdate {
-	ids := make([]xid.ID, len(s))
+	ids := make([]uuid.UUID, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}
@@ -81,9 +81,9 @@ func (du *DomainUpdate) AddSurveys(s ...*Survey) *DomainUpdate {
 }
 
 // AddUserIDs adds the users edge to User by ids.
-func (du *DomainUpdate) AddUserIDs(ids ...xid.ID) *DomainUpdate {
+func (du *DomainUpdate) AddUserIDs(ids ...uuid.UUID) *DomainUpdate {
 	if du.users == nil {
-		du.users = make(map[xid.ID]struct{})
+		du.users = make(map[uuid.UUID]struct{})
 	}
 	for i := range ids {
 		du.users[ids[i]] = struct{}{}
@@ -93,7 +93,7 @@ func (du *DomainUpdate) AddUserIDs(ids ...xid.ID) *DomainUpdate {
 
 // AddUsers adds the users edges to User.
 func (du *DomainUpdate) AddUsers(u ...*User) *DomainUpdate {
-	ids := make([]xid.ID, len(u))
+	ids := make([]uuid.UUID, len(u))
 	for i := range u {
 		ids[i] = u[i].ID
 	}
@@ -101,9 +101,9 @@ func (du *DomainUpdate) AddUsers(u ...*User) *DomainUpdate {
 }
 
 // RemoveSurveyIDs removes the surveys edge to Survey by ids.
-func (du *DomainUpdate) RemoveSurveyIDs(ids ...xid.ID) *DomainUpdate {
+func (du *DomainUpdate) RemoveSurveyIDs(ids ...uuid.UUID) *DomainUpdate {
 	if du.removedSurveys == nil {
-		du.removedSurveys = make(map[xid.ID]struct{})
+		du.removedSurveys = make(map[uuid.UUID]struct{})
 	}
 	for i := range ids {
 		du.removedSurveys[ids[i]] = struct{}{}
@@ -113,7 +113,7 @@ func (du *DomainUpdate) RemoveSurveyIDs(ids ...xid.ID) *DomainUpdate {
 
 // RemoveSurveys removes surveys edges to Survey.
 func (du *DomainUpdate) RemoveSurveys(s ...*Survey) *DomainUpdate {
-	ids := make([]xid.ID, len(s))
+	ids := make([]uuid.UUID, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}
@@ -121,9 +121,9 @@ func (du *DomainUpdate) RemoveSurveys(s ...*Survey) *DomainUpdate {
 }
 
 // RemoveUserIDs removes the users edge to User by ids.
-func (du *DomainUpdate) RemoveUserIDs(ids ...xid.ID) *DomainUpdate {
+func (du *DomainUpdate) RemoveUserIDs(ids ...uuid.UUID) *DomainUpdate {
 	if du.removedUsers == nil {
-		du.removedUsers = make(map[xid.ID]struct{})
+		du.removedUsers = make(map[uuid.UUID]struct{})
 	}
 	for i := range ids {
 		du.removedUsers[ids[i]] = struct{}{}
@@ -133,7 +133,7 @@ func (du *DomainUpdate) RemoveUserIDs(ids ...xid.ID) *DomainUpdate {
 
 // RemoveUsers removes users edges to User.
 func (du *DomainUpdate) RemoveUsers(u ...*User) *DomainUpdate {
-	ids := make([]xid.ID, len(u))
+	ids := make([]uuid.UUID, len(u))
 	for i := range u {
 		ids[i] = u[i].ID
 	}
@@ -313,15 +313,15 @@ func (du *DomainUpdate) sqlSave(ctx context.Context) (n int, err error) {
 // DomainUpdateOne is the builder for updating a single Domain entity.
 type DomainUpdateOne struct {
 	config
-	id             xid.ID
+	id             uuid.UUID
 	tags           *[]string
 	name           *string
 	email          *string
 	domain         *string
-	surveys        map[xid.ID]struct{}
-	users          map[xid.ID]struct{}
-	removedSurveys map[xid.ID]struct{}
-	removedUsers   map[xid.ID]struct{}
+	surveys        map[uuid.UUID]struct{}
+	users          map[uuid.UUID]struct{}
+	removedSurveys map[uuid.UUID]struct{}
+	removedUsers   map[uuid.UUID]struct{}
 }
 
 // SetTags sets the tags field.
@@ -349,9 +349,9 @@ func (duo *DomainUpdateOne) SetDomain(s string) *DomainUpdateOne {
 }
 
 // AddSurveyIDs adds the surveys edge to Survey by ids.
-func (duo *DomainUpdateOne) AddSurveyIDs(ids ...xid.ID) *DomainUpdateOne {
+func (duo *DomainUpdateOne) AddSurveyIDs(ids ...uuid.UUID) *DomainUpdateOne {
 	if duo.surveys == nil {
-		duo.surveys = make(map[xid.ID]struct{})
+		duo.surveys = make(map[uuid.UUID]struct{})
 	}
 	for i := range ids {
 		duo.surveys[ids[i]] = struct{}{}
@@ -361,7 +361,7 @@ func (duo *DomainUpdateOne) AddSurveyIDs(ids ...xid.ID) *DomainUpdateOne {
 
 // AddSurveys adds the surveys edges to Survey.
 func (duo *DomainUpdateOne) AddSurveys(s ...*Survey) *DomainUpdateOne {
-	ids := make([]xid.ID, len(s))
+	ids := make([]uuid.UUID, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}
@@ -369,9 +369,9 @@ func (duo *DomainUpdateOne) AddSurveys(s ...*Survey) *DomainUpdateOne {
 }
 
 // AddUserIDs adds the users edge to User by ids.
-func (duo *DomainUpdateOne) AddUserIDs(ids ...xid.ID) *DomainUpdateOne {
+func (duo *DomainUpdateOne) AddUserIDs(ids ...uuid.UUID) *DomainUpdateOne {
 	if duo.users == nil {
-		duo.users = make(map[xid.ID]struct{})
+		duo.users = make(map[uuid.UUID]struct{})
 	}
 	for i := range ids {
 		duo.users[ids[i]] = struct{}{}
@@ -381,7 +381,7 @@ func (duo *DomainUpdateOne) AddUserIDs(ids ...xid.ID) *DomainUpdateOne {
 
 // AddUsers adds the users edges to User.
 func (duo *DomainUpdateOne) AddUsers(u ...*User) *DomainUpdateOne {
-	ids := make([]xid.ID, len(u))
+	ids := make([]uuid.UUID, len(u))
 	for i := range u {
 		ids[i] = u[i].ID
 	}
@@ -389,9 +389,9 @@ func (duo *DomainUpdateOne) AddUsers(u ...*User) *DomainUpdateOne {
 }
 
 // RemoveSurveyIDs removes the surveys edge to Survey by ids.
-func (duo *DomainUpdateOne) RemoveSurveyIDs(ids ...xid.ID) *DomainUpdateOne {
+func (duo *DomainUpdateOne) RemoveSurveyIDs(ids ...uuid.UUID) *DomainUpdateOne {
 	if duo.removedSurveys == nil {
-		duo.removedSurveys = make(map[xid.ID]struct{})
+		duo.removedSurveys = make(map[uuid.UUID]struct{})
 	}
 	for i := range ids {
 		duo.removedSurveys[ids[i]] = struct{}{}
@@ -401,7 +401,7 @@ func (duo *DomainUpdateOne) RemoveSurveyIDs(ids ...xid.ID) *DomainUpdateOne {
 
 // RemoveSurveys removes surveys edges to Survey.
 func (duo *DomainUpdateOne) RemoveSurveys(s ...*Survey) *DomainUpdateOne {
-	ids := make([]xid.ID, len(s))
+	ids := make([]uuid.UUID, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}
@@ -409,9 +409,9 @@ func (duo *DomainUpdateOne) RemoveSurveys(s ...*Survey) *DomainUpdateOne {
 }
 
 // RemoveUserIDs removes the users edge to User by ids.
-func (duo *DomainUpdateOne) RemoveUserIDs(ids ...xid.ID) *DomainUpdateOne {
+func (duo *DomainUpdateOne) RemoveUserIDs(ids ...uuid.UUID) *DomainUpdateOne {
 	if duo.removedUsers == nil {
-		duo.removedUsers = make(map[xid.ID]struct{})
+		duo.removedUsers = make(map[uuid.UUID]struct{})
 	}
 	for i := range ids {
 		duo.removedUsers[ids[i]] = struct{}{}
@@ -421,7 +421,7 @@ func (duo *DomainUpdateOne) RemoveUserIDs(ids ...xid.ID) *DomainUpdateOne {
 
 // RemoveUsers removes users edges to User.
 func (duo *DomainUpdateOne) RemoveUsers(u ...*User) *DomainUpdateOne {
-	ids := make([]xid.ID, len(u))
+	ids := make([]uuid.UUID, len(u))
 	for i := range u {
 		ids[i] = u[i].ID
 	}

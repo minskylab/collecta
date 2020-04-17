@@ -18,7 +18,7 @@ func New(engine *gin.Engine) (*CollectaAuth, error) {
 	return &CollectaAuth{mainRouter: engine}, nil
 }
 
-func (collectaAuth *CollectaAuth) Perform(host string) {
+func (collectaAuth *CollectaAuth) RegisterCallback(host string) {
 	callback := host + "/auth/google/callback"
 	if strings.HasSuffix(host, "/") {
 		callback = host[:len(host)-1] + "/auth/google/callback"

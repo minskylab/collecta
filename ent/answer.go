@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/google/uuid"
 	"github.com/minskylab/collecta/ent/answer"
 	"github.com/minskylab/collecta/ent/question"
 	"github.com/rs/xid"
@@ -28,7 +29,7 @@ type Answer struct {
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the AnswerQuery when eager-loading is set.
 	Edges            AnswerEdges `json:"edges"`
-	question_answers *xid.ID
+	question_answers *uuid.UUID
 }
 
 // AnswerEdges holds the relations/edges for other nodes in the graph.
@@ -67,7 +68,7 @@ func (*Answer) scanValues() []interface{} {
 // fkValues returns the types for scanning foreign-keys values from sql.Rows.
 func (*Answer) fkValues() []interface{} {
 	return []interface{}{
-		&xid.ID{}, // question_answers
+		&uuid.UUID{}, // question_answers
 	}
 }
 
@@ -103,7 +104,7 @@ func (a *Answer) assignValues(values ...interface{}) error {
 	}
 	values = values[3:]
 	if len(values) == len(answer.ForeignKeys) {
-		if value, ok := values[0].(*xid.ID); !ok {
+		if value, ok := values[0].(*uuid.UUID); !ok {
 			return fmt.Errorf("unexpected type %T for field question_answers", values[0])
 		} else if value != nil {
 			a.question_answers = value

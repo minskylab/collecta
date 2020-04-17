@@ -4,7 +4,7 @@ import (
 	"github.com/facebookincubator/ent"
 	"github.com/facebookincubator/ent/schema/edge"
 	"github.com/facebookincubator/ent/schema/field"
-	"github.com/rs/xid"
+	"github.com/google/uuid"
 )
 
 // Question holds the schema definition for the Question entity.
@@ -15,7 +15,7 @@ type Question struct {
 // Fields of the Question.
 func (Question) Fields() []ent.Field {
 	return []ent.Field{
-		field.UUID("id", xid.ID{}),
+		field.UUID("id", uuid.UUID{}),
 		field.String("hash"),
 		field.String("title").NotEmpty(),
 		field.String("description"),

@@ -10,7 +10,7 @@ import (
 	"github.com/facebookincubator/ent/dialect"
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
-	"github.com/rs/xid"
+	"github.com/google/uuid"
 	"golang.org/x/xerrors"
 )
 
@@ -242,8 +242,8 @@ func insertLastID(ctx context.Context, tx dialect.Tx, insert *sql.InsertBuilder)
 }
 
 // keys returns the keys/ids from the edge map.
-func keys(m map[xid.ID]struct{}) []xid.ID {
-	s := make([]xid.ID, 0, len(m))
+func keys(m map[uuid.UUID]struct{}) []uuid.UUID {
+	s := make([]uuid.UUID, 0, len(m))
 	for id := range m {
 		s = append(s, id)
 	}

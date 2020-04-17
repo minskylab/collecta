@@ -8,17 +8,17 @@ import (
 	"strings"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/google/uuid"
 	"github.com/minskylab/collecta/ent/flow"
-	"github.com/rs/xid"
 )
 
 // Flow is the model entity for the Flow schema.
 type Flow struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID xid.ID `json:"id,omitempty"`
+	ID uuid.UUID `json:"id,omitempty"`
 	// State holds the value of the "state" field.
-	State xid.ID `json:"state,omitempty"`
+	State uuid.UUID `json:"state,omitempty"`
 	// StateTable holds the value of the "stateTable" field.
 	StateTable string `json:"stateTable,omitempty"`
 	// Inputs holds the value of the "inputs" field.
@@ -49,8 +49,8 @@ func (e FlowEdges) QuestionsOrErr() ([]*Question, error) {
 // scanValues returns the types for scanning values from sql.Rows.
 func (*Flow) scanValues() []interface{} {
 	return []interface{}{
-		&xid.ID{},         // id
-		&xid.ID{},         // state
+		&uuid.UUID{},      // id
+		&uuid.UUID{},      // state
 		&sql.NullString{}, // stateTable
 		&[]byte{},         // inputs
 	}
@@ -62,13 +62,13 @@ func (f *Flow) assignValues(values ...interface{}) error {
 	if m, n := len(values), len(flow.Columns); m < n {
 		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
-	if value, ok := values[0].(*xid.ID); !ok {
+	if value, ok := values[0].(*uuid.UUID); !ok {
 		return fmt.Errorf("unexpected type %T for field id", values[0])
 	} else if value != nil {
 		f.ID = *value
 	}
 	values = values[1:]
-	if value, ok := values[0].(*xid.ID); !ok {
+	if value, ok := values[0].(*uuid.UUID); !ok {
 		return fmt.Errorf("unexpected type %T for field state", values[0])
 	} else if value != nil {
 		f.State = *value

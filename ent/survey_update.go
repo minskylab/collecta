@@ -11,12 +11,12 @@ import (
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
 	"github.com/facebookincubator/ent/schema/field"
+	"github.com/google/uuid"
 	"github.com/minskylab/collecta/ent/domain"
 	"github.com/minskylab/collecta/ent/flow"
 	"github.com/minskylab/collecta/ent/predicate"
 	"github.com/minskylab/collecta/ent/survey"
 	"github.com/minskylab/collecta/ent/user"
-	"github.com/rs/xid"
 )
 
 // SurveyUpdate is the builder for updating Survey entities.
@@ -31,9 +31,9 @@ type SurveyUpdate struct {
 	metadata         *map[string]string
 	clearmetadata    bool
 	done             *bool
-	flow             map[xid.ID]struct{}
-	_for             map[xid.ID]struct{}
-	owner            map[xid.ID]struct{}
+	flow             map[uuid.UUID]struct{}
+	_for             map[uuid.UUID]struct{}
+	owner            map[uuid.UUID]struct{}
 	clearedFlow      bool
 	clearedFor       bool
 	clearedOwner     bool
@@ -113,9 +113,9 @@ func (su *SurveyUpdate) SetNillableDone(b *bool) *SurveyUpdate {
 }
 
 // SetFlowID sets the flow edge to Flow by id.
-func (su *SurveyUpdate) SetFlowID(id xid.ID) *SurveyUpdate {
+func (su *SurveyUpdate) SetFlowID(id uuid.UUID) *SurveyUpdate {
 	if su.flow == nil {
-		su.flow = make(map[xid.ID]struct{})
+		su.flow = make(map[uuid.UUID]struct{})
 	}
 	su.flow[id] = struct{}{}
 	return su
@@ -127,9 +127,9 @@ func (su *SurveyUpdate) SetFlow(f *Flow) *SurveyUpdate {
 }
 
 // SetForID sets the for edge to User by id.
-func (su *SurveyUpdate) SetForID(id xid.ID) *SurveyUpdate {
+func (su *SurveyUpdate) SetForID(id uuid.UUID) *SurveyUpdate {
 	if su._for == nil {
-		su._for = make(map[xid.ID]struct{})
+		su._for = make(map[uuid.UUID]struct{})
 	}
 	su._for[id] = struct{}{}
 	return su
@@ -141,16 +141,16 @@ func (su *SurveyUpdate) SetFor(u *User) *SurveyUpdate {
 }
 
 // SetOwnerID sets the owner edge to Domain by id.
-func (su *SurveyUpdate) SetOwnerID(id xid.ID) *SurveyUpdate {
+func (su *SurveyUpdate) SetOwnerID(id uuid.UUID) *SurveyUpdate {
 	if su.owner == nil {
-		su.owner = make(map[xid.ID]struct{})
+		su.owner = make(map[uuid.UUID]struct{})
 	}
 	su.owner[id] = struct{}{}
 	return su
 }
 
 // SetNillableOwnerID sets the owner edge to Domain by id if the given value is not nil.
-func (su *SurveyUpdate) SetNillableOwnerID(id *xid.ID) *SurveyUpdate {
+func (su *SurveyUpdate) SetNillableOwnerID(id *uuid.UUID) *SurveyUpdate {
 	if id != nil {
 		su = su.SetOwnerID(*id)
 	}
@@ -418,7 +418,7 @@ func (su *SurveyUpdate) sqlSave(ctx context.Context) (n int, err error) {
 // SurveyUpdateOne is the builder for updating a single Survey entity.
 type SurveyUpdateOne struct {
 	config
-	id              xid.ID
+	id              uuid.UUID
 	tags            *[]string
 	lastInteraction *time.Time
 
@@ -428,9 +428,9 @@ type SurveyUpdateOne struct {
 	metadata         *map[string]string
 	clearmetadata    bool
 	done             *bool
-	flow             map[xid.ID]struct{}
-	_for             map[xid.ID]struct{}
-	owner            map[xid.ID]struct{}
+	flow             map[uuid.UUID]struct{}
+	_for             map[uuid.UUID]struct{}
+	owner            map[uuid.UUID]struct{}
 	clearedFlow      bool
 	clearedFor       bool
 	clearedOwner     bool
@@ -503,9 +503,9 @@ func (suo *SurveyUpdateOne) SetNillableDone(b *bool) *SurveyUpdateOne {
 }
 
 // SetFlowID sets the flow edge to Flow by id.
-func (suo *SurveyUpdateOne) SetFlowID(id xid.ID) *SurveyUpdateOne {
+func (suo *SurveyUpdateOne) SetFlowID(id uuid.UUID) *SurveyUpdateOne {
 	if suo.flow == nil {
-		suo.flow = make(map[xid.ID]struct{})
+		suo.flow = make(map[uuid.UUID]struct{})
 	}
 	suo.flow[id] = struct{}{}
 	return suo
@@ -517,9 +517,9 @@ func (suo *SurveyUpdateOne) SetFlow(f *Flow) *SurveyUpdateOne {
 }
 
 // SetForID sets the for edge to User by id.
-func (suo *SurveyUpdateOne) SetForID(id xid.ID) *SurveyUpdateOne {
+func (suo *SurveyUpdateOne) SetForID(id uuid.UUID) *SurveyUpdateOne {
 	if suo._for == nil {
-		suo._for = make(map[xid.ID]struct{})
+		suo._for = make(map[uuid.UUID]struct{})
 	}
 	suo._for[id] = struct{}{}
 	return suo
@@ -531,16 +531,16 @@ func (suo *SurveyUpdateOne) SetFor(u *User) *SurveyUpdateOne {
 }
 
 // SetOwnerID sets the owner edge to Domain by id.
-func (suo *SurveyUpdateOne) SetOwnerID(id xid.ID) *SurveyUpdateOne {
+func (suo *SurveyUpdateOne) SetOwnerID(id uuid.UUID) *SurveyUpdateOne {
 	if suo.owner == nil {
-		suo.owner = make(map[xid.ID]struct{})
+		suo.owner = make(map[uuid.UUID]struct{})
 	}
 	suo.owner[id] = struct{}{}
 	return suo
 }
 
 // SetNillableOwnerID sets the owner edge to Domain by id if the given value is not nil.
-func (suo *SurveyUpdateOne) SetNillableOwnerID(id *xid.ID) *SurveyUpdateOne {
+func (suo *SurveyUpdateOne) SetNillableOwnerID(id *uuid.UUID) *SurveyUpdateOne {
 	if id != nil {
 		suo = suo.SetOwnerID(*id)
 	}

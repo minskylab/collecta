@@ -9,20 +9,20 @@ import (
 
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
 	"github.com/facebookincubator/ent/schema/field"
+	"github.com/google/uuid"
 	"github.com/minskylab/collecta/ent/input"
 	"github.com/minskylab/collecta/ent/question"
-	"github.com/rs/xid"
 )
 
 // InputCreate is the builder for creating a Input entity.
 type InputCreate struct {
 	config
-	id       *xid.ID
+	id       *uuid.UUID
 	kind     *input.Kind
 	multiple *bool
 	defaults *[]string
 	options  *map[string]string
-	question map[xid.ID]struct{}
+	question map[uuid.UUID]struct{}
 }
 
 // SetKind sets the kind field.
@@ -58,15 +58,15 @@ func (ic *InputCreate) SetOptions(m map[string]string) *InputCreate {
 }
 
 // SetID sets the id field.
-func (ic *InputCreate) SetID(x xid.ID) *InputCreate {
-	ic.id = &x
+func (ic *InputCreate) SetID(u uuid.UUID) *InputCreate {
+	ic.id = &u
 	return ic
 }
 
 // SetQuestionID sets the question edge to Question by id.
-func (ic *InputCreate) SetQuestionID(id xid.ID) *InputCreate {
+func (ic *InputCreate) SetQuestionID(id uuid.UUID) *InputCreate {
 	if ic.question == nil {
-		ic.question = make(map[xid.ID]struct{})
+		ic.question = make(map[uuid.UUID]struct{})
 	}
 	ic.question[id] = struct{}{}
 	return ic

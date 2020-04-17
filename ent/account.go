@@ -7,16 +7,16 @@ import (
 	"strings"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/google/uuid"
 	"github.com/minskylab/collecta/ent/account"
 	"github.com/minskylab/collecta/ent/user"
-	"github.com/rs/xid"
 )
 
 // Account is the model entity for the Account schema.
 type Account struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID xid.ID `json:"id,omitempty"`
+	ID uuid.UUID `json:"id,omitempty"`
 	// Type holds the value of the "type" field.
 	Type account.Type `json:"type,omitempty"`
 	// Sub holds the value of the "sub" field.
@@ -26,7 +26,7 @@ type Account struct {
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the AccountQuery when eager-loading is set.
 	Edges         AccountEdges `json:"edges"`
-	user_accounts *xid.ID
+	user_accounts *uuid.UUID
 }
 
 // AccountEdges holds the relations/edges for other nodes in the graph.
@@ -55,7 +55,7 @@ func (e AccountEdges) OwnerOrErr() (*User, error) {
 // scanValues returns the types for scanning values from sql.Rows.
 func (*Account) scanValues() []interface{} {
 	return []interface{}{
-		&xid.ID{},         // id
+		&uuid.UUID{},      // id
 		&sql.NullString{}, // type
 		&sql.NullString{}, // sub
 		&sql.NullString{}, // remoteID
@@ -65,7 +65,7 @@ func (*Account) scanValues() []interface{} {
 // fkValues returns the types for scanning foreign-keys values from sql.Rows.
 func (*Account) fkValues() []interface{} {
 	return []interface{}{
-		&xid.ID{}, // user_accounts
+		&uuid.UUID{}, // user_accounts
 	}
 }
 
@@ -75,7 +75,7 @@ func (a *Account) assignValues(values ...interface{}) error {
 	if m, n := len(values), len(account.Columns); m < n {
 		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
-	if value, ok := values[0].(*xid.ID); !ok {
+	if value, ok := values[0].(*uuid.UUID); !ok {
 		return fmt.Errorf("unexpected type %T for field id", values[0])
 	} else if value != nil {
 		a.ID = *value
@@ -98,7 +98,7 @@ func (a *Account) assignValues(values ...interface{}) error {
 	}
 	values = values[3:]
 	if len(values) == len(account.ForeignKeys) {
-		if value, ok := values[0].(*xid.ID); !ok {
+		if value, ok := values[0].(*uuid.UUID); !ok {
 			return fmt.Errorf("unexpected type %T for field user_accounts", values[0])
 		} else if value != nil {
 			a.user_accounts = value

@@ -11,6 +11,7 @@ import (
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
 	"github.com/facebookincubator/ent/schema/field"
+	"github.com/google/uuid"
 	"github.com/minskylab/collecta/ent/answer"
 	"github.com/minskylab/collecta/ent/predicate"
 	"github.com/minskylab/collecta/ent/question"
@@ -329,8 +330,8 @@ func (aq *AnswerQuery) sqlAll(ctx context.Context) ([]*Answer, error) {
 	}
 
 	if query := aq.withQuestion; query != nil {
-		ids := make([]xid.ID, 0, len(nodes))
-		nodeids := make(map[xid.ID][]*Answer)
+		ids := make([]uuid.UUID, 0, len(nodes))
+		nodeids := make(map[uuid.UUID][]*Answer)
 		for i := range nodes {
 			if fk := nodes[i].question_answers; fk != nil {
 				ids = append(ids, *fk)

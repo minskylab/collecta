@@ -9,22 +9,22 @@ import (
 
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
 	"github.com/facebookincubator/ent/schema/field"
+	"github.com/google/uuid"
 	"github.com/minskylab/collecta/ent/contact"
 	"github.com/minskylab/collecta/ent/user"
-	"github.com/rs/xid"
 )
 
 // ContactCreate is the builder for creating a Contact entity.
 type ContactCreate struct {
 	config
-	id          *xid.ID
+	id          *uuid.UUID
 	name        *string
 	value       *string
 	kind        *contact.Kind
 	principal   *bool
 	validated   *bool
 	fromAccount *bool
-	owner       map[xid.ID]struct{}
+	owner       map[uuid.UUID]struct{}
 }
 
 // SetName sets the name field.
@@ -80,15 +80,15 @@ func (cc *ContactCreate) SetNillableFromAccount(b *bool) *ContactCreate {
 }
 
 // SetID sets the id field.
-func (cc *ContactCreate) SetID(x xid.ID) *ContactCreate {
-	cc.id = &x
+func (cc *ContactCreate) SetID(u uuid.UUID) *ContactCreate {
+	cc.id = &u
 	return cc
 }
 
 // SetOwnerID sets the owner edge to User by id.
-func (cc *ContactCreate) SetOwnerID(id xid.ID) *ContactCreate {
+func (cc *ContactCreate) SetOwnerID(id uuid.UUID) *ContactCreate {
 	if cc.owner == nil {
-		cc.owner = make(map[xid.ID]struct{})
+		cc.owner = make(map[uuid.UUID]struct{})
 	}
 	cc.owner[id] = struct{}{}
 	return cc

@@ -11,10 +11,10 @@ import (
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
 	"github.com/facebookincubator/ent/schema/field"
+	"github.com/google/uuid"
 	"github.com/minskylab/collecta/ent/input"
 	"github.com/minskylab/collecta/ent/predicate"
 	"github.com/minskylab/collecta/ent/question"
-	"github.com/rs/xid"
 )
 
 // InputQuery is the builder for querying Input entities.
@@ -90,8 +90,8 @@ func (iq *InputQuery) FirstX(ctx context.Context) *Input {
 }
 
 // FirstID returns the first Input id in the query. Returns *NotFoundError when no id was found.
-func (iq *InputQuery) FirstID(ctx context.Context) (id xid.ID, err error) {
-	var ids []xid.ID
+func (iq *InputQuery) FirstID(ctx context.Context) (id uuid.UUID, err error) {
+	var ids []uuid.UUID
 	if ids, err = iq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
@@ -103,7 +103,7 @@ func (iq *InputQuery) FirstID(ctx context.Context) (id xid.ID, err error) {
 }
 
 // FirstXID is like FirstID, but panics if an error occurs.
-func (iq *InputQuery) FirstXID(ctx context.Context) xid.ID {
+func (iq *InputQuery) FirstXID(ctx context.Context) uuid.UUID {
 	id, err := iq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -137,8 +137,8 @@ func (iq *InputQuery) OnlyX(ctx context.Context) *Input {
 }
 
 // OnlyID returns the only Input id in the query, returns an error if not exactly one id was returned.
-func (iq *InputQuery) OnlyID(ctx context.Context) (id xid.ID, err error) {
-	var ids []xid.ID
+func (iq *InputQuery) OnlyID(ctx context.Context) (id uuid.UUID, err error) {
+	var ids []uuid.UUID
 	if ids, err = iq.Limit(2).IDs(ctx); err != nil {
 		return
 	}
@@ -154,7 +154,7 @@ func (iq *InputQuery) OnlyID(ctx context.Context) (id xid.ID, err error) {
 }
 
 // OnlyXID is like OnlyID, but panics if an error occurs.
-func (iq *InputQuery) OnlyXID(ctx context.Context) xid.ID {
+func (iq *InputQuery) OnlyXID(ctx context.Context) uuid.UUID {
 	id, err := iq.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -177,8 +177,8 @@ func (iq *InputQuery) AllX(ctx context.Context) []*Input {
 }
 
 // IDs executes the query and returns a list of Input ids.
-func (iq *InputQuery) IDs(ctx context.Context) ([]xid.ID, error) {
-	var ids []xid.ID
+func (iq *InputQuery) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	var ids []uuid.UUID
 	if err := iq.Select(input.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
@@ -186,7 +186,7 @@ func (iq *InputQuery) IDs(ctx context.Context) ([]xid.ID, error) {
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (iq *InputQuery) IDsX(ctx context.Context) []xid.ID {
+func (iq *InputQuery) IDsX(ctx context.Context) []uuid.UUID {
 	ids, err := iq.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -329,8 +329,8 @@ func (iq *InputQuery) sqlAll(ctx context.Context) ([]*Input, error) {
 	}
 
 	if query := iq.withQuestion; query != nil {
-		ids := make([]xid.ID, 0, len(nodes))
-		nodeids := make(map[xid.ID][]*Input)
+		ids := make([]uuid.UUID, 0, len(nodes))
+		nodeids := make(map[uuid.UUID][]*Input)
 		for i := range nodes {
 			if fk := nodes[i].question_input; fk != nil {
 				ids = append(ids, *fk)

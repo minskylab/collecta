@@ -10,17 +10,17 @@ import (
 
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
 	"github.com/facebookincubator/ent/schema/field"
+	"github.com/google/uuid"
 	"github.com/minskylab/collecta/ent/domain"
 	"github.com/minskylab/collecta/ent/flow"
 	"github.com/minskylab/collecta/ent/survey"
 	"github.com/minskylab/collecta/ent/user"
-	"github.com/rs/xid"
 )
 
 // SurveyCreate is the builder for creating a Survey entity.
 type SurveyCreate struct {
 	config
-	id              *xid.ID
+	id              *uuid.UUID
 	tags            *[]string
 	lastInteraction *time.Time
 	dueDate         *time.Time
@@ -28,9 +28,9 @@ type SurveyCreate struct {
 	description     *string
 	metadata        *map[string]string
 	done            *bool
-	flow            map[xid.ID]struct{}
-	_for            map[xid.ID]struct{}
-	owner           map[xid.ID]struct{}
+	flow            map[uuid.UUID]struct{}
+	_for            map[uuid.UUID]struct{}
+	owner           map[uuid.UUID]struct{}
 }
 
 // SetTags sets the tags field.
@@ -100,15 +100,15 @@ func (sc *SurveyCreate) SetNillableDone(b *bool) *SurveyCreate {
 }
 
 // SetID sets the id field.
-func (sc *SurveyCreate) SetID(x xid.ID) *SurveyCreate {
-	sc.id = &x
+func (sc *SurveyCreate) SetID(u uuid.UUID) *SurveyCreate {
+	sc.id = &u
 	return sc
 }
 
 // SetFlowID sets the flow edge to Flow by id.
-func (sc *SurveyCreate) SetFlowID(id xid.ID) *SurveyCreate {
+func (sc *SurveyCreate) SetFlowID(id uuid.UUID) *SurveyCreate {
 	if sc.flow == nil {
-		sc.flow = make(map[xid.ID]struct{})
+		sc.flow = make(map[uuid.UUID]struct{})
 	}
 	sc.flow[id] = struct{}{}
 	return sc
@@ -120,9 +120,9 @@ func (sc *SurveyCreate) SetFlow(f *Flow) *SurveyCreate {
 }
 
 // SetForID sets the for edge to User by id.
-func (sc *SurveyCreate) SetForID(id xid.ID) *SurveyCreate {
+func (sc *SurveyCreate) SetForID(id uuid.UUID) *SurveyCreate {
 	if sc._for == nil {
-		sc._for = make(map[xid.ID]struct{})
+		sc._for = make(map[uuid.UUID]struct{})
 	}
 	sc._for[id] = struct{}{}
 	return sc
@@ -134,16 +134,16 @@ func (sc *SurveyCreate) SetFor(u *User) *SurveyCreate {
 }
 
 // SetOwnerID sets the owner edge to Domain by id.
-func (sc *SurveyCreate) SetOwnerID(id xid.ID) *SurveyCreate {
+func (sc *SurveyCreate) SetOwnerID(id uuid.UUID) *SurveyCreate {
 	if sc.owner == nil {
-		sc.owner = make(map[xid.ID]struct{})
+		sc.owner = make(map[uuid.UUID]struct{})
 	}
 	sc.owner[id] = struct{}{}
 	return sc
 }
 
 // SetNillableOwnerID sets the owner edge to Domain by id if the given value is not nil.
-func (sc *SurveyCreate) SetNillableOwnerID(id *xid.ID) *SurveyCreate {
+func (sc *SurveyCreate) SetNillableOwnerID(id *uuid.UUID) *SurveyCreate {
 	if id != nil {
 		sc = sc.SetOwnerID(*id)
 	}

@@ -9,6 +9,7 @@ import (
 
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
 	"github.com/facebookincubator/ent/schema/field"
+	"github.com/google/uuid"
 	"github.com/minskylab/collecta/ent/answer"
 	"github.com/minskylab/collecta/ent/flow"
 	"github.com/minskylab/collecta/ent/input"
@@ -19,15 +20,15 @@ import (
 // QuestionCreate is the builder for creating a Question entity.
 type QuestionCreate struct {
 	config
-	id          *xid.ID
+	id          *uuid.UUID
 	hash        *string
 	title       *string
 	description *string
 	metadata    *map[string]string
 	anonymous   *bool
 	answers     map[xid.ID]struct{}
-	input       map[xid.ID]struct{}
-	flow        map[xid.ID]struct{}
+	input       map[uuid.UUID]struct{}
+	flow        map[uuid.UUID]struct{}
 }
 
 // SetHash sets the hash field.
@@ -69,8 +70,8 @@ func (qc *QuestionCreate) SetNillableAnonymous(b *bool) *QuestionCreate {
 }
 
 // SetID sets the id field.
-func (qc *QuestionCreate) SetID(x xid.ID) *QuestionCreate {
-	qc.id = &x
+func (qc *QuestionCreate) SetID(u uuid.UUID) *QuestionCreate {
+	qc.id = &u
 	return qc
 }
 
@@ -95,16 +96,16 @@ func (qc *QuestionCreate) AddAnswers(a ...*Answer) *QuestionCreate {
 }
 
 // SetInputID sets the input edge to Input by id.
-func (qc *QuestionCreate) SetInputID(id xid.ID) *QuestionCreate {
+func (qc *QuestionCreate) SetInputID(id uuid.UUID) *QuestionCreate {
 	if qc.input == nil {
-		qc.input = make(map[xid.ID]struct{})
+		qc.input = make(map[uuid.UUID]struct{})
 	}
 	qc.input[id] = struct{}{}
 	return qc
 }
 
 // SetNillableInputID sets the input edge to Input by id if the given value is not nil.
-func (qc *QuestionCreate) SetNillableInputID(id *xid.ID) *QuestionCreate {
+func (qc *QuestionCreate) SetNillableInputID(id *uuid.UUID) *QuestionCreate {
 	if id != nil {
 		qc = qc.SetInputID(*id)
 	}
@@ -117,16 +118,16 @@ func (qc *QuestionCreate) SetInput(i *Input) *QuestionCreate {
 }
 
 // SetFlowID sets the flow edge to Flow by id.
-func (qc *QuestionCreate) SetFlowID(id xid.ID) *QuestionCreate {
+func (qc *QuestionCreate) SetFlowID(id uuid.UUID) *QuestionCreate {
 	if qc.flow == nil {
-		qc.flow = make(map[xid.ID]struct{})
+		qc.flow = make(map[uuid.UUID]struct{})
 	}
 	qc.flow[id] = struct{}{}
 	return qc
 }
 
 // SetNillableFlowID sets the flow edge to Flow by id if the given value is not nil.
-func (qc *QuestionCreate) SetNillableFlowID(id *xid.ID) *QuestionCreate {
+func (qc *QuestionCreate) SetNillableFlowID(id *uuid.UUID) *QuestionCreate {
 	if id != nil {
 		qc = qc.SetFlowID(*id)
 	}

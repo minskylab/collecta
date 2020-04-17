@@ -7,16 +7,16 @@ import (
 	"strings"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/google/uuid"
 	"github.com/minskylab/collecta/ent/contact"
 	"github.com/minskylab/collecta/ent/user"
-	"github.com/rs/xid"
 )
 
 // Contact is the model entity for the Contact schema.
 type Contact struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID xid.ID `json:"id,omitempty"`
+	ID uuid.UUID `json:"id,omitempty"`
 	// Name holds the value of the "name" field.
 	Name string `json:"name,omitempty"`
 	// Value holds the value of the "value" field.
@@ -32,7 +32,7 @@ type Contact struct {
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the ContactQuery when eager-loading is set.
 	Edges         ContactEdges `json:"edges"`
-	user_contacts *xid.ID
+	user_contacts *uuid.UUID
 }
 
 // ContactEdges holds the relations/edges for other nodes in the graph.
@@ -61,7 +61,7 @@ func (e ContactEdges) OwnerOrErr() (*User, error) {
 // scanValues returns the types for scanning values from sql.Rows.
 func (*Contact) scanValues() []interface{} {
 	return []interface{}{
-		&xid.ID{},         // id
+		&uuid.UUID{},      // id
 		&sql.NullString{}, // name
 		&sql.NullString{}, // value
 		&sql.NullString{}, // kind
@@ -74,7 +74,7 @@ func (*Contact) scanValues() []interface{} {
 // fkValues returns the types for scanning foreign-keys values from sql.Rows.
 func (*Contact) fkValues() []interface{} {
 	return []interface{}{
-		&xid.ID{}, // user_contacts
+		&uuid.UUID{}, // user_contacts
 	}
 }
 
@@ -84,7 +84,7 @@ func (c *Contact) assignValues(values ...interface{}) error {
 	if m, n := len(values), len(contact.Columns); m < n {
 		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
-	if value, ok := values[0].(*xid.ID); !ok {
+	if value, ok := values[0].(*uuid.UUID); !ok {
 		return fmt.Errorf("unexpected type %T for field id", values[0])
 	} else if value != nil {
 		c.ID = *value
@@ -122,7 +122,7 @@ func (c *Contact) assignValues(values ...interface{}) error {
 	}
 	values = values[6:]
 	if len(values) == len(contact.ForeignKeys) {
-		if value, ok := values[0].(*xid.ID); !ok {
+		if value, ok := values[0].(*uuid.UUID); !ok {
 			return fmt.Errorf("unexpected type %T for field user_contacts", values[0])
 		} else if value != nil {
 			c.user_contacts = value

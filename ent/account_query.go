@@ -11,10 +11,10 @@ import (
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
 	"github.com/facebookincubator/ent/schema/field"
+	"github.com/google/uuid"
 	"github.com/minskylab/collecta/ent/account"
 	"github.com/minskylab/collecta/ent/predicate"
 	"github.com/minskylab/collecta/ent/user"
-	"github.com/rs/xid"
 )
 
 // AccountQuery is the builder for querying Account entities.
@@ -90,8 +90,8 @@ func (aq *AccountQuery) FirstX(ctx context.Context) *Account {
 }
 
 // FirstID returns the first Account id in the query. Returns *NotFoundError when no id was found.
-func (aq *AccountQuery) FirstID(ctx context.Context) (id xid.ID, err error) {
-	var ids []xid.ID
+func (aq *AccountQuery) FirstID(ctx context.Context) (id uuid.UUID, err error) {
+	var ids []uuid.UUID
 	if ids, err = aq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
@@ -103,7 +103,7 @@ func (aq *AccountQuery) FirstID(ctx context.Context) (id xid.ID, err error) {
 }
 
 // FirstXID is like FirstID, but panics if an error occurs.
-func (aq *AccountQuery) FirstXID(ctx context.Context) xid.ID {
+func (aq *AccountQuery) FirstXID(ctx context.Context) uuid.UUID {
 	id, err := aq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -137,8 +137,8 @@ func (aq *AccountQuery) OnlyX(ctx context.Context) *Account {
 }
 
 // OnlyID returns the only Account id in the query, returns an error if not exactly one id was returned.
-func (aq *AccountQuery) OnlyID(ctx context.Context) (id xid.ID, err error) {
-	var ids []xid.ID
+func (aq *AccountQuery) OnlyID(ctx context.Context) (id uuid.UUID, err error) {
+	var ids []uuid.UUID
 	if ids, err = aq.Limit(2).IDs(ctx); err != nil {
 		return
 	}
@@ -154,7 +154,7 @@ func (aq *AccountQuery) OnlyID(ctx context.Context) (id xid.ID, err error) {
 }
 
 // OnlyXID is like OnlyID, but panics if an error occurs.
-func (aq *AccountQuery) OnlyXID(ctx context.Context) xid.ID {
+func (aq *AccountQuery) OnlyXID(ctx context.Context) uuid.UUID {
 	id, err := aq.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -177,8 +177,8 @@ func (aq *AccountQuery) AllX(ctx context.Context) []*Account {
 }
 
 // IDs executes the query and returns a list of Account ids.
-func (aq *AccountQuery) IDs(ctx context.Context) ([]xid.ID, error) {
-	var ids []xid.ID
+func (aq *AccountQuery) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	var ids []uuid.UUID
 	if err := aq.Select(account.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
@@ -186,7 +186,7 @@ func (aq *AccountQuery) IDs(ctx context.Context) ([]xid.ID, error) {
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (aq *AccountQuery) IDsX(ctx context.Context) []xid.ID {
+func (aq *AccountQuery) IDsX(ctx context.Context) []uuid.UUID {
 	ids, err := aq.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -329,8 +329,8 @@ func (aq *AccountQuery) sqlAll(ctx context.Context) ([]*Account, error) {
 	}
 
 	if query := aq.withOwner; query != nil {
-		ids := make([]xid.ID, 0, len(nodes))
-		nodeids := make(map[xid.ID][]*Account)
+		ids := make([]uuid.UUID, 0, len(nodes))
+		nodeids := make(map[uuid.UUID][]*Account)
 		for i := range nodes {
 			if fk := nodes[i].user_accounts; fk != nil {
 				ids = append(ids, *fk)

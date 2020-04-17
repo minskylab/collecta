@@ -10,6 +10,7 @@ import (
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
 	"github.com/facebookincubator/ent/schema/field"
+	"github.com/google/uuid"
 	"github.com/minskylab/collecta/ent/answer"
 	"github.com/minskylab/collecta/ent/flow"
 	"github.com/minskylab/collecta/ent/input"
@@ -28,8 +29,8 @@ type QuestionUpdate struct {
 	clearmetadata  bool
 	anonymous      *bool
 	answers        map[xid.ID]struct{}
-	input          map[xid.ID]struct{}
-	flow           map[xid.ID]struct{}
+	input          map[uuid.UUID]struct{}
+	flow           map[uuid.UUID]struct{}
 	removedAnswers map[xid.ID]struct{}
 	clearedInput   bool
 	clearedFlow    bool
@@ -108,16 +109,16 @@ func (qu *QuestionUpdate) AddAnswers(a ...*Answer) *QuestionUpdate {
 }
 
 // SetInputID sets the input edge to Input by id.
-func (qu *QuestionUpdate) SetInputID(id xid.ID) *QuestionUpdate {
+func (qu *QuestionUpdate) SetInputID(id uuid.UUID) *QuestionUpdate {
 	if qu.input == nil {
-		qu.input = make(map[xid.ID]struct{})
+		qu.input = make(map[uuid.UUID]struct{})
 	}
 	qu.input[id] = struct{}{}
 	return qu
 }
 
 // SetNillableInputID sets the input edge to Input by id if the given value is not nil.
-func (qu *QuestionUpdate) SetNillableInputID(id *xid.ID) *QuestionUpdate {
+func (qu *QuestionUpdate) SetNillableInputID(id *uuid.UUID) *QuestionUpdate {
 	if id != nil {
 		qu = qu.SetInputID(*id)
 	}
@@ -130,16 +131,16 @@ func (qu *QuestionUpdate) SetInput(i *Input) *QuestionUpdate {
 }
 
 // SetFlowID sets the flow edge to Flow by id.
-func (qu *QuestionUpdate) SetFlowID(id xid.ID) *QuestionUpdate {
+func (qu *QuestionUpdate) SetFlowID(id uuid.UUID) *QuestionUpdate {
 	if qu.flow == nil {
-		qu.flow = make(map[xid.ID]struct{})
+		qu.flow = make(map[uuid.UUID]struct{})
 	}
 	qu.flow[id] = struct{}{}
 	return qu
 }
 
 // SetNillableFlowID sets the flow edge to Flow by id if the given value is not nil.
-func (qu *QuestionUpdate) SetNillableFlowID(id *xid.ID) *QuestionUpdate {
+func (qu *QuestionUpdate) SetNillableFlowID(id *uuid.UUID) *QuestionUpdate {
 	if id != nil {
 		qu = qu.SetFlowID(*id)
 	}
@@ -402,7 +403,7 @@ func (qu *QuestionUpdate) sqlSave(ctx context.Context) (n int, err error) {
 // QuestionUpdateOne is the builder for updating a single Question entity.
 type QuestionUpdateOne struct {
 	config
-	id             xid.ID
+	id             uuid.UUID
 	hash           *string
 	title          *string
 	description    *string
@@ -410,8 +411,8 @@ type QuestionUpdateOne struct {
 	clearmetadata  bool
 	anonymous      *bool
 	answers        map[xid.ID]struct{}
-	input          map[xid.ID]struct{}
-	flow           map[xid.ID]struct{}
+	input          map[uuid.UUID]struct{}
+	flow           map[uuid.UUID]struct{}
 	removedAnswers map[xid.ID]struct{}
 	clearedInput   bool
 	clearedFlow    bool
@@ -483,16 +484,16 @@ func (quo *QuestionUpdateOne) AddAnswers(a ...*Answer) *QuestionUpdateOne {
 }
 
 // SetInputID sets the input edge to Input by id.
-func (quo *QuestionUpdateOne) SetInputID(id xid.ID) *QuestionUpdateOne {
+func (quo *QuestionUpdateOne) SetInputID(id uuid.UUID) *QuestionUpdateOne {
 	if quo.input == nil {
-		quo.input = make(map[xid.ID]struct{})
+		quo.input = make(map[uuid.UUID]struct{})
 	}
 	quo.input[id] = struct{}{}
 	return quo
 }
 
 // SetNillableInputID sets the input edge to Input by id if the given value is not nil.
-func (quo *QuestionUpdateOne) SetNillableInputID(id *xid.ID) *QuestionUpdateOne {
+func (quo *QuestionUpdateOne) SetNillableInputID(id *uuid.UUID) *QuestionUpdateOne {
 	if id != nil {
 		quo = quo.SetInputID(*id)
 	}
@@ -505,16 +506,16 @@ func (quo *QuestionUpdateOne) SetInput(i *Input) *QuestionUpdateOne {
 }
 
 // SetFlowID sets the flow edge to Flow by id.
-func (quo *QuestionUpdateOne) SetFlowID(id xid.ID) *QuestionUpdateOne {
+func (quo *QuestionUpdateOne) SetFlowID(id uuid.UUID) *QuestionUpdateOne {
 	if quo.flow == nil {
-		quo.flow = make(map[xid.ID]struct{})
+		quo.flow = make(map[uuid.UUID]struct{})
 	}
 	quo.flow[id] = struct{}{}
 	return quo
 }
 
 // SetNillableFlowID sets the flow edge to Flow by id if the given value is not nil.
-func (quo *QuestionUpdateOne) SetNillableFlowID(id *xid.ID) *QuestionUpdateOne {
+func (quo *QuestionUpdateOne) SetNillableFlowID(id *uuid.UUID) *QuestionUpdateOne {
 	if id != nil {
 		quo = quo.SetFlowID(*id)
 	}

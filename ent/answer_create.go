@@ -9,6 +9,7 @@ import (
 
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
 	"github.com/facebookincubator/ent/schema/field"
+	"github.com/google/uuid"
 	"github.com/minskylab/collecta/ent/answer"
 	"github.com/minskylab/collecta/ent/question"
 	"github.com/rs/xid"
@@ -21,7 +22,7 @@ type AnswerCreate struct {
 	at        *time.Time
 	responses *[]string
 	valid     *bool
-	question  map[xid.ID]struct{}
+	question  map[uuid.UUID]struct{}
 }
 
 // SetAt sets the at field.
@@ -57,9 +58,9 @@ func (ac *AnswerCreate) SetID(x xid.ID) *AnswerCreate {
 }
 
 // SetQuestionID sets the question edge to Question by id.
-func (ac *AnswerCreate) SetQuestionID(id xid.ID) *AnswerCreate {
+func (ac *AnswerCreate) SetQuestionID(id uuid.UUID) *AnswerCreate {
 	if ac.question == nil {
-		ac.question = make(map[xid.ID]struct{})
+		ac.question = make(map[uuid.UUID]struct{})
 	}
 	ac.question[id] = struct{}{}
 	return ac

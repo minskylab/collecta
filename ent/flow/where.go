@@ -5,33 +5,33 @@ package flow
 import (
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
+	"github.com/google/uuid"
 	"github.com/minskylab/collecta/ent/predicate"
-	"github.com/rs/xid"
 )
 
 // ID filters vertices based on their identifier.
-func ID(id xid.ID) predicate.Flow {
+func ID(id uuid.UUID) predicate.Flow {
 	return predicate.Flow(func(s *sql.Selector) {
 		s.Where(sql.EQ(s.C(FieldID), id))
 	})
 }
 
 // IDEQ applies the EQ predicate on the ID field.
-func IDEQ(id xid.ID) predicate.Flow {
+func IDEQ(id uuid.UUID) predicate.Flow {
 	return predicate.Flow(func(s *sql.Selector) {
 		s.Where(sql.EQ(s.C(FieldID), id))
 	})
 }
 
 // IDNEQ applies the NEQ predicate on the ID field.
-func IDNEQ(id xid.ID) predicate.Flow {
+func IDNEQ(id uuid.UUID) predicate.Flow {
 	return predicate.Flow(func(s *sql.Selector) {
 		s.Where(sql.NEQ(s.C(FieldID), id))
 	})
 }
 
 // IDIn applies the In predicate on the ID field.
-func IDIn(ids ...xid.ID) predicate.Flow {
+func IDIn(ids ...uuid.UUID) predicate.Flow {
 	return predicate.Flow(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
@@ -48,7 +48,7 @@ func IDIn(ids ...xid.ID) predicate.Flow {
 }
 
 // IDNotIn applies the NotIn predicate on the ID field.
-func IDNotIn(ids ...xid.ID) predicate.Flow {
+func IDNotIn(ids ...uuid.UUID) predicate.Flow {
 	return predicate.Flow(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
@@ -65,35 +65,35 @@ func IDNotIn(ids ...xid.ID) predicate.Flow {
 }
 
 // IDGT applies the GT predicate on the ID field.
-func IDGT(id xid.ID) predicate.Flow {
+func IDGT(id uuid.UUID) predicate.Flow {
 	return predicate.Flow(func(s *sql.Selector) {
 		s.Where(sql.GT(s.C(FieldID), id))
 	})
 }
 
 // IDGTE applies the GTE predicate on the ID field.
-func IDGTE(id xid.ID) predicate.Flow {
+func IDGTE(id uuid.UUID) predicate.Flow {
 	return predicate.Flow(func(s *sql.Selector) {
 		s.Where(sql.GTE(s.C(FieldID), id))
 	})
 }
 
 // IDLT applies the LT predicate on the ID field.
-func IDLT(id xid.ID) predicate.Flow {
+func IDLT(id uuid.UUID) predicate.Flow {
 	return predicate.Flow(func(s *sql.Selector) {
 		s.Where(sql.LT(s.C(FieldID), id))
 	})
 }
 
 // IDLTE applies the LTE predicate on the ID field.
-func IDLTE(id xid.ID) predicate.Flow {
+func IDLTE(id uuid.UUID) predicate.Flow {
 	return predicate.Flow(func(s *sql.Selector) {
 		s.Where(sql.LTE(s.C(FieldID), id))
 	})
 }
 
 // State applies equality check predicate on the "state" field. It's identical to StateEQ.
-func State(v xid.ID) predicate.Flow {
+func State(v uuid.UUID) predicate.Flow {
 	return predicate.Flow(func(s *sql.Selector) {
 		s.Where(sql.EQ(s.C(FieldState), v))
 	})
@@ -107,21 +107,21 @@ func StateTable(v string) predicate.Flow {
 }
 
 // StateEQ applies the EQ predicate on the "state" field.
-func StateEQ(v xid.ID) predicate.Flow {
+func StateEQ(v uuid.UUID) predicate.Flow {
 	return predicate.Flow(func(s *sql.Selector) {
 		s.Where(sql.EQ(s.C(FieldState), v))
 	})
 }
 
 // StateNEQ applies the NEQ predicate on the "state" field.
-func StateNEQ(v xid.ID) predicate.Flow {
+func StateNEQ(v uuid.UUID) predicate.Flow {
 	return predicate.Flow(func(s *sql.Selector) {
 		s.Where(sql.NEQ(s.C(FieldState), v))
 	})
 }
 
 // StateIn applies the In predicate on the "state" field.
-func StateIn(vs ...xid.ID) predicate.Flow {
+func StateIn(vs ...uuid.UUID) predicate.Flow {
 	v := make([]interface{}, len(vs))
 	for i := range v {
 		v[i] = vs[i]
@@ -138,7 +138,7 @@ func StateIn(vs ...xid.ID) predicate.Flow {
 }
 
 // StateNotIn applies the NotIn predicate on the "state" field.
-func StateNotIn(vs ...xid.ID) predicate.Flow {
+func StateNotIn(vs ...uuid.UUID) predicate.Flow {
 	v := make([]interface{}, len(vs))
 	for i := range v {
 		v[i] = vs[i]
@@ -155,28 +155,28 @@ func StateNotIn(vs ...xid.ID) predicate.Flow {
 }
 
 // StateGT applies the GT predicate on the "state" field.
-func StateGT(v xid.ID) predicate.Flow {
+func StateGT(v uuid.UUID) predicate.Flow {
 	return predicate.Flow(func(s *sql.Selector) {
 		s.Where(sql.GT(s.C(FieldState), v))
 	})
 }
 
 // StateGTE applies the GTE predicate on the "state" field.
-func StateGTE(v xid.ID) predicate.Flow {
+func StateGTE(v uuid.UUID) predicate.Flow {
 	return predicate.Flow(func(s *sql.Selector) {
 		s.Where(sql.GTE(s.C(FieldState), v))
 	})
 }
 
 // StateLT applies the LT predicate on the "state" field.
-func StateLT(v xid.ID) predicate.Flow {
+func StateLT(v uuid.UUID) predicate.Flow {
 	return predicate.Flow(func(s *sql.Selector) {
 		s.Where(sql.LT(s.C(FieldState), v))
 	})
 }
 
 // StateLTE applies the LTE predicate on the "state" field.
-func StateLTE(v xid.ID) predicate.Flow {
+func StateLTE(v uuid.UUID) predicate.Flow {
 	return predicate.Flow(func(s *sql.Selector) {
 		s.Where(sql.LTE(s.C(FieldState), v))
 	})

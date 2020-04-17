@@ -11,12 +11,12 @@ import (
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
 	"github.com/facebookincubator/ent/schema/field"
+	"github.com/google/uuid"
 	"github.com/minskylab/collecta/ent/domain"
 	"github.com/minskylab/collecta/ent/flow"
 	"github.com/minskylab/collecta/ent/predicate"
 	"github.com/minskylab/collecta/ent/survey"
 	"github.com/minskylab/collecta/ent/user"
-	"github.com/rs/xid"
 )
 
 // SurveyQuery is the builder for querying Survey entities.
@@ -118,8 +118,8 @@ func (sq *SurveyQuery) FirstX(ctx context.Context) *Survey {
 }
 
 // FirstID returns the first Survey id in the query. Returns *NotFoundError when no id was found.
-func (sq *SurveyQuery) FirstID(ctx context.Context) (id xid.ID, err error) {
-	var ids []xid.ID
+func (sq *SurveyQuery) FirstID(ctx context.Context) (id uuid.UUID, err error) {
+	var ids []uuid.UUID
 	if ids, err = sq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
@@ -131,7 +131,7 @@ func (sq *SurveyQuery) FirstID(ctx context.Context) (id xid.ID, err error) {
 }
 
 // FirstXID is like FirstID, but panics if an error occurs.
-func (sq *SurveyQuery) FirstXID(ctx context.Context) xid.ID {
+func (sq *SurveyQuery) FirstXID(ctx context.Context) uuid.UUID {
 	id, err := sq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -165,8 +165,8 @@ func (sq *SurveyQuery) OnlyX(ctx context.Context) *Survey {
 }
 
 // OnlyID returns the only Survey id in the query, returns an error if not exactly one id was returned.
-func (sq *SurveyQuery) OnlyID(ctx context.Context) (id xid.ID, err error) {
-	var ids []xid.ID
+func (sq *SurveyQuery) OnlyID(ctx context.Context) (id uuid.UUID, err error) {
+	var ids []uuid.UUID
 	if ids, err = sq.Limit(2).IDs(ctx); err != nil {
 		return
 	}
@@ -182,7 +182,7 @@ func (sq *SurveyQuery) OnlyID(ctx context.Context) (id xid.ID, err error) {
 }
 
 // OnlyXID is like OnlyID, but panics if an error occurs.
-func (sq *SurveyQuery) OnlyXID(ctx context.Context) xid.ID {
+func (sq *SurveyQuery) OnlyXID(ctx context.Context) uuid.UUID {
 	id, err := sq.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -205,8 +205,8 @@ func (sq *SurveyQuery) AllX(ctx context.Context) []*Survey {
 }
 
 // IDs executes the query and returns a list of Survey ids.
-func (sq *SurveyQuery) IDs(ctx context.Context) ([]xid.ID, error) {
-	var ids []xid.ID
+func (sq *SurveyQuery) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	var ids []uuid.UUID
 	if err := sq.Select(survey.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
@@ -214,7 +214,7 @@ func (sq *SurveyQuery) IDs(ctx context.Context) ([]xid.ID, error) {
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (sq *SurveyQuery) IDsX(ctx context.Context) []xid.ID {
+func (sq *SurveyQuery) IDsX(ctx context.Context) []uuid.UUID {
 	ids, err := sq.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -381,8 +381,8 @@ func (sq *SurveyQuery) sqlAll(ctx context.Context) ([]*Survey, error) {
 	}
 
 	if query := sq.withFlow; query != nil {
-		ids := make([]xid.ID, 0, len(nodes))
-		nodeids := make(map[xid.ID][]*Survey)
+		ids := make([]uuid.UUID, 0, len(nodes))
+		nodeids := make(map[uuid.UUID][]*Survey)
 		for i := range nodes {
 			if fk := nodes[i].survey_flow; fk != nil {
 				ids = append(ids, *fk)
@@ -406,8 +406,8 @@ func (sq *SurveyQuery) sqlAll(ctx context.Context) ([]*Survey, error) {
 	}
 
 	if query := sq.withFor; query != nil {
-		ids := make([]xid.ID, 0, len(nodes))
-		nodeids := make(map[xid.ID][]*Survey)
+		ids := make([]uuid.UUID, 0, len(nodes))
+		nodeids := make(map[uuid.UUID][]*Survey)
 		for i := range nodes {
 			if fk := nodes[i].survey_for; fk != nil {
 				ids = append(ids, *fk)
@@ -431,8 +431,8 @@ func (sq *SurveyQuery) sqlAll(ctx context.Context) ([]*Survey, error) {
 	}
 
 	if query := sq.withOwner; query != nil {
-		ids := make([]xid.ID, 0, len(nodes))
-		nodeids := make(map[xid.ID][]*Survey)
+		ids := make([]uuid.UUID, 0, len(nodes))
+		nodeids := make(map[uuid.UUID][]*Survey)
 		for i := range nodes {
 			if fk := nodes[i].domain_surveys; fk != nil {
 				ids = append(ids, *fk)

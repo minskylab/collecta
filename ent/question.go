@@ -8,17 +8,17 @@ import (
 	"strings"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/google/uuid"
 	"github.com/minskylab/collecta/ent/flow"
 	"github.com/minskylab/collecta/ent/input"
 	"github.com/minskylab/collecta/ent/question"
-	"github.com/rs/xid"
 )
 
 // Question is the model entity for the Question schema.
 type Question struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID xid.ID `json:"id,omitempty"`
+	ID uuid.UUID `json:"id,omitempty"`
 	// Hash holds the value of the "hash" field.
 	Hash string `json:"hash,omitempty"`
 	// Title holds the value of the "title" field.
@@ -32,7 +32,7 @@ type Question struct {
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the QuestionQuery when eager-loading is set.
 	Edges          QuestionEdges `json:"edges"`
-	flow_questions *xid.ID
+	flow_questions *uuid.UUID
 }
 
 // QuestionEdges holds the relations/edges for other nodes in the graph.
@@ -88,7 +88,7 @@ func (e QuestionEdges) FlowOrErr() (*Flow, error) {
 // scanValues returns the types for scanning values from sql.Rows.
 func (*Question) scanValues() []interface{} {
 	return []interface{}{
-		&xid.ID{},         // id
+		&uuid.UUID{},      // id
 		&sql.NullString{}, // hash
 		&sql.NullString{}, // title
 		&sql.NullString{}, // description
@@ -100,7 +100,7 @@ func (*Question) scanValues() []interface{} {
 // fkValues returns the types for scanning foreign-keys values from sql.Rows.
 func (*Question) fkValues() []interface{} {
 	return []interface{}{
-		&xid.ID{}, // flow_questions
+		&uuid.UUID{}, // flow_questions
 	}
 }
 
@@ -110,7 +110,7 @@ func (q *Question) assignValues(values ...interface{}) error {
 	if m, n := len(values), len(question.Columns); m < n {
 		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
-	if value, ok := values[0].(*xid.ID); !ok {
+	if value, ok := values[0].(*uuid.UUID); !ok {
 		return fmt.Errorf("unexpected type %T for field id", values[0])
 	} else if value != nil {
 		q.ID = *value
@@ -146,7 +146,7 @@ func (q *Question) assignValues(values ...interface{}) error {
 	}
 	values = values[5:]
 	if len(values) == len(question.ForeignKeys) {
-		if value, ok := values[0].(*xid.ID); !ok {
+		if value, ok := values[0].(*uuid.UUID); !ok {
 			return fmt.Errorf("unexpected type %T for field flow_questions", values[0])
 		} else if value != nil {
 			q.flow_questions = value

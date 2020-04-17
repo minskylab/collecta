@@ -4,33 +4,43 @@ import (
 	"context"
 	"time"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/facebookincubator/ent/dialect/sql"
+	_ "github.com/lib/pq" // need that for open the ent client
 	"github.com/minskylab/collecta/ent"
 	"github.com/pkg/errors"
-	"github.com/rs/xid"
 )
 
-func openDBConnection() {
-	drv, err := sql.Open("postgres", "<mysql-dsn>")
+// DB represents a DB structure to wrap all related to database operations
+type DB struct {
+	Ent *ent.Client
+}
+
+// NewDB tries to open the db connection and return a DB instance
+func NewDB(ctx context.Context) (*DB, error) {
+	client, err := openDBConnection(ctx)
 	if err != nil {
-		panic(errors.Wrap(err, "error at open sql connection"))
+		return nil, errors.Wrap(err, "error at open db connection")
 	}
-	// Get the underlying sql.DB object of the driver.
+	return &DB{Ent: client}, nil
+}
+
+func openDBConnection(ctx context.Context) (*ent.Client, error) {
+	drv, err := sql.Open("postgres", "host=localhost port=5432 user=postgres dbname=collecta password=collecta sslmode=disable")
+	if err != nil {
+		return nil, errors.Wrap(err, "error at open sql connection")
+	}
+
 	db := drv.DB()
+
 	db.SetMaxIdleConns(10)
 	db.SetMaxOpenConns(100)
 	db.SetConnMaxLifetime(time.Hour)
 
 	client := ent.NewClient(ent.Driver(drv))
 
-	user, err := client.User.Create().
-		SetID(xid.New()).
-		SetName("Bregy Malpartida").
-		Save(context.Background())
-	if err != nil {
-		panic(errors.Wrap(err, "error at try to create new user with mininmal params"))
+	if err := client.Schema.Create(ctx); err != nil {
+		return nil, errors.Wrap(err, "failed creating schema resources")
 	}
 
-	spew.Dump(user)
+	return client, nil
 }

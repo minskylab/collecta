@@ -9,24 +9,24 @@ import (
 
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
 	"github.com/facebookincubator/ent/schema/field"
+	"github.com/google/uuid"
 	"github.com/minskylab/collecta/ent/flow"
 	"github.com/minskylab/collecta/ent/question"
-	"github.com/rs/xid"
 )
 
 // FlowCreate is the builder for creating a Flow entity.
 type FlowCreate struct {
 	config
-	id         *xid.ID
-	state      *xid.ID
+	id         *uuid.UUID
+	state      *uuid.UUID
 	stateTable *string
 	inputs     *[]string
-	questions  map[xid.ID]struct{}
+	questions  map[uuid.UUID]struct{}
 }
 
 // SetState sets the state field.
-func (fc *FlowCreate) SetState(x xid.ID) *FlowCreate {
-	fc.state = &x
+func (fc *FlowCreate) SetState(u uuid.UUID) *FlowCreate {
+	fc.state = &u
 	return fc
 }
 
@@ -43,15 +43,15 @@ func (fc *FlowCreate) SetInputs(s []string) *FlowCreate {
 }
 
 // SetID sets the id field.
-func (fc *FlowCreate) SetID(x xid.ID) *FlowCreate {
-	fc.id = &x
+func (fc *FlowCreate) SetID(u uuid.UUID) *FlowCreate {
+	fc.id = &u
 	return fc
 }
 
 // AddQuestionIDs adds the questions edge to Question by ids.
-func (fc *FlowCreate) AddQuestionIDs(ids ...xid.ID) *FlowCreate {
+func (fc *FlowCreate) AddQuestionIDs(ids ...uuid.UUID) *FlowCreate {
 	if fc.questions == nil {
-		fc.questions = make(map[xid.ID]struct{})
+		fc.questions = make(map[uuid.UUID]struct{})
 	}
 	for i := range ids {
 		fc.questions[ids[i]] = struct{}{}
@@ -61,7 +61,7 @@ func (fc *FlowCreate) AddQuestionIDs(ids ...xid.ID) *FlowCreate {
 
 // AddQuestions adds the questions edges to Question.
 func (fc *FlowCreate) AddQuestions(q ...*Question) *FlowCreate {
-	ids := make([]xid.ID, len(q))
+	ids := make([]uuid.UUID, len(q))
 	for i := range q {
 		ids[i] = q[i].ID
 	}

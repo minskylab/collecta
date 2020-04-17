@@ -8,15 +8,15 @@ import (
 	"strings"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/google/uuid"
 	"github.com/minskylab/collecta/ent/domain"
-	"github.com/rs/xid"
 )
 
 // Domain is the model entity for the Domain schema.
 type Domain struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID xid.ID `json:"id,omitempty"`
+	ID uuid.UUID `json:"id,omitempty"`
 	// Tags holds the value of the "tags" field.
 	Tags []string `json:"tags,omitempty"`
 	// Name holds the value of the "name" field.
@@ -62,7 +62,7 @@ func (e DomainEdges) UsersOrErr() ([]*User, error) {
 // scanValues returns the types for scanning values from sql.Rows.
 func (*Domain) scanValues() []interface{} {
 	return []interface{}{
-		&xid.ID{},         // id
+		&uuid.UUID{},      // id
 		&[]byte{},         // tags
 		&sql.NullString{}, // name
 		&sql.NullString{}, // email
@@ -76,7 +76,7 @@ func (d *Domain) assignValues(values ...interface{}) error {
 	if m, n := len(values), len(domain.Columns); m < n {
 		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
-	if value, ok := values[0].(*xid.ID); !ok {
+	if value, ok := values[0].(*uuid.UUID); !ok {
 		return fmt.Errorf("unexpected type %T for field id", values[0])
 	} else if value != nil {
 		d.ID = *value

@@ -9,19 +9,19 @@ import (
 
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
 	"github.com/facebookincubator/ent/schema/field"
+	"github.com/google/uuid"
 	"github.com/minskylab/collecta/ent/account"
 	"github.com/minskylab/collecta/ent/user"
-	"github.com/rs/xid"
 )
 
 // AccountCreate is the builder for creating a Account entity.
 type AccountCreate struct {
 	config
-	id       *xid.ID
+	id       *uuid.UUID
 	_type    *account.Type
 	sub      *string
 	remoteID *string
-	owner    map[xid.ID]struct{}
+	owner    map[uuid.UUID]struct{}
 }
 
 // SetType sets the type field.
@@ -43,22 +43,22 @@ func (ac *AccountCreate) SetRemoteID(s string) *AccountCreate {
 }
 
 // SetID sets the id field.
-func (ac *AccountCreate) SetID(x xid.ID) *AccountCreate {
-	ac.id = &x
+func (ac *AccountCreate) SetID(u uuid.UUID) *AccountCreate {
+	ac.id = &u
 	return ac
 }
 
 // SetOwnerID sets the owner edge to User by id.
-func (ac *AccountCreate) SetOwnerID(id xid.ID) *AccountCreate {
+func (ac *AccountCreate) SetOwnerID(id uuid.UUID) *AccountCreate {
 	if ac.owner == nil {
-		ac.owner = make(map[xid.ID]struct{})
+		ac.owner = make(map[uuid.UUID]struct{})
 	}
 	ac.owner[id] = struct{}{}
 	return ac
 }
 
 // SetNillableOwnerID sets the owner edge to User by id if the given value is not nil.
-func (ac *AccountCreate) SetNillableOwnerID(id *xid.ID) *AccountCreate {
+func (ac *AccountCreate) SetNillableOwnerID(id *uuid.UUID) *AccountCreate {
 	if id != nil {
 		ac = ac.SetOwnerID(*id)
 	}

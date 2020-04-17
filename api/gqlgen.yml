@@ -1,0 +1,33 @@
+schema:
+  - schema/*.graphql
+
+exec:
+  filename: generated/exec.go
+
+model:
+  filename: models/generated.go
+
+resolver:
+  layout: follow-schema
+  dir: api
+  package: api
+
+models:
+  User:
+    model: github.com/collecta/ent/user.User
+  Survey:
+    model: github.com/collecta/ent/survey.Survey
+  Domain:
+    model: github.com/collecta/ent/domain.Domain
+  Contact:
+    model: github.com/collecta/ent/contact.Contact
+  Account:
+    model: github.com/collecta/ent/account.Account
+  Question:
+    model: github.com/collecta/ent/question.Question
+  Input:
+    model: github.com/collecta/ent/input.Input
+  Answer:
+    model: github.com/collecta/ent/answer.Answer
+  Flow:
+    model: github.com/collecta/ent/flow.Flow

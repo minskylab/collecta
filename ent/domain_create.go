@@ -9,22 +9,22 @@ import (
 
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
 	"github.com/facebookincubator/ent/schema/field"
+	"github.com/google/uuid"
 	"github.com/minskylab/collecta/ent/domain"
 	"github.com/minskylab/collecta/ent/survey"
 	"github.com/minskylab/collecta/ent/user"
-	"github.com/rs/xid"
 )
 
 // DomainCreate is the builder for creating a Domain entity.
 type DomainCreate struct {
 	config
-	id      *xid.ID
+	id      *uuid.UUID
 	tags    *[]string
 	name    *string
 	email   *string
 	domain  *string
-	surveys map[xid.ID]struct{}
-	users   map[xid.ID]struct{}
+	surveys map[uuid.UUID]struct{}
+	users   map[uuid.UUID]struct{}
 }
 
 // SetTags sets the tags field.
@@ -52,15 +52,15 @@ func (dc *DomainCreate) SetDomain(s string) *DomainCreate {
 }
 
 // SetID sets the id field.
-func (dc *DomainCreate) SetID(x xid.ID) *DomainCreate {
-	dc.id = &x
+func (dc *DomainCreate) SetID(u uuid.UUID) *DomainCreate {
+	dc.id = &u
 	return dc
 }
 
 // AddSurveyIDs adds the surveys edge to Survey by ids.
-func (dc *DomainCreate) AddSurveyIDs(ids ...xid.ID) *DomainCreate {
+func (dc *DomainCreate) AddSurveyIDs(ids ...uuid.UUID) *DomainCreate {
 	if dc.surveys == nil {
-		dc.surveys = make(map[xid.ID]struct{})
+		dc.surveys = make(map[uuid.UUID]struct{})
 	}
 	for i := range ids {
 		dc.surveys[ids[i]] = struct{}{}
@@ -70,7 +70,7 @@ func (dc *DomainCreate) AddSurveyIDs(ids ...xid.ID) *DomainCreate {
 
 // AddSurveys adds the surveys edges to Survey.
 func (dc *DomainCreate) AddSurveys(s ...*Survey) *DomainCreate {
-	ids := make([]xid.ID, len(s))
+	ids := make([]uuid.UUID, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}
@@ -78,9 +78,9 @@ func (dc *DomainCreate) AddSurveys(s ...*Survey) *DomainCreate {
 }
 
 // AddUserIDs adds the users edge to User by ids.
-func (dc *DomainCreate) AddUserIDs(ids ...xid.ID) *DomainCreate {
+func (dc *DomainCreate) AddUserIDs(ids ...uuid.UUID) *DomainCreate {
 	if dc.users == nil {
-		dc.users = make(map[xid.ID]struct{})
+		dc.users = make(map[uuid.UUID]struct{})
 	}
 	for i := range ids {
 		dc.users[ids[i]] = struct{}{}
@@ -90,7 +90,7 @@ func (dc *DomainCreate) AddUserIDs(ids ...xid.ID) *DomainCreate {
 
 // AddUsers adds the users edges to User.
 func (dc *DomainCreate) AddUsers(u ...*User) *DomainCreate {
-	ids := make([]xid.ID, len(u))
+	ids := make([]uuid.UUID, len(u))
 	for i := range u {
 		ids[i] = u[i].ID
 	}

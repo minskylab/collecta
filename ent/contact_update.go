@@ -10,10 +10,10 @@ import (
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
 	"github.com/facebookincubator/ent/schema/field"
+	"github.com/google/uuid"
 	"github.com/minskylab/collecta/ent/contact"
 	"github.com/minskylab/collecta/ent/predicate"
 	"github.com/minskylab/collecta/ent/user"
-	"github.com/rs/xid"
 )
 
 // ContactUpdate is the builder for updating Contact entities.
@@ -25,7 +25,7 @@ type ContactUpdate struct {
 	principal    *bool
 	validated    *bool
 	fromAccount  *bool
-	owner        map[xid.ID]struct{}
+	owner        map[uuid.UUID]struct{}
 	clearedOwner bool
 	predicates   []predicate.Contact
 }
@@ -89,9 +89,9 @@ func (cu *ContactUpdate) SetNillableFromAccount(b *bool) *ContactUpdate {
 }
 
 // SetOwnerID sets the owner edge to User by id.
-func (cu *ContactUpdate) SetOwnerID(id xid.ID) *ContactUpdate {
+func (cu *ContactUpdate) SetOwnerID(id uuid.UUID) *ContactUpdate {
 	if cu.owner == nil {
-		cu.owner = make(map[xid.ID]struct{})
+		cu.owner = make(map[uuid.UUID]struct{})
 	}
 	cu.owner[id] = struct{}{}
 	return cu
@@ -260,14 +260,14 @@ func (cu *ContactUpdate) sqlSave(ctx context.Context) (n int, err error) {
 // ContactUpdateOne is the builder for updating a single Contact entity.
 type ContactUpdateOne struct {
 	config
-	id           xid.ID
+	id           uuid.UUID
 	name         *string
 	value        *string
 	kind         *contact.Kind
 	principal    *bool
 	validated    *bool
 	fromAccount  *bool
-	owner        map[xid.ID]struct{}
+	owner        map[uuid.UUID]struct{}
 	clearedOwner bool
 }
 
@@ -324,9 +324,9 @@ func (cuo *ContactUpdateOne) SetNillableFromAccount(b *bool) *ContactUpdateOne {
 }
 
 // SetOwnerID sets the owner edge to User by id.
-func (cuo *ContactUpdateOne) SetOwnerID(id xid.ID) *ContactUpdateOne {
+func (cuo *ContactUpdateOne) SetOwnerID(id uuid.UUID) *ContactUpdateOne {
 	if cuo.owner == nil {
-		cuo.owner = make(map[xid.ID]struct{})
+		cuo.owner = make(map[uuid.UUID]struct{})
 	}
 	cuo.owner[id] = struct{}{}
 	return cuo

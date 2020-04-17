@@ -12,12 +12,12 @@ import (
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
 	"github.com/facebookincubator/ent/schema/field"
+	"github.com/google/uuid"
 	"github.com/minskylab/collecta/ent/answer"
 	"github.com/minskylab/collecta/ent/flow"
 	"github.com/minskylab/collecta/ent/input"
 	"github.com/minskylab/collecta/ent/predicate"
 	"github.com/minskylab/collecta/ent/question"
-	"github.com/rs/xid"
 )
 
 // QuestionQuery is the builder for querying Question entities.
@@ -119,8 +119,8 @@ func (qq *QuestionQuery) FirstX(ctx context.Context) *Question {
 }
 
 // FirstID returns the first Question id in the query. Returns *NotFoundError when no id was found.
-func (qq *QuestionQuery) FirstID(ctx context.Context) (id xid.ID, err error) {
-	var ids []xid.ID
+func (qq *QuestionQuery) FirstID(ctx context.Context) (id uuid.UUID, err error) {
+	var ids []uuid.UUID
 	if ids, err = qq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
@@ -132,7 +132,7 @@ func (qq *QuestionQuery) FirstID(ctx context.Context) (id xid.ID, err error) {
 }
 
 // FirstXID is like FirstID, but panics if an error occurs.
-func (qq *QuestionQuery) FirstXID(ctx context.Context) xid.ID {
+func (qq *QuestionQuery) FirstXID(ctx context.Context) uuid.UUID {
 	id, err := qq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -166,8 +166,8 @@ func (qq *QuestionQuery) OnlyX(ctx context.Context) *Question {
 }
 
 // OnlyID returns the only Question id in the query, returns an error if not exactly one id was returned.
-func (qq *QuestionQuery) OnlyID(ctx context.Context) (id xid.ID, err error) {
-	var ids []xid.ID
+func (qq *QuestionQuery) OnlyID(ctx context.Context) (id uuid.UUID, err error) {
+	var ids []uuid.UUID
 	if ids, err = qq.Limit(2).IDs(ctx); err != nil {
 		return
 	}
@@ -183,7 +183,7 @@ func (qq *QuestionQuery) OnlyID(ctx context.Context) (id xid.ID, err error) {
 }
 
 // OnlyXID is like OnlyID, but panics if an error occurs.
-func (qq *QuestionQuery) OnlyXID(ctx context.Context) xid.ID {
+func (qq *QuestionQuery) OnlyXID(ctx context.Context) uuid.UUID {
 	id, err := qq.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -206,8 +206,8 @@ func (qq *QuestionQuery) AllX(ctx context.Context) []*Question {
 }
 
 // IDs executes the query and returns a list of Question ids.
-func (qq *QuestionQuery) IDs(ctx context.Context) ([]xid.ID, error) {
-	var ids []xid.ID
+func (qq *QuestionQuery) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	var ids []uuid.UUID
 	if err := qq.Select(question.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
@@ -215,7 +215,7 @@ func (qq *QuestionQuery) IDs(ctx context.Context) ([]xid.ID, error) {
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (qq *QuestionQuery) IDsX(ctx context.Context) []xid.ID {
+func (qq *QuestionQuery) IDsX(ctx context.Context) []uuid.UUID {
 	ids, err := qq.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -383,7 +383,7 @@ func (qq *QuestionQuery) sqlAll(ctx context.Context) ([]*Question, error) {
 
 	if query := qq.withAnswers; query != nil {
 		fks := make([]driver.Value, 0, len(nodes))
-		nodeids := make(map[xid.ID]*Question)
+		nodeids := make(map[uuid.UUID]*Question)
 		for i := range nodes {
 			fks = append(fks, nodes[i].ID)
 			nodeids[nodes[i].ID] = nodes[i]
@@ -411,7 +411,7 @@ func (qq *QuestionQuery) sqlAll(ctx context.Context) ([]*Question, error) {
 
 	if query := qq.withInput; query != nil {
 		fks := make([]driver.Value, 0, len(nodes))
-		nodeids := make(map[xid.ID]*Question)
+		nodeids := make(map[uuid.UUID]*Question)
 		for i := range nodes {
 			fks = append(fks, nodes[i].ID)
 			nodeids[nodes[i].ID] = nodes[i]
@@ -438,8 +438,8 @@ func (qq *QuestionQuery) sqlAll(ctx context.Context) ([]*Question, error) {
 	}
 
 	if query := qq.withFlow; query != nil {
-		ids := make([]xid.ID, 0, len(nodes))
-		nodeids := make(map[xid.ID][]*Question)
+		ids := make([]uuid.UUID, 0, len(nodes))
+		nodeids := make(map[uuid.UUID][]*Question)
 		for i := range nodes {
 			if fk := nodes[i].flow_questions; fk != nil {
 				ids = append(ids, *fk)

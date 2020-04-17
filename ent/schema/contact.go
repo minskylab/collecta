@@ -4,7 +4,7 @@ import (
 	"github.com/facebookincubator/ent"
 	"github.com/facebookincubator/ent/schema/edge"
 	"github.com/facebookincubator/ent/schema/field"
-	"github.com/rs/xid"
+	"github.com/google/uuid"
 )
 
 // Contact holds the schema definition for the Contact entity.
@@ -15,7 +15,7 @@ type Contact struct {
 // Fields of the Contact.
 func (Contact) Fields() []ent.Field {
 	return []ent.Field{
-		field.UUID("id", xid.ID{}),
+		field.UUID("id", uuid.UUID{}),
 		field.String("name"),
 		field.String("value").NotEmpty(),
 		field.Enum("kind").Values("Email", "Phone").Default("Email"),

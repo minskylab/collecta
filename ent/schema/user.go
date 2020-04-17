@@ -6,7 +6,7 @@ import (
 	"github.com/facebookincubator/ent"
 	"github.com/facebookincubator/ent/schema/edge"
 	"github.com/facebookincubator/ent/schema/field"
-	"github.com/rs/xid"
+	"github.com/google/uuid"
 )
 
 // User holds the schema definition for the User entity.
@@ -17,12 +17,10 @@ type User struct {
 // Fields of the User.
 func (User) Fields() []ent.Field {
 	return []ent.Field{
-		field.UUID("id", xid.ID{}),
+		field.UUID("id", uuid.UUID{}),
 		field.String("name").NotEmpty(),
 		field.String("username").Optional(),
-		field.Time("lastActivity").Default(func() time.Time {
-			return time.Now()
-		}),
+		field.Time("lastActivity").Default(time.Now),
 	}
 }
 

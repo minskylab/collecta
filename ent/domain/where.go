@@ -5,33 +5,33 @@ package domain
 import (
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
+	"github.com/google/uuid"
 	"github.com/minskylab/collecta/ent/predicate"
-	"github.com/rs/xid"
 )
 
 // ID filters vertices based on their identifier.
-func ID(id xid.ID) predicate.Domain {
+func ID(id uuid.UUID) predicate.Domain {
 	return predicate.Domain(func(s *sql.Selector) {
 		s.Where(sql.EQ(s.C(FieldID), id))
 	})
 }
 
 // IDEQ applies the EQ predicate on the ID field.
-func IDEQ(id xid.ID) predicate.Domain {
+func IDEQ(id uuid.UUID) predicate.Domain {
 	return predicate.Domain(func(s *sql.Selector) {
 		s.Where(sql.EQ(s.C(FieldID), id))
 	})
 }
 
 // IDNEQ applies the NEQ predicate on the ID field.
-func IDNEQ(id xid.ID) predicate.Domain {
+func IDNEQ(id uuid.UUID) predicate.Domain {
 	return predicate.Domain(func(s *sql.Selector) {
 		s.Where(sql.NEQ(s.C(FieldID), id))
 	})
 }
 
 // IDIn applies the In predicate on the ID field.
-func IDIn(ids ...xid.ID) predicate.Domain {
+func IDIn(ids ...uuid.UUID) predicate.Domain {
 	return predicate.Domain(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
@@ -48,7 +48,7 @@ func IDIn(ids ...xid.ID) predicate.Domain {
 }
 
 // IDNotIn applies the NotIn predicate on the ID field.
-func IDNotIn(ids ...xid.ID) predicate.Domain {
+func IDNotIn(ids ...uuid.UUID) predicate.Domain {
 	return predicate.Domain(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
@@ -65,28 +65,28 @@ func IDNotIn(ids ...xid.ID) predicate.Domain {
 }
 
 // IDGT applies the GT predicate on the ID field.
-func IDGT(id xid.ID) predicate.Domain {
+func IDGT(id uuid.UUID) predicate.Domain {
 	return predicate.Domain(func(s *sql.Selector) {
 		s.Where(sql.GT(s.C(FieldID), id))
 	})
 }
 
 // IDGTE applies the GTE predicate on the ID field.
-func IDGTE(id xid.ID) predicate.Domain {
+func IDGTE(id uuid.UUID) predicate.Domain {
 	return predicate.Domain(func(s *sql.Selector) {
 		s.Where(sql.GTE(s.C(FieldID), id))
 	})
 }
 
 // IDLT applies the LT predicate on the ID field.
-func IDLT(id xid.ID) predicate.Domain {
+func IDLT(id uuid.UUID) predicate.Domain {
 	return predicate.Domain(func(s *sql.Selector) {
 		s.Where(sql.LT(s.C(FieldID), id))
 	})
 }
 
 // IDLTE applies the LTE predicate on the ID field.
-func IDLTE(id xid.ID) predicate.Domain {
+func IDLTE(id uuid.UUID) predicate.Domain {
 	return predicate.Domain(func(s *sql.Selector) {
 		s.Where(sql.LTE(s.C(FieldID), id))
 	})

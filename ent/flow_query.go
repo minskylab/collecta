@@ -12,10 +12,10 @@ import (
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
 	"github.com/facebookincubator/ent/schema/field"
+	"github.com/google/uuid"
 	"github.com/minskylab/collecta/ent/flow"
 	"github.com/minskylab/collecta/ent/predicate"
 	"github.com/minskylab/collecta/ent/question"
-	"github.com/rs/xid"
 )
 
 // FlowQuery is the builder for querying Flow entities.
@@ -90,8 +90,8 @@ func (fq *FlowQuery) FirstX(ctx context.Context) *Flow {
 }
 
 // FirstID returns the first Flow id in the query. Returns *NotFoundError when no id was found.
-func (fq *FlowQuery) FirstID(ctx context.Context) (id xid.ID, err error) {
-	var ids []xid.ID
+func (fq *FlowQuery) FirstID(ctx context.Context) (id uuid.UUID, err error) {
+	var ids []uuid.UUID
 	if ids, err = fq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
@@ -103,7 +103,7 @@ func (fq *FlowQuery) FirstID(ctx context.Context) (id xid.ID, err error) {
 }
 
 // FirstXID is like FirstID, but panics if an error occurs.
-func (fq *FlowQuery) FirstXID(ctx context.Context) xid.ID {
+func (fq *FlowQuery) FirstXID(ctx context.Context) uuid.UUID {
 	id, err := fq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -137,8 +137,8 @@ func (fq *FlowQuery) OnlyX(ctx context.Context) *Flow {
 }
 
 // OnlyID returns the only Flow id in the query, returns an error if not exactly one id was returned.
-func (fq *FlowQuery) OnlyID(ctx context.Context) (id xid.ID, err error) {
-	var ids []xid.ID
+func (fq *FlowQuery) OnlyID(ctx context.Context) (id uuid.UUID, err error) {
+	var ids []uuid.UUID
 	if ids, err = fq.Limit(2).IDs(ctx); err != nil {
 		return
 	}
@@ -154,7 +154,7 @@ func (fq *FlowQuery) OnlyID(ctx context.Context) (id xid.ID, err error) {
 }
 
 // OnlyXID is like OnlyID, but panics if an error occurs.
-func (fq *FlowQuery) OnlyXID(ctx context.Context) xid.ID {
+func (fq *FlowQuery) OnlyXID(ctx context.Context) uuid.UUID {
 	id, err := fq.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -177,8 +177,8 @@ func (fq *FlowQuery) AllX(ctx context.Context) []*Flow {
 }
 
 // IDs executes the query and returns a list of Flow ids.
-func (fq *FlowQuery) IDs(ctx context.Context) ([]xid.ID, error) {
-	var ids []xid.ID
+func (fq *FlowQuery) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	var ids []uuid.UUID
 	if err := fq.Select(flow.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
@@ -186,7 +186,7 @@ func (fq *FlowQuery) IDs(ctx context.Context) ([]xid.ID, error) {
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (fq *FlowQuery) IDsX(ctx context.Context) []xid.ID {
+func (fq *FlowQuery) IDsX(ctx context.Context) []uuid.UUID {
 	ids, err := fq.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -254,7 +254,7 @@ func (fq *FlowQuery) WithQuestions(opts ...func(*QuestionQuery)) *FlowQuery {
 // Example:
 //
 //	var v []struct {
-//		State xid.ID `json:"state,omitempty"`
+//		State uuid.UUID `json:"state,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
@@ -275,7 +275,7 @@ func (fq *FlowQuery) GroupBy(field string, fields ...string) *FlowGroupBy {
 // Example:
 //
 //	var v []struct {
-//		State xid.ID `json:"state,omitempty"`
+//		State uuid.UUID `json:"state,omitempty"`
 //	}
 //
 //	client.Flow.Query().
@@ -320,7 +320,7 @@ func (fq *FlowQuery) sqlAll(ctx context.Context) ([]*Flow, error) {
 
 	if query := fq.withQuestions; query != nil {
 		fks := make([]driver.Value, 0, len(nodes))
-		nodeids := make(map[xid.ID]*Flow)
+		nodeids := make(map[uuid.UUID]*Flow)
 		for i := range nodes {
 			fks = append(fks, nodes[i].ID)
 			nodeids[nodes[i].ID] = nodes[i]

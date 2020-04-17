@@ -10,25 +10,25 @@ import (
 
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
 	"github.com/facebookincubator/ent/schema/field"
+	"github.com/google/uuid"
 	"github.com/minskylab/collecta/ent/account"
 	"github.com/minskylab/collecta/ent/contact"
 	"github.com/minskylab/collecta/ent/domain"
 	"github.com/minskylab/collecta/ent/survey"
 	"github.com/minskylab/collecta/ent/user"
-	"github.com/rs/xid"
 )
 
 // UserCreate is the builder for creating a User entity.
 type UserCreate struct {
 	config
-	id           *xid.ID
+	id           *uuid.UUID
 	name         *string
 	username     *string
 	lastActivity *time.Time
-	accounts     map[xid.ID]struct{}
-	contacts     map[xid.ID]struct{}
-	surveys      map[xid.ID]struct{}
-	domain       map[xid.ID]struct{}
+	accounts     map[uuid.UUID]struct{}
+	contacts     map[uuid.UUID]struct{}
+	surveys      map[uuid.UUID]struct{}
+	domain       map[uuid.UUID]struct{}
 }
 
 // SetName sets the name field.
@@ -66,15 +66,15 @@ func (uc *UserCreate) SetNillableLastActivity(t *time.Time) *UserCreate {
 }
 
 // SetID sets the id field.
-func (uc *UserCreate) SetID(x xid.ID) *UserCreate {
-	uc.id = &x
+func (uc *UserCreate) SetID(u uuid.UUID) *UserCreate {
+	uc.id = &u
 	return uc
 }
 
 // AddAccountIDs adds the accounts edge to Account by ids.
-func (uc *UserCreate) AddAccountIDs(ids ...xid.ID) *UserCreate {
+func (uc *UserCreate) AddAccountIDs(ids ...uuid.UUID) *UserCreate {
 	if uc.accounts == nil {
-		uc.accounts = make(map[xid.ID]struct{})
+		uc.accounts = make(map[uuid.UUID]struct{})
 	}
 	for i := range ids {
 		uc.accounts[ids[i]] = struct{}{}
@@ -84,7 +84,7 @@ func (uc *UserCreate) AddAccountIDs(ids ...xid.ID) *UserCreate {
 
 // AddAccounts adds the accounts edges to Account.
 func (uc *UserCreate) AddAccounts(a ...*Account) *UserCreate {
-	ids := make([]xid.ID, len(a))
+	ids := make([]uuid.UUID, len(a))
 	for i := range a {
 		ids[i] = a[i].ID
 	}
@@ -92,9 +92,9 @@ func (uc *UserCreate) AddAccounts(a ...*Account) *UserCreate {
 }
 
 // AddContactIDs adds the contacts edge to Contact by ids.
-func (uc *UserCreate) AddContactIDs(ids ...xid.ID) *UserCreate {
+func (uc *UserCreate) AddContactIDs(ids ...uuid.UUID) *UserCreate {
 	if uc.contacts == nil {
-		uc.contacts = make(map[xid.ID]struct{})
+		uc.contacts = make(map[uuid.UUID]struct{})
 	}
 	for i := range ids {
 		uc.contacts[ids[i]] = struct{}{}
@@ -104,7 +104,7 @@ func (uc *UserCreate) AddContactIDs(ids ...xid.ID) *UserCreate {
 
 // AddContacts adds the contacts edges to Contact.
 func (uc *UserCreate) AddContacts(c ...*Contact) *UserCreate {
-	ids := make([]xid.ID, len(c))
+	ids := make([]uuid.UUID, len(c))
 	for i := range c {
 		ids[i] = c[i].ID
 	}
@@ -112,9 +112,9 @@ func (uc *UserCreate) AddContacts(c ...*Contact) *UserCreate {
 }
 
 // AddSurveyIDs adds the surveys edge to Survey by ids.
-func (uc *UserCreate) AddSurveyIDs(ids ...xid.ID) *UserCreate {
+func (uc *UserCreate) AddSurveyIDs(ids ...uuid.UUID) *UserCreate {
 	if uc.surveys == nil {
-		uc.surveys = make(map[xid.ID]struct{})
+		uc.surveys = make(map[uuid.UUID]struct{})
 	}
 	for i := range ids {
 		uc.surveys[ids[i]] = struct{}{}
@@ -124,7 +124,7 @@ func (uc *UserCreate) AddSurveyIDs(ids ...xid.ID) *UserCreate {
 
 // AddSurveys adds the surveys edges to Survey.
 func (uc *UserCreate) AddSurveys(s ...*Survey) *UserCreate {
-	ids := make([]xid.ID, len(s))
+	ids := make([]uuid.UUID, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}
@@ -132,16 +132,16 @@ func (uc *UserCreate) AddSurveys(s ...*Survey) *UserCreate {
 }
 
 // SetDomainID sets the domain edge to Domain by id.
-func (uc *UserCreate) SetDomainID(id xid.ID) *UserCreate {
+func (uc *UserCreate) SetDomainID(id uuid.UUID) *UserCreate {
 	if uc.domain == nil {
-		uc.domain = make(map[xid.ID]struct{})
+		uc.domain = make(map[uuid.UUID]struct{})
 	}
 	uc.domain[id] = struct{}{}
 	return uc
 }
 
 // SetNillableDomainID sets the domain edge to Domain by id if the given value is not nil.
-func (uc *UserCreate) SetNillableDomainID(id *xid.ID) *UserCreate {
+func (uc *UserCreate) SetNillableDomainID(id *uuid.UUID) *UserCreate {
 	if id != nil {
 		uc = uc.SetDomainID(*id)
 	}

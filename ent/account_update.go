@@ -10,10 +10,10 @@ import (
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
 	"github.com/facebookincubator/ent/schema/field"
+	"github.com/google/uuid"
 	"github.com/minskylab/collecta/ent/account"
 	"github.com/minskylab/collecta/ent/predicate"
 	"github.com/minskylab/collecta/ent/user"
-	"github.com/rs/xid"
 )
 
 // AccountUpdate is the builder for updating Account entities.
@@ -22,7 +22,7 @@ type AccountUpdate struct {
 	_type        *account.Type
 	sub          *string
 	remoteID     *string
-	owner        map[xid.ID]struct{}
+	owner        map[uuid.UUID]struct{}
 	clearedOwner bool
 	predicates   []predicate.Account
 }
@@ -52,16 +52,16 @@ func (au *AccountUpdate) SetRemoteID(s string) *AccountUpdate {
 }
 
 // SetOwnerID sets the owner edge to User by id.
-func (au *AccountUpdate) SetOwnerID(id xid.ID) *AccountUpdate {
+func (au *AccountUpdate) SetOwnerID(id uuid.UUID) *AccountUpdate {
 	if au.owner == nil {
-		au.owner = make(map[xid.ID]struct{})
+		au.owner = make(map[uuid.UUID]struct{})
 	}
 	au.owner[id] = struct{}{}
 	return au
 }
 
 // SetNillableOwnerID sets the owner edge to User by id if the given value is not nil.
-func (au *AccountUpdate) SetNillableOwnerID(id *xid.ID) *AccountUpdate {
+func (au *AccountUpdate) SetNillableOwnerID(id *uuid.UUID) *AccountUpdate {
 	if id != nil {
 		au = au.SetOwnerID(*id)
 	}
@@ -207,11 +207,11 @@ func (au *AccountUpdate) sqlSave(ctx context.Context) (n int, err error) {
 // AccountUpdateOne is the builder for updating a single Account entity.
 type AccountUpdateOne struct {
 	config
-	id           xid.ID
+	id           uuid.UUID
 	_type        *account.Type
 	sub          *string
 	remoteID     *string
-	owner        map[xid.ID]struct{}
+	owner        map[uuid.UUID]struct{}
 	clearedOwner bool
 }
 
@@ -234,16 +234,16 @@ func (auo *AccountUpdateOne) SetRemoteID(s string) *AccountUpdateOne {
 }
 
 // SetOwnerID sets the owner edge to User by id.
-func (auo *AccountUpdateOne) SetOwnerID(id xid.ID) *AccountUpdateOne {
+func (auo *AccountUpdateOne) SetOwnerID(id uuid.UUID) *AccountUpdateOne {
 	if auo.owner == nil {
-		auo.owner = make(map[xid.ID]struct{})
+		auo.owner = make(map[uuid.UUID]struct{})
 	}
 	auo.owner[id] = struct{}{}
 	return auo
 }
 
 // SetNillableOwnerID sets the owner edge to User by id if the given value is not nil.
-func (auo *AccountUpdateOne) SetNillableOwnerID(id *xid.ID) *AccountUpdateOne {
+func (auo *AccountUpdateOne) SetNillableOwnerID(id *uuid.UUID) *AccountUpdateOne {
 	if id != nil {
 		auo = auo.SetOwnerID(*id)
 	}

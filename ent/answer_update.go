@@ -9,6 +9,7 @@ import (
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
 	"github.com/facebookincubator/ent/schema/field"
+	"github.com/google/uuid"
 	"github.com/minskylab/collecta/ent/answer"
 	"github.com/minskylab/collecta/ent/predicate"
 	"github.com/minskylab/collecta/ent/question"
@@ -21,7 +22,7 @@ type AnswerUpdate struct {
 
 	valid           *bool
 	clearvalid      bool
-	question        map[xid.ID]struct{}
+	question        map[uuid.UUID]struct{}
 	clearedQuestion bool
 	predicates      []predicate.Answer
 }
@@ -54,9 +55,9 @@ func (au *AnswerUpdate) ClearValid() *AnswerUpdate {
 }
 
 // SetQuestionID sets the question edge to Question by id.
-func (au *AnswerUpdate) SetQuestionID(id xid.ID) *AnswerUpdate {
+func (au *AnswerUpdate) SetQuestionID(id uuid.UUID) *AnswerUpdate {
 	if au.question == nil {
-		au.question = make(map[xid.ID]struct{})
+		au.question = make(map[uuid.UUID]struct{})
 	}
 	au.question[id] = struct{}{}
 	return au
@@ -190,7 +191,7 @@ type AnswerUpdateOne struct {
 
 	valid           *bool
 	clearvalid      bool
-	question        map[xid.ID]struct{}
+	question        map[uuid.UUID]struct{}
 	clearedQuestion bool
 }
 
@@ -216,9 +217,9 @@ func (auo *AnswerUpdateOne) ClearValid() *AnswerUpdateOne {
 }
 
 // SetQuestionID sets the question edge to Question by id.
-func (auo *AnswerUpdateOne) SetQuestionID(id xid.ID) *AnswerUpdateOne {
+func (auo *AnswerUpdateOne) SetQuestionID(id uuid.UUID) *AnswerUpdateOne {
 	if auo.question == nil {
-		auo.question = make(map[xid.ID]struct{})
+		auo.question = make(map[uuid.UUID]struct{})
 	}
 	auo.question[id] = struct{}{}
 	return auo

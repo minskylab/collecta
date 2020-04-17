@@ -1,10 +1,12 @@
 package schema
 
 import (
+	"time"
+
 	"github.com/facebookincubator/ent"
 	"github.com/facebookincubator/ent/schema/edge"
 	"github.com/facebookincubator/ent/schema/field"
-	"github.com/rs/xid"
+	"github.com/google/uuid"
 )
 
 // Answer holds the schema definition for the Answer entity.
@@ -15,8 +17,8 @@ type Answer struct {
 // Fields of the Answer.
 func (Answer) Fields() []ent.Field {
 	return []ent.Field{
-		field.UUID("id", xid.ID{}),
-		field.Time("at").Immutable(),
+		field.UUID("id", uuid.UUID{}),
+		field.Time("at").Immutable().Default(time.Now),
 		field.Strings("responses").Immutable(),
 		field.Bool("valid").Optional(),
 	}

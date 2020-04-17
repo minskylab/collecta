@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/google/uuid"
 	"github.com/minskylab/collecta/ent/migrate"
 	"github.com/rs/xid"
 
@@ -179,7 +180,7 @@ func (c *AccountClient) UpdateOne(a *Account) *AccountUpdateOne {
 }
 
 // UpdateOneID returns an update builder for the given id.
-func (c *AccountClient) UpdateOneID(id xid.ID) *AccountUpdateOne {
+func (c *AccountClient) UpdateOneID(id uuid.UUID) *AccountUpdateOne {
 	return &AccountUpdateOne{config: c.config, id: id}
 }
 
@@ -194,7 +195,7 @@ func (c *AccountClient) DeleteOne(a *Account) *AccountDeleteOne {
 }
 
 // DeleteOneID returns a delete builder for the given id.
-func (c *AccountClient) DeleteOneID(id xid.ID) *AccountDeleteOne {
+func (c *AccountClient) DeleteOneID(id uuid.UUID) *AccountDeleteOne {
 	return &AccountDeleteOne{c.Delete().Where(account.ID(id))}
 }
 
@@ -204,12 +205,12 @@ func (c *AccountClient) Query() *AccountQuery {
 }
 
 // Get returns a Account entity by its id.
-func (c *AccountClient) Get(ctx context.Context, id xid.ID) (*Account, error) {
+func (c *AccountClient) Get(ctx context.Context, id uuid.UUID) (*Account, error) {
 	return c.Query().Where(account.ID(id)).Only(ctx)
 }
 
 // GetX is like Get, but panics if an error occurs.
-func (c *AccountClient) GetX(ctx context.Context, id xid.ID) *Account {
+func (c *AccountClient) GetX(ctx context.Context, id uuid.UUID) *Account {
 	a, err := c.Get(ctx, id)
 	if err != nil {
 		panic(err)
@@ -335,7 +336,7 @@ func (c *ContactClient) UpdateOne(co *Contact) *ContactUpdateOne {
 }
 
 // UpdateOneID returns an update builder for the given id.
-func (c *ContactClient) UpdateOneID(id xid.ID) *ContactUpdateOne {
+func (c *ContactClient) UpdateOneID(id uuid.UUID) *ContactUpdateOne {
 	return &ContactUpdateOne{config: c.config, id: id}
 }
 
@@ -350,7 +351,7 @@ func (c *ContactClient) DeleteOne(co *Contact) *ContactDeleteOne {
 }
 
 // DeleteOneID returns a delete builder for the given id.
-func (c *ContactClient) DeleteOneID(id xid.ID) *ContactDeleteOne {
+func (c *ContactClient) DeleteOneID(id uuid.UUID) *ContactDeleteOne {
 	return &ContactDeleteOne{c.Delete().Where(contact.ID(id))}
 }
 
@@ -360,12 +361,12 @@ func (c *ContactClient) Query() *ContactQuery {
 }
 
 // Get returns a Contact entity by its id.
-func (c *ContactClient) Get(ctx context.Context, id xid.ID) (*Contact, error) {
+func (c *ContactClient) Get(ctx context.Context, id uuid.UUID) (*Contact, error) {
 	return c.Query().Where(contact.ID(id)).Only(ctx)
 }
 
 // GetX is like Get, but panics if an error occurs.
-func (c *ContactClient) GetX(ctx context.Context, id xid.ID) *Contact {
+func (c *ContactClient) GetX(ctx context.Context, id uuid.UUID) *Contact {
 	co, err := c.Get(ctx, id)
 	if err != nil {
 		panic(err)
@@ -477,7 +478,7 @@ func (c *DomainClient) UpdateOne(d *Domain) *DomainUpdateOne {
 }
 
 // UpdateOneID returns an update builder for the given id.
-func (c *DomainClient) UpdateOneID(id xid.ID) *DomainUpdateOne {
+func (c *DomainClient) UpdateOneID(id uuid.UUID) *DomainUpdateOne {
 	return &DomainUpdateOne{config: c.config, id: id}
 }
 
@@ -492,7 +493,7 @@ func (c *DomainClient) DeleteOne(d *Domain) *DomainDeleteOne {
 }
 
 // DeleteOneID returns a delete builder for the given id.
-func (c *DomainClient) DeleteOneID(id xid.ID) *DomainDeleteOne {
+func (c *DomainClient) DeleteOneID(id uuid.UUID) *DomainDeleteOne {
 	return &DomainDeleteOne{c.Delete().Where(domain.ID(id))}
 }
 
@@ -502,12 +503,12 @@ func (c *DomainClient) Query() *DomainQuery {
 }
 
 // Get returns a Domain entity by its id.
-func (c *DomainClient) Get(ctx context.Context, id xid.ID) (*Domain, error) {
+func (c *DomainClient) Get(ctx context.Context, id uuid.UUID) (*Domain, error) {
 	return c.Query().Where(domain.ID(id)).Only(ctx)
 }
 
 // GetX is like Get, but panics if an error occurs.
-func (c *DomainClient) GetX(ctx context.Context, id xid.ID) *Domain {
+func (c *DomainClient) GetX(ctx context.Context, id uuid.UUID) *Domain {
 	d, err := c.Get(ctx, id)
 	if err != nil {
 		panic(err)
@@ -569,7 +570,7 @@ func (c *FlowClient) UpdateOne(f *Flow) *FlowUpdateOne {
 }
 
 // UpdateOneID returns an update builder for the given id.
-func (c *FlowClient) UpdateOneID(id xid.ID) *FlowUpdateOne {
+func (c *FlowClient) UpdateOneID(id uuid.UUID) *FlowUpdateOne {
 	return &FlowUpdateOne{config: c.config, id: id}
 }
 
@@ -584,7 +585,7 @@ func (c *FlowClient) DeleteOne(f *Flow) *FlowDeleteOne {
 }
 
 // DeleteOneID returns a delete builder for the given id.
-func (c *FlowClient) DeleteOneID(id xid.ID) *FlowDeleteOne {
+func (c *FlowClient) DeleteOneID(id uuid.UUID) *FlowDeleteOne {
 	return &FlowDeleteOne{c.Delete().Where(flow.ID(id))}
 }
 
@@ -594,12 +595,12 @@ func (c *FlowClient) Query() *FlowQuery {
 }
 
 // Get returns a Flow entity by its id.
-func (c *FlowClient) Get(ctx context.Context, id xid.ID) (*Flow, error) {
+func (c *FlowClient) Get(ctx context.Context, id uuid.UUID) (*Flow, error) {
 	return c.Query().Where(flow.ID(id)).Only(ctx)
 }
 
 // GetX is like Get, but panics if an error occurs.
-func (c *FlowClient) GetX(ctx context.Context, id xid.ID) *Flow {
+func (c *FlowClient) GetX(ctx context.Context, id uuid.UUID) *Flow {
 	f, err := c.Get(ctx, id)
 	if err != nil {
 		panic(err)
@@ -711,7 +712,7 @@ func (c *InputClient) UpdateOne(i *Input) *InputUpdateOne {
 }
 
 // UpdateOneID returns an update builder for the given id.
-func (c *InputClient) UpdateOneID(id xid.ID) *InputUpdateOne {
+func (c *InputClient) UpdateOneID(id uuid.UUID) *InputUpdateOne {
 	return &InputUpdateOne{config: c.config, id: id}
 }
 
@@ -726,7 +727,7 @@ func (c *InputClient) DeleteOne(i *Input) *InputDeleteOne {
 }
 
 // DeleteOneID returns a delete builder for the given id.
-func (c *InputClient) DeleteOneID(id xid.ID) *InputDeleteOne {
+func (c *InputClient) DeleteOneID(id uuid.UUID) *InputDeleteOne {
 	return &InputDeleteOne{c.Delete().Where(input.ID(id))}
 }
 
@@ -736,12 +737,12 @@ func (c *InputClient) Query() *InputQuery {
 }
 
 // Get returns a Input entity by its id.
-func (c *InputClient) Get(ctx context.Context, id xid.ID) (*Input, error) {
+func (c *InputClient) Get(ctx context.Context, id uuid.UUID) (*Input, error) {
 	return c.Query().Where(input.ID(id)).Only(ctx)
 }
 
 // GetX is like Get, but panics if an error occurs.
-func (c *InputClient) GetX(ctx context.Context, id xid.ID) *Input {
+func (c *InputClient) GetX(ctx context.Context, id uuid.UUID) *Input {
 	i, err := c.Get(ctx, id)
 	if err != nil {
 		panic(err)
@@ -789,7 +790,7 @@ func (c *QuestionClient) UpdateOne(q *Question) *QuestionUpdateOne {
 }
 
 // UpdateOneID returns an update builder for the given id.
-func (c *QuestionClient) UpdateOneID(id xid.ID) *QuestionUpdateOne {
+func (c *QuestionClient) UpdateOneID(id uuid.UUID) *QuestionUpdateOne {
 	return &QuestionUpdateOne{config: c.config, id: id}
 }
 
@@ -804,7 +805,7 @@ func (c *QuestionClient) DeleteOne(q *Question) *QuestionDeleteOne {
 }
 
 // DeleteOneID returns a delete builder for the given id.
-func (c *QuestionClient) DeleteOneID(id xid.ID) *QuestionDeleteOne {
+func (c *QuestionClient) DeleteOneID(id uuid.UUID) *QuestionDeleteOne {
 	return &QuestionDeleteOne{c.Delete().Where(question.ID(id))}
 }
 
@@ -814,12 +815,12 @@ func (c *QuestionClient) Query() *QuestionQuery {
 }
 
 // Get returns a Question entity by its id.
-func (c *QuestionClient) Get(ctx context.Context, id xid.ID) (*Question, error) {
+func (c *QuestionClient) Get(ctx context.Context, id uuid.UUID) (*Question, error) {
 	return c.Query().Where(question.ID(id)).Only(ctx)
 }
 
 // GetX is like Get, but panics if an error occurs.
-func (c *QuestionClient) GetX(ctx context.Context, id xid.ID) *Question {
+func (c *QuestionClient) GetX(ctx context.Context, id uuid.UUID) *Question {
 	q, err := c.Get(ctx, id)
 	if err != nil {
 		panic(err)
@@ -895,7 +896,7 @@ func (c *SurveyClient) UpdateOne(s *Survey) *SurveyUpdateOne {
 }
 
 // UpdateOneID returns an update builder for the given id.
-func (c *SurveyClient) UpdateOneID(id xid.ID) *SurveyUpdateOne {
+func (c *SurveyClient) UpdateOneID(id uuid.UUID) *SurveyUpdateOne {
 	return &SurveyUpdateOne{config: c.config, id: id}
 }
 
@@ -910,7 +911,7 @@ func (c *SurveyClient) DeleteOne(s *Survey) *SurveyDeleteOne {
 }
 
 // DeleteOneID returns a delete builder for the given id.
-func (c *SurveyClient) DeleteOneID(id xid.ID) *SurveyDeleteOne {
+func (c *SurveyClient) DeleteOneID(id uuid.UUID) *SurveyDeleteOne {
 	return &SurveyDeleteOne{c.Delete().Where(survey.ID(id))}
 }
 
@@ -920,12 +921,12 @@ func (c *SurveyClient) Query() *SurveyQuery {
 }
 
 // Get returns a Survey entity by its id.
-func (c *SurveyClient) Get(ctx context.Context, id xid.ID) (*Survey, error) {
+func (c *SurveyClient) Get(ctx context.Context, id uuid.UUID) (*Survey, error) {
 	return c.Query().Where(survey.ID(id)).Only(ctx)
 }
 
 // GetX is like Get, but panics if an error occurs.
-func (c *SurveyClient) GetX(ctx context.Context, id xid.ID) *Survey {
+func (c *SurveyClient) GetX(ctx context.Context, id uuid.UUID) *Survey {
 	s, err := c.Get(ctx, id)
 	if err != nil {
 		panic(err)
@@ -1001,7 +1002,7 @@ func (c *UserClient) UpdateOne(u *User) *UserUpdateOne {
 }
 
 // UpdateOneID returns an update builder for the given id.
-func (c *UserClient) UpdateOneID(id xid.ID) *UserUpdateOne {
+func (c *UserClient) UpdateOneID(id uuid.UUID) *UserUpdateOne {
 	return &UserUpdateOne{config: c.config, id: id}
 }
 
@@ -1016,7 +1017,7 @@ func (c *UserClient) DeleteOne(u *User) *UserDeleteOne {
 }
 
 // DeleteOneID returns a delete builder for the given id.
-func (c *UserClient) DeleteOneID(id xid.ID) *UserDeleteOne {
+func (c *UserClient) DeleteOneID(id uuid.UUID) *UserDeleteOne {
 	return &UserDeleteOne{c.Delete().Where(user.ID(id))}
 }
 
@@ -1026,12 +1027,12 @@ func (c *UserClient) Query() *UserQuery {
 }
 
 // Get returns a User entity by its id.
-func (c *UserClient) Get(ctx context.Context, id xid.ID) (*User, error) {
+func (c *UserClient) Get(ctx context.Context, id uuid.UUID) (*User, error) {
 	return c.Query().Where(user.ID(id)).Only(ctx)
 }
 
 // GetX is like Get, but panics if an error occurs.
-func (c *UserClient) GetX(ctx context.Context, id xid.ID) *User {
+func (c *UserClient) GetX(ctx context.Context, id uuid.UUID) *User {
 	u, err := c.Get(ctx, id)
 	if err != nil {
 		panic(err)

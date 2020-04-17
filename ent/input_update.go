@@ -9,10 +9,10 @@ import (
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
 	"github.com/facebookincubator/ent/schema/field"
+	"github.com/google/uuid"
 	"github.com/minskylab/collecta/ent/input"
 	"github.com/minskylab/collecta/ent/predicate"
 	"github.com/minskylab/collecta/ent/question"
-	"github.com/rs/xid"
 )
 
 // InputUpdate is the builder for updating Input entities.
@@ -25,7 +25,7 @@ type InputUpdate struct {
 	cleardefaults   bool
 	options         *map[string]string
 	clearoptions    bool
-	question        map[xid.ID]struct{}
+	question        map[uuid.UUID]struct{}
 	clearedQuestion bool
 	predicates      []predicate.Input
 }
@@ -84,9 +84,9 @@ func (iu *InputUpdate) ClearOptions() *InputUpdate {
 }
 
 // SetQuestionID sets the question edge to Question by id.
-func (iu *InputUpdate) SetQuestionID(id xid.ID) *InputUpdate {
+func (iu *InputUpdate) SetQuestionID(id uuid.UUID) *InputUpdate {
 	if iu.question == nil {
-		iu.question = make(map[xid.ID]struct{})
+		iu.question = make(map[uuid.UUID]struct{})
 	}
 	iu.question[id] = struct{}{}
 	return iu
@@ -242,7 +242,7 @@ func (iu *InputUpdate) sqlSave(ctx context.Context) (n int, err error) {
 // InputUpdateOne is the builder for updating a single Input entity.
 type InputUpdateOne struct {
 	config
-	id xid.ID
+	id uuid.UUID
 
 	multiple        *bool
 	clearmultiple   bool
@@ -250,7 +250,7 @@ type InputUpdateOne struct {
 	cleardefaults   bool
 	options         *map[string]string
 	clearoptions    bool
-	question        map[xid.ID]struct{}
+	question        map[uuid.UUID]struct{}
 	clearedQuestion bool
 }
 
@@ -302,9 +302,9 @@ func (iuo *InputUpdateOne) ClearOptions() *InputUpdateOne {
 }
 
 // SetQuestionID sets the question edge to Question by id.
-func (iuo *InputUpdateOne) SetQuestionID(id xid.ID) *InputUpdateOne {
+func (iuo *InputUpdateOne) SetQuestionID(id uuid.UUID) *InputUpdateOne {
 	if iuo.question == nil {
-		iuo.question = make(map[xid.ID]struct{})
+		iuo.question = make(map[uuid.UUID]struct{})
 	}
 	iuo.question[id] = struct{}{}
 	return iuo

@@ -8,16 +8,16 @@ import (
 	"strings"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/google/uuid"
 	"github.com/minskylab/collecta/ent/input"
 	"github.com/minskylab/collecta/ent/question"
-	"github.com/rs/xid"
 )
 
 // Input is the model entity for the Input schema.
 type Input struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID xid.ID `json:"id,omitempty"`
+	ID uuid.UUID `json:"id,omitempty"`
 	// Kind holds the value of the "kind" field.
 	Kind input.Kind `json:"kind,omitempty"`
 	// Multiple holds the value of the "multiple" field.
@@ -29,7 +29,7 @@ type Input struct {
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the InputQuery when eager-loading is set.
 	Edges          InputEdges `json:"edges"`
-	question_input *xid.ID
+	question_input *uuid.UUID
 }
 
 // InputEdges holds the relations/edges for other nodes in the graph.
@@ -58,7 +58,7 @@ func (e InputEdges) QuestionOrErr() (*Question, error) {
 // scanValues returns the types for scanning values from sql.Rows.
 func (*Input) scanValues() []interface{} {
 	return []interface{}{
-		&xid.ID{},         // id
+		&uuid.UUID{},      // id
 		&sql.NullString{}, // kind
 		&sql.NullBool{},   // multiple
 		&[]byte{},         // defaults
@@ -69,7 +69,7 @@ func (*Input) scanValues() []interface{} {
 // fkValues returns the types for scanning foreign-keys values from sql.Rows.
 func (*Input) fkValues() []interface{} {
 	return []interface{}{
-		&xid.ID{}, // question_input
+		&uuid.UUID{}, // question_input
 	}
 }
 
@@ -79,7 +79,7 @@ func (i *Input) assignValues(values ...interface{}) error {
 	if m, n := len(values), len(input.Columns); m < n {
 		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
-	if value, ok := values[0].(*xid.ID); !ok {
+	if value, ok := values[0].(*uuid.UUID); !ok {
 		return fmt.Errorf("unexpected type %T for field id", values[0])
 	} else if value != nil {
 		i.ID = *value
@@ -113,7 +113,7 @@ func (i *Input) assignValues(values ...interface{}) error {
 	}
 	values = values[4:]
 	if len(values) == len(input.ForeignKeys) {
-		if value, ok := values[0].(*xid.ID); !ok {
+		if value, ok := values[0].(*uuid.UUID); !ok {
 			return fmt.Errorf("unexpected type %T for field question_input", values[0])
 		} else if value != nil {
 			i.question_input = value

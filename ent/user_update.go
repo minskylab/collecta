@@ -11,13 +11,13 @@ import (
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
 	"github.com/facebookincubator/ent/schema/field"
+	"github.com/google/uuid"
 	"github.com/minskylab/collecta/ent/account"
 	"github.com/minskylab/collecta/ent/contact"
 	"github.com/minskylab/collecta/ent/domain"
 	"github.com/minskylab/collecta/ent/predicate"
 	"github.com/minskylab/collecta/ent/survey"
 	"github.com/minskylab/collecta/ent/user"
-	"github.com/rs/xid"
 )
 
 // UserUpdate is the builder for updating User entities.
@@ -27,13 +27,13 @@ type UserUpdate struct {
 	username        *string
 	clearusername   bool
 	lastActivity    *time.Time
-	accounts        map[xid.ID]struct{}
-	contacts        map[xid.ID]struct{}
-	surveys         map[xid.ID]struct{}
-	domain          map[xid.ID]struct{}
-	removedAccounts map[xid.ID]struct{}
-	removedContacts map[xid.ID]struct{}
-	removedSurveys  map[xid.ID]struct{}
+	accounts        map[uuid.UUID]struct{}
+	contacts        map[uuid.UUID]struct{}
+	surveys         map[uuid.UUID]struct{}
+	domain          map[uuid.UUID]struct{}
+	removedAccounts map[uuid.UUID]struct{}
+	removedContacts map[uuid.UUID]struct{}
+	removedSurveys  map[uuid.UUID]struct{}
 	clearedDomain   bool
 	predicates      []predicate.User
 }
@@ -86,9 +86,9 @@ func (uu *UserUpdate) SetNillableLastActivity(t *time.Time) *UserUpdate {
 }
 
 // AddAccountIDs adds the accounts edge to Account by ids.
-func (uu *UserUpdate) AddAccountIDs(ids ...xid.ID) *UserUpdate {
+func (uu *UserUpdate) AddAccountIDs(ids ...uuid.UUID) *UserUpdate {
 	if uu.accounts == nil {
-		uu.accounts = make(map[xid.ID]struct{})
+		uu.accounts = make(map[uuid.UUID]struct{})
 	}
 	for i := range ids {
 		uu.accounts[ids[i]] = struct{}{}
@@ -98,7 +98,7 @@ func (uu *UserUpdate) AddAccountIDs(ids ...xid.ID) *UserUpdate {
 
 // AddAccounts adds the accounts edges to Account.
 func (uu *UserUpdate) AddAccounts(a ...*Account) *UserUpdate {
-	ids := make([]xid.ID, len(a))
+	ids := make([]uuid.UUID, len(a))
 	for i := range a {
 		ids[i] = a[i].ID
 	}
@@ -106,9 +106,9 @@ func (uu *UserUpdate) AddAccounts(a ...*Account) *UserUpdate {
 }
 
 // AddContactIDs adds the contacts edge to Contact by ids.
-func (uu *UserUpdate) AddContactIDs(ids ...xid.ID) *UserUpdate {
+func (uu *UserUpdate) AddContactIDs(ids ...uuid.UUID) *UserUpdate {
 	if uu.contacts == nil {
-		uu.contacts = make(map[xid.ID]struct{})
+		uu.contacts = make(map[uuid.UUID]struct{})
 	}
 	for i := range ids {
 		uu.contacts[ids[i]] = struct{}{}
@@ -118,7 +118,7 @@ func (uu *UserUpdate) AddContactIDs(ids ...xid.ID) *UserUpdate {
 
 // AddContacts adds the contacts edges to Contact.
 func (uu *UserUpdate) AddContacts(c ...*Contact) *UserUpdate {
-	ids := make([]xid.ID, len(c))
+	ids := make([]uuid.UUID, len(c))
 	for i := range c {
 		ids[i] = c[i].ID
 	}
@@ -126,9 +126,9 @@ func (uu *UserUpdate) AddContacts(c ...*Contact) *UserUpdate {
 }
 
 // AddSurveyIDs adds the surveys edge to Survey by ids.
-func (uu *UserUpdate) AddSurveyIDs(ids ...xid.ID) *UserUpdate {
+func (uu *UserUpdate) AddSurveyIDs(ids ...uuid.UUID) *UserUpdate {
 	if uu.surveys == nil {
-		uu.surveys = make(map[xid.ID]struct{})
+		uu.surveys = make(map[uuid.UUID]struct{})
 	}
 	for i := range ids {
 		uu.surveys[ids[i]] = struct{}{}
@@ -138,7 +138,7 @@ func (uu *UserUpdate) AddSurveyIDs(ids ...xid.ID) *UserUpdate {
 
 // AddSurveys adds the surveys edges to Survey.
 func (uu *UserUpdate) AddSurveys(s ...*Survey) *UserUpdate {
-	ids := make([]xid.ID, len(s))
+	ids := make([]uuid.UUID, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}
@@ -146,16 +146,16 @@ func (uu *UserUpdate) AddSurveys(s ...*Survey) *UserUpdate {
 }
 
 // SetDomainID sets the domain edge to Domain by id.
-func (uu *UserUpdate) SetDomainID(id xid.ID) *UserUpdate {
+func (uu *UserUpdate) SetDomainID(id uuid.UUID) *UserUpdate {
 	if uu.domain == nil {
-		uu.domain = make(map[xid.ID]struct{})
+		uu.domain = make(map[uuid.UUID]struct{})
 	}
 	uu.domain[id] = struct{}{}
 	return uu
 }
 
 // SetNillableDomainID sets the domain edge to Domain by id if the given value is not nil.
-func (uu *UserUpdate) SetNillableDomainID(id *xid.ID) *UserUpdate {
+func (uu *UserUpdate) SetNillableDomainID(id *uuid.UUID) *UserUpdate {
 	if id != nil {
 		uu = uu.SetDomainID(*id)
 	}
@@ -168,9 +168,9 @@ func (uu *UserUpdate) SetDomain(d *Domain) *UserUpdate {
 }
 
 // RemoveAccountIDs removes the accounts edge to Account by ids.
-func (uu *UserUpdate) RemoveAccountIDs(ids ...xid.ID) *UserUpdate {
+func (uu *UserUpdate) RemoveAccountIDs(ids ...uuid.UUID) *UserUpdate {
 	if uu.removedAccounts == nil {
-		uu.removedAccounts = make(map[xid.ID]struct{})
+		uu.removedAccounts = make(map[uuid.UUID]struct{})
 	}
 	for i := range ids {
 		uu.removedAccounts[ids[i]] = struct{}{}
@@ -180,7 +180,7 @@ func (uu *UserUpdate) RemoveAccountIDs(ids ...xid.ID) *UserUpdate {
 
 // RemoveAccounts removes accounts edges to Account.
 func (uu *UserUpdate) RemoveAccounts(a ...*Account) *UserUpdate {
-	ids := make([]xid.ID, len(a))
+	ids := make([]uuid.UUID, len(a))
 	for i := range a {
 		ids[i] = a[i].ID
 	}
@@ -188,9 +188,9 @@ func (uu *UserUpdate) RemoveAccounts(a ...*Account) *UserUpdate {
 }
 
 // RemoveContactIDs removes the contacts edge to Contact by ids.
-func (uu *UserUpdate) RemoveContactIDs(ids ...xid.ID) *UserUpdate {
+func (uu *UserUpdate) RemoveContactIDs(ids ...uuid.UUID) *UserUpdate {
 	if uu.removedContacts == nil {
-		uu.removedContacts = make(map[xid.ID]struct{})
+		uu.removedContacts = make(map[uuid.UUID]struct{})
 	}
 	for i := range ids {
 		uu.removedContacts[ids[i]] = struct{}{}
@@ -200,7 +200,7 @@ func (uu *UserUpdate) RemoveContactIDs(ids ...xid.ID) *UserUpdate {
 
 // RemoveContacts removes contacts edges to Contact.
 func (uu *UserUpdate) RemoveContacts(c ...*Contact) *UserUpdate {
-	ids := make([]xid.ID, len(c))
+	ids := make([]uuid.UUID, len(c))
 	for i := range c {
 		ids[i] = c[i].ID
 	}
@@ -208,9 +208,9 @@ func (uu *UserUpdate) RemoveContacts(c ...*Contact) *UserUpdate {
 }
 
 // RemoveSurveyIDs removes the surveys edge to Survey by ids.
-func (uu *UserUpdate) RemoveSurveyIDs(ids ...xid.ID) *UserUpdate {
+func (uu *UserUpdate) RemoveSurveyIDs(ids ...uuid.UUID) *UserUpdate {
 	if uu.removedSurveys == nil {
-		uu.removedSurveys = make(map[xid.ID]struct{})
+		uu.removedSurveys = make(map[uuid.UUID]struct{})
 	}
 	for i := range ids {
 		uu.removedSurveys[ids[i]] = struct{}{}
@@ -220,7 +220,7 @@ func (uu *UserUpdate) RemoveSurveyIDs(ids ...xid.ID) *UserUpdate {
 
 // RemoveSurveys removes surveys edges to Survey.
 func (uu *UserUpdate) RemoveSurveys(s ...*Survey) *UserUpdate {
-	ids := make([]xid.ID, len(s))
+	ids := make([]uuid.UUID, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}
@@ -476,18 +476,18 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 // UserUpdateOne is the builder for updating a single User entity.
 type UserUpdateOne struct {
 	config
-	id              xid.ID
+	id              uuid.UUID
 	name            *string
 	username        *string
 	clearusername   bool
 	lastActivity    *time.Time
-	accounts        map[xid.ID]struct{}
-	contacts        map[xid.ID]struct{}
-	surveys         map[xid.ID]struct{}
-	domain          map[xid.ID]struct{}
-	removedAccounts map[xid.ID]struct{}
-	removedContacts map[xid.ID]struct{}
-	removedSurveys  map[xid.ID]struct{}
+	accounts        map[uuid.UUID]struct{}
+	contacts        map[uuid.UUID]struct{}
+	surveys         map[uuid.UUID]struct{}
+	domain          map[uuid.UUID]struct{}
+	removedAccounts map[uuid.UUID]struct{}
+	removedContacts map[uuid.UUID]struct{}
+	removedSurveys  map[uuid.UUID]struct{}
 	clearedDomain   bool
 }
 
@@ -533,9 +533,9 @@ func (uuo *UserUpdateOne) SetNillableLastActivity(t *time.Time) *UserUpdateOne {
 }
 
 // AddAccountIDs adds the accounts edge to Account by ids.
-func (uuo *UserUpdateOne) AddAccountIDs(ids ...xid.ID) *UserUpdateOne {
+func (uuo *UserUpdateOne) AddAccountIDs(ids ...uuid.UUID) *UserUpdateOne {
 	if uuo.accounts == nil {
-		uuo.accounts = make(map[xid.ID]struct{})
+		uuo.accounts = make(map[uuid.UUID]struct{})
 	}
 	for i := range ids {
 		uuo.accounts[ids[i]] = struct{}{}
@@ -545,7 +545,7 @@ func (uuo *UserUpdateOne) AddAccountIDs(ids ...xid.ID) *UserUpdateOne {
 
 // AddAccounts adds the accounts edges to Account.
 func (uuo *UserUpdateOne) AddAccounts(a ...*Account) *UserUpdateOne {
-	ids := make([]xid.ID, len(a))
+	ids := make([]uuid.UUID, len(a))
 	for i := range a {
 		ids[i] = a[i].ID
 	}
@@ -553,9 +553,9 @@ func (uuo *UserUpdateOne) AddAccounts(a ...*Account) *UserUpdateOne {
 }
 
 // AddContactIDs adds the contacts edge to Contact by ids.
-func (uuo *UserUpdateOne) AddContactIDs(ids ...xid.ID) *UserUpdateOne {
+func (uuo *UserUpdateOne) AddContactIDs(ids ...uuid.UUID) *UserUpdateOne {
 	if uuo.contacts == nil {
-		uuo.contacts = make(map[xid.ID]struct{})
+		uuo.contacts = make(map[uuid.UUID]struct{})
 	}
 	for i := range ids {
 		uuo.contacts[ids[i]] = struct{}{}
@@ -565,7 +565,7 @@ func (uuo *UserUpdateOne) AddContactIDs(ids ...xid.ID) *UserUpdateOne {
 
 // AddContacts adds the contacts edges to Contact.
 func (uuo *UserUpdateOne) AddContacts(c ...*Contact) *UserUpdateOne {
-	ids := make([]xid.ID, len(c))
+	ids := make([]uuid.UUID, len(c))
 	for i := range c {
 		ids[i] = c[i].ID
 	}
@@ -573,9 +573,9 @@ func (uuo *UserUpdateOne) AddContacts(c ...*Contact) *UserUpdateOne {
 }
 
 // AddSurveyIDs adds the surveys edge to Survey by ids.
-func (uuo *UserUpdateOne) AddSurveyIDs(ids ...xid.ID) *UserUpdateOne {
+func (uuo *UserUpdateOne) AddSurveyIDs(ids ...uuid.UUID) *UserUpdateOne {
 	if uuo.surveys == nil {
-		uuo.surveys = make(map[xid.ID]struct{})
+		uuo.surveys = make(map[uuid.UUID]struct{})
 	}
 	for i := range ids {
 		uuo.surveys[ids[i]] = struct{}{}
@@ -585,7 +585,7 @@ func (uuo *UserUpdateOne) AddSurveyIDs(ids ...xid.ID) *UserUpdateOne {
 
 // AddSurveys adds the surveys edges to Survey.
 func (uuo *UserUpdateOne) AddSurveys(s ...*Survey) *UserUpdateOne {
-	ids := make([]xid.ID, len(s))
+	ids := make([]uuid.UUID, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}
@@ -593,16 +593,16 @@ func (uuo *UserUpdateOne) AddSurveys(s ...*Survey) *UserUpdateOne {
 }
 
 // SetDomainID sets the domain edge to Domain by id.
-func (uuo *UserUpdateOne) SetDomainID(id xid.ID) *UserUpdateOne {
+func (uuo *UserUpdateOne) SetDomainID(id uuid.UUID) *UserUpdateOne {
 	if uuo.domain == nil {
-		uuo.domain = make(map[xid.ID]struct{})
+		uuo.domain = make(map[uuid.UUID]struct{})
 	}
 	uuo.domain[id] = struct{}{}
 	return uuo
 }
 
 // SetNillableDomainID sets the domain edge to Domain by id if the given value is not nil.
-func (uuo *UserUpdateOne) SetNillableDomainID(id *xid.ID) *UserUpdateOne {
+func (uuo *UserUpdateOne) SetNillableDomainID(id *uuid.UUID) *UserUpdateOne {
 	if id != nil {
 		uuo = uuo.SetDomainID(*id)
 	}
@@ -615,9 +615,9 @@ func (uuo *UserUpdateOne) SetDomain(d *Domain) *UserUpdateOne {
 }
 
 // RemoveAccountIDs removes the accounts edge to Account by ids.
-func (uuo *UserUpdateOne) RemoveAccountIDs(ids ...xid.ID) *UserUpdateOne {
+func (uuo *UserUpdateOne) RemoveAccountIDs(ids ...uuid.UUID) *UserUpdateOne {
 	if uuo.removedAccounts == nil {
-		uuo.removedAccounts = make(map[xid.ID]struct{})
+		uuo.removedAccounts = make(map[uuid.UUID]struct{})
 	}
 	for i := range ids {
 		uuo.removedAccounts[ids[i]] = struct{}{}
@@ -627,7 +627,7 @@ func (uuo *UserUpdateOne) RemoveAccountIDs(ids ...xid.ID) *UserUpdateOne {
 
 // RemoveAccounts removes accounts edges to Account.
 func (uuo *UserUpdateOne) RemoveAccounts(a ...*Account) *UserUpdateOne {
-	ids := make([]xid.ID, len(a))
+	ids := make([]uuid.UUID, len(a))
 	for i := range a {
 		ids[i] = a[i].ID
 	}
@@ -635,9 +635,9 @@ func (uuo *UserUpdateOne) RemoveAccounts(a ...*Account) *UserUpdateOne {
 }
 
 // RemoveContactIDs removes the contacts edge to Contact by ids.
-func (uuo *UserUpdateOne) RemoveContactIDs(ids ...xid.ID) *UserUpdateOne {
+func (uuo *UserUpdateOne) RemoveContactIDs(ids ...uuid.UUID) *UserUpdateOne {
 	if uuo.removedContacts == nil {
-		uuo.removedContacts = make(map[xid.ID]struct{})
+		uuo.removedContacts = make(map[uuid.UUID]struct{})
 	}
 	for i := range ids {
 		uuo.removedContacts[ids[i]] = struct{}{}
@@ -647,7 +647,7 @@ func (uuo *UserUpdateOne) RemoveContactIDs(ids ...xid.ID) *UserUpdateOne {
 
 // RemoveContacts removes contacts edges to Contact.
 func (uuo *UserUpdateOne) RemoveContacts(c ...*Contact) *UserUpdateOne {
-	ids := make([]xid.ID, len(c))
+	ids := make([]uuid.UUID, len(c))
 	for i := range c {
 		ids[i] = c[i].ID
 	}
@@ -655,9 +655,9 @@ func (uuo *UserUpdateOne) RemoveContacts(c ...*Contact) *UserUpdateOne {
 }
 
 // RemoveSurveyIDs removes the surveys edge to Survey by ids.
-func (uuo *UserUpdateOne) RemoveSurveyIDs(ids ...xid.ID) *UserUpdateOne {
+func (uuo *UserUpdateOne) RemoveSurveyIDs(ids ...uuid.UUID) *UserUpdateOne {
 	if uuo.removedSurveys == nil {
-		uuo.removedSurveys = make(map[xid.ID]struct{})
+		uuo.removedSurveys = make(map[uuid.UUID]struct{})
 	}
 	for i := range ids {
 		uuo.removedSurveys[ids[i]] = struct{}{}
@@ -667,7 +667,7 @@ func (uuo *UserUpdateOne) RemoveSurveyIDs(ids ...xid.ID) *UserUpdateOne {
 
 // RemoveSurveys removes surveys edges to Survey.
 func (uuo *UserUpdateOne) RemoveSurveys(s ...*Survey) *UserUpdateOne {
-	ids := make([]xid.ID, len(s))
+	ids := make([]uuid.UUID, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}

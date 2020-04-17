@@ -9,18 +9,18 @@ import (
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/google/uuid"
 	"github.com/minskylab/collecta/ent/domain"
 	"github.com/minskylab/collecta/ent/flow"
 	"github.com/minskylab/collecta/ent/survey"
 	"github.com/minskylab/collecta/ent/user"
-	"github.com/rs/xid"
 )
 
 // Survey is the model entity for the Survey schema.
 type Survey struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID xid.ID `json:"id,omitempty"`
+	ID uuid.UUID `json:"id,omitempty"`
 	// Tags holds the value of the "tags" field.
 	Tags []string `json:"tags,omitempty"`
 	// LastInteraction holds the value of the "lastInteraction" field.
@@ -38,10 +38,10 @@ type Survey struct {
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the SurveyQuery when eager-loading is set.
 	Edges          SurveyEdges `json:"edges"`
-	domain_surveys *xid.ID
-	survey_flow    *xid.ID
-	survey_for     *xid.ID
-	user_surveys   *xid.ID
+	domain_surveys *uuid.UUID
+	survey_flow    *uuid.UUID
+	survey_for     *uuid.UUID
+	user_surveys   *uuid.UUID
 }
 
 // SurveyEdges holds the relations/edges for other nodes in the graph.
@@ -102,7 +102,7 @@ func (e SurveyEdges) OwnerOrErr() (*Domain, error) {
 // scanValues returns the types for scanning values from sql.Rows.
 func (*Survey) scanValues() []interface{} {
 	return []interface{}{
-		&xid.ID{},         // id
+		&uuid.UUID{},      // id
 		&[]byte{},         // tags
 		&sql.NullTime{},   // lastInteraction
 		&sql.NullTime{},   // dueDate
@@ -116,10 +116,10 @@ func (*Survey) scanValues() []interface{} {
 // fkValues returns the types for scanning foreign-keys values from sql.Rows.
 func (*Survey) fkValues() []interface{} {
 	return []interface{}{
-		&xid.ID{}, // domain_surveys
-		&xid.ID{}, // survey_flow
-		&xid.ID{}, // survey_for
-		&xid.ID{}, // user_surveys
+		&uuid.UUID{}, // domain_surveys
+		&uuid.UUID{}, // survey_flow
+		&uuid.UUID{}, // survey_for
+		&uuid.UUID{}, // user_surveys
 	}
 }
 
@@ -129,7 +129,7 @@ func (s *Survey) assignValues(values ...interface{}) error {
 	if m, n := len(values), len(survey.Columns); m < n {
 		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
-	if value, ok := values[0].(*xid.ID); !ok {
+	if value, ok := values[0].(*uuid.UUID); !ok {
 		return fmt.Errorf("unexpected type %T for field id", values[0])
 	} else if value != nil {
 		s.ID = *value
@@ -178,22 +178,22 @@ func (s *Survey) assignValues(values ...interface{}) error {
 	}
 	values = values[7:]
 	if len(values) == len(survey.ForeignKeys) {
-		if value, ok := values[0].(*xid.ID); !ok {
+		if value, ok := values[0].(*uuid.UUID); !ok {
 			return fmt.Errorf("unexpected type %T for field domain_surveys", values[0])
 		} else if value != nil {
 			s.domain_surveys = value
 		}
-		if value, ok := values[0].(*xid.ID); !ok {
+		if value, ok := values[0].(*uuid.UUID); !ok {
 			return fmt.Errorf("unexpected type %T for field survey_flow", values[0])
 		} else if value != nil {
 			s.survey_flow = value
 		}
-		if value, ok := values[0].(*xid.ID); !ok {
+		if value, ok := values[0].(*uuid.UUID); !ok {
 			return fmt.Errorf("unexpected type %T for field survey_for", values[0])
 		} else if value != nil {
 			s.survey_for = value
 		}
-		if value, ok := values[0].(*xid.ID); !ok {
+		if value, ok := values[0].(*uuid.UUID); !ok {
 			return fmt.Errorf("unexpected type %T for field user_surveys", values[0])
 		} else if value != nil {
 			s.user_surveys = value

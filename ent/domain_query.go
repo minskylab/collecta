@@ -12,11 +12,11 @@ import (
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
 	"github.com/facebookincubator/ent/schema/field"
+	"github.com/google/uuid"
 	"github.com/minskylab/collecta/ent/domain"
 	"github.com/minskylab/collecta/ent/predicate"
 	"github.com/minskylab/collecta/ent/survey"
 	"github.com/minskylab/collecta/ent/user"
-	"github.com/rs/xid"
 )
 
 // DomainQuery is the builder for querying Domain entities.
@@ -104,8 +104,8 @@ func (dq *DomainQuery) FirstX(ctx context.Context) *Domain {
 }
 
 // FirstID returns the first Domain id in the query. Returns *NotFoundError when no id was found.
-func (dq *DomainQuery) FirstID(ctx context.Context) (id xid.ID, err error) {
-	var ids []xid.ID
+func (dq *DomainQuery) FirstID(ctx context.Context) (id uuid.UUID, err error) {
+	var ids []uuid.UUID
 	if ids, err = dq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
@@ -117,7 +117,7 @@ func (dq *DomainQuery) FirstID(ctx context.Context) (id xid.ID, err error) {
 }
 
 // FirstXID is like FirstID, but panics if an error occurs.
-func (dq *DomainQuery) FirstXID(ctx context.Context) xid.ID {
+func (dq *DomainQuery) FirstXID(ctx context.Context) uuid.UUID {
 	id, err := dq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -151,8 +151,8 @@ func (dq *DomainQuery) OnlyX(ctx context.Context) *Domain {
 }
 
 // OnlyID returns the only Domain id in the query, returns an error if not exactly one id was returned.
-func (dq *DomainQuery) OnlyID(ctx context.Context) (id xid.ID, err error) {
-	var ids []xid.ID
+func (dq *DomainQuery) OnlyID(ctx context.Context) (id uuid.UUID, err error) {
+	var ids []uuid.UUID
 	if ids, err = dq.Limit(2).IDs(ctx); err != nil {
 		return
 	}
@@ -168,7 +168,7 @@ func (dq *DomainQuery) OnlyID(ctx context.Context) (id xid.ID, err error) {
 }
 
 // OnlyXID is like OnlyID, but panics if an error occurs.
-func (dq *DomainQuery) OnlyXID(ctx context.Context) xid.ID {
+func (dq *DomainQuery) OnlyXID(ctx context.Context) uuid.UUID {
 	id, err := dq.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -191,8 +191,8 @@ func (dq *DomainQuery) AllX(ctx context.Context) []*Domain {
 }
 
 // IDs executes the query and returns a list of Domain ids.
-func (dq *DomainQuery) IDs(ctx context.Context) ([]xid.ID, error) {
-	var ids []xid.ID
+func (dq *DomainQuery) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	var ids []uuid.UUID
 	if err := dq.Select(domain.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
@@ -200,7 +200,7 @@ func (dq *DomainQuery) IDs(ctx context.Context) ([]xid.ID, error) {
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (dq *DomainQuery) IDsX(ctx context.Context) []xid.ID {
+func (dq *DomainQuery) IDsX(ctx context.Context) []uuid.UUID {
 	ids, err := dq.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -346,7 +346,7 @@ func (dq *DomainQuery) sqlAll(ctx context.Context) ([]*Domain, error) {
 
 	if query := dq.withSurveys; query != nil {
 		fks := make([]driver.Value, 0, len(nodes))
-		nodeids := make(map[xid.ID]*Domain)
+		nodeids := make(map[uuid.UUID]*Domain)
 		for i := range nodes {
 			fks = append(fks, nodes[i].ID)
 			nodeids[nodes[i].ID] = nodes[i]
@@ -374,7 +374,7 @@ func (dq *DomainQuery) sqlAll(ctx context.Context) ([]*Domain, error) {
 
 	if query := dq.withUsers; query != nil {
 		fks := make([]driver.Value, 0, len(nodes))
-		nodeids := make(map[xid.ID]*Domain)
+		nodeids := make(map[uuid.UUID]*Domain)
 		for i := range nodes {
 			fks = append(fks, nodes[i].ID)
 			nodeids[nodes[i].ID] = nodes[i]
