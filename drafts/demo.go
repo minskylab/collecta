@@ -20,27 +20,33 @@ type basicQuestion struct {
 }
 
 func genQuestion(ctx context.Context, db *collecta.DB, q basicQuestion) (*ent.Question, error) {
-	qInput, err := db.Ent.Input.Create().
-		SetID(uuid.New()).
-		SetKind(q.inputType).
-		SetMultiple(q.isMultiple).
-		SetOptions(q.options).Save(ctx)
-	if err != nil {
-		return nil, errors.Wrap(err, "error at try to create an input")
-	}
-
-	return db.Ent.Question.Create().
+	newQuestion, err := db.Ent.Question.Create().
 		SetID(uuid.New()).
 		SetTitle(q.questionTitle).
 		SetDescription(q.questionDescription).
 		SetAnonymous(false).
-		SetHash("").
-		SetInput(qInput).
+		SetHash(q.questionTitle).
 		Save(ctx)
+	if err != nil {
+		return nil, errors.Wrap(err, "error at try to create an input")
+	}
+
+	_, err = db.Ent.Input.Create().
+		SetID(uuid.New()).
+		SetKind(q.inputType).
+		SetMultiple(q.isMultiple).
+		SetOptions(q.options).
+		SetQuestion(newQuestion).
+		Save(ctx)
+	if err != nil {
+		return nil, errors.Wrap(err, "error at try to create an input")
+	}
+
+	return newQuestion, nil
 }
 
 
-func generateUtecDemoSurvey(ctx context.Context, db *collecta.DB, domainID uuid.UUID, userID uuid.UUID) (*ent.Survey, error) {
+func generateUTECDemoSurvey(ctx context.Context, db *collecta.DB, domainID uuid.UUID, userID uuid.UUID) (*ent.Survey, error) {
 
 	q1, err := genQuestion(ctx, db, basicQuestion{
 		questionTitle:      "PREGUNTA 1/8",
