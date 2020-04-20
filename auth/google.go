@@ -9,13 +9,14 @@ import (
 	"github.com/markbates/goth"
 	"github.com/markbates/goth/gothic"
 	"github.com/markbates/goth/providers/google"
+	"github.com/minskylab/collecta/config"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 )
 
 func (collectaAuth *CollectaAuth) startGoogleAuth(callbackURL string) {
-	clientID := viper.GetString("google.clientID")
-	secretKey := viper.GetString("google.secret")
+	clientID := viper.GetString(config.GoogleClientID)
+	secretKey := viper.GetString(config.GoogleSecretKey)
 
 	goth.UseProviders(
 		google.New(clientID, secretKey, callbackURL),

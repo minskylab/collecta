@@ -25,8 +25,6 @@ func readConfig() error {
 		}
 	}
 
-	log.Info(viper.GetString("google.clientID")) // env: COLLECTA_GOOGLE_CLIENTID
-
 	return nil
 }
 
