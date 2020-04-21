@@ -49,7 +49,7 @@ func genQuestion(ctx context.Context, db *collecta.DB, q basicQuestion) (*ent.Qu
 
 func generateUTECDemoSurvey(ctx context.Context, db *collecta.DB, domainID uuid.UUID, userID uuid.UUID) (*ent.Survey, error) {
 	q1, err := genQuestion(ctx, db, basicQuestion{
-		questionTitle:       "PREGUNTA 1/8",
+		questionTitle:       "PREGUNTA 1/4",
 		questionDescription: "Selecciona las dinámicas que usó el profesor que aportaron a la clase.",
 		inputType:           input.KindOptions,
 		isMultiple:          true,
@@ -67,7 +67,7 @@ func generateUTECDemoSurvey(ctx context.Context, db *collecta.DB, domainID uuid.
 	log.Info("qi= ", q1.ID)
 
 	q2, err := genQuestion(ctx, db, basicQuestion{
-		questionTitle:       "PREGUNTA 2/8",
+		questionTitle:       "PREGUNTA 2/4",
 		questionDescription: "Por problemas de conectividad, ¿crees que es necesario repetir la clase?",
 		inputType:           input.KindBoolean,
 	})
@@ -77,7 +77,7 @@ func generateUTECDemoSurvey(ctx context.Context, db *collecta.DB, domainID uuid.
 	log.Info("qi= ", q2.ID)
 
 	q3, err := genQuestion(ctx, db, basicQuestion{
-		questionTitle:       "PREGUNTA 3/8",
+		questionTitle:       "PREGUNTA 3/4",
 		questionDescription: "Si tienes algún comentario extra, por favor escríbelo a continuación.",
 		inputType:           input.KindText,
 	})
@@ -87,7 +87,7 @@ func generateUTECDemoSurvey(ctx context.Context, db *collecta.DB, domainID uuid.
 	log.Info("qi= ", q3.ID)
 
 	q4, err := genQuestion(ctx, db, basicQuestion{
-		questionTitle:       "PREGUNTA 4/8",
+		questionTitle:       "PREGUNTA 4/4",
 		questionDescription: "¿Que tan provechosa fue esta clase para tu aprendizaje?",
 		inputType:           input.KindSatisfaction,
 	})
@@ -123,7 +123,7 @@ func generateUTECDemoSurvey(ctx context.Context, db *collecta.DB, domainID uuid.
 		SetTitle("Feedback por Sesión | Estudiantes").
 		SetDescription("<br>{{.Name}}</br>, responde esta pequeña encuesta sobre tu clase de Teoría de Decisiones del día martes 10 de Marzo.").
 		SetLastInteraction(time.Now()).
-		SetTags([]string{"demo", "collecta", "utec", "teoriadedecisiones"}).
+		SetTags([]string{"Teoría de Decisiones", "UTEC"}).
 		SetFlow(qFlow).
 		SetMetadata(map[string]string{
 			"creator": "Collecta Labs",
