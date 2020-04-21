@@ -7,7 +7,12 @@ import (
 )
 
 func defaultSequentialProgramFromQuestions(questions []string) string {
-	strArray := "[" + strings.Join(questions, ",") + "]"
+	finalQuestions := make([]string, 0)
+	for _, q := range questions {
+		finalQuestions = append(finalQuestions, "\"" + q + "\"")
+	}
+
+	strArray := "[" + strings.Join(finalQuestions, ",") + "]"
 	script := "questions = immutable(" + strArray + ")\n" +
 			  "res := state\n" +
 		      "for i, v in questions {\n" +

@@ -79,7 +79,13 @@ func evalProgram(ctx context.Context, program string, input input) (string, erro
 		return "", errors.Wrap(err, "error at add state param to tengo script")
 	}
 
-	if err := scr.Add("external", input.externalInputs); err != nil {
+	externalInputs := make([]tengo.Object, 0)
+	for _, exIn := range input.externalInputs {
+		obj, _ := tengo.FromInterface(exIn)
+		externalInputs = append(externalInputs, obj)
+	}
+
+	if err := scr.Add("external", externalInputs); err != nil {
 		return "", errors.Wrap(err, "error at add externals param to tengo script")
 	}
 
