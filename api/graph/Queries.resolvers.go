@@ -12,7 +12,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/minskylab/collecta/api/graph/generated"
 	"github.com/minskylab/collecta/api/graph/model"
-	"github.com/minskylab/collecta/flows"
 )
 
 func (r *queryResolver) Domain(ctx context.Context, id string) (*model.Domain, error) {
@@ -111,17 +110,7 @@ func (r *queryResolver) LastQuestionOfSurvey(ctx context.Context, id string) (*m
 		return nil, errors.Wrap(err, "error at fetch flow")
 	}
 
-	f, err = flows.PerformFlowStateUpdate(ctx, r.DB.Ent, f)
-	if err != nil {
-		return nil, errors.Wrap(err, "error at perform flow state update")
-	}
-
-	finalFlow, err := r.DB.Ent.Flow.Get(ctx, f.ID)
-	if err != nil {
-		return nil, errors.Wrap(err, "error at fetch final flow")
-	}
-
-	currentQuestion, err := r.DB.Ent.Question.Get(ctx, finalFlow.State)
+	currentQuestion, err := r.DB.Ent.Question.Get(ctx, f.State)
 	if err != nil {
 		return nil, errors.Wrap(err, "error at fetch last question")
 	}

@@ -8,6 +8,7 @@ import (
 	"github.com/minskylab/collecta"
 	"github.com/minskylab/collecta/ent"
 	"github.com/minskylab/collecta/ent/input"
+	"github.com/minskylab/collecta/flows"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 )
@@ -95,15 +96,12 @@ func generateUTECDemoSurvey(ctx context.Context, db *collecta.DB, domainID uuid.
 	}
 	log.Info("qi= ", q4.ID)
 
-	flowProgram :=
-		"00 " + q1.ID.String() + " -> " + q2.ID.String() + "\n" +
-			"01 " + q2.ID.String() + " -> " + q3.ID.String() + "\n" +
-			"02 " + q3.ID.String() + " -> " + q4.ID.String()
+	flowProgram := flows.DefaultSequentialProgram([]uuid.UUID{q1.ID, q2.ID, q3.ID, q4.ID})
 
 	qFlow, err := db.Ent.Flow.Create().
 		SetID(uuid.New()).
 		SetInputs([]string{}).
-		SetState(q1.ID).
+		SetState(q1.ID). // first question
 		SetStateTable(flowProgram).
 		AddQuestions(
 			q1, q2, q3, q4,
@@ -131,17 +129,5 @@ func generateUTECDemoSurvey(ctx context.Context, db *collecta.DB, domainID uuid.
 			"creator": "Collecta Labs",
 		}).
 		Save(ctx)
-	//
-	// if err != nil {
-	// 	return nil, errors.Wrap(err, "error at create new survey")
-	// }
-	//
-	// _, err = db.Ent.User.UpdateOneID(userID).
-	// 	AddSurveys(surv).
-	// 	Save(ctx)
-	// if err != nil {
-	// 	return nil, errors.Wrap(err, "error at try to update user")
-	// }
-	//
-	// return surv, nil
+
 }

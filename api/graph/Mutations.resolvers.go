@@ -5,13 +5,14 @@ package graph
 
 import (
 	"context"
-
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/minskylab/collecta/api/graph/generated"
 	"github.com/minskylab/collecta/api/graph/model"
 	"github.com/minskylab/collecta/ent/flow"
 	"github.com/minskylab/collecta/ent/survey"
+	"github.com/minskylab/collecta/flows"
 	"github.com/pkg/errors"
 )
 
@@ -41,6 +42,21 @@ func (r *mutationResolver) AnswerQuestion(ctx context.Context, input *model.Ques
 	surv, err :=  r.DB.Ent.Survey.Query().Where(survey.HasFlowWith(flow.ID(f.ID))).Only(ctx)
 	if err != nil {
 		return nil, errors.Wrap(err , "error at fetch survey")
+	}
+
+	// TODO: That is completely incorrect, please Bregy solve it fast!
+	nexState, err := flows.NextState(ctx, r.DB, surv.ID)
+	if err != nil {
+		return nil, errors.Wrap(err, "error at calculate the next state")
+	}
+
+	if _, err = r.DB.Ent.Flow.UpdateOneID(f.ID).SetState(nexState).Save(ctx); err != nil {
+		return nil, errors.Wrap(err, "error at update flow with the next state")
+	}
+
+	surv, err = r.DB.Ent.Survey.UpdateOneID(surv.ID).SetLastInteraction(time.Now()).Save(ctx)
+	if err != nil {
+		return nil, errors.Wrap(err, "error at update last interaction of the survey")
 	}
 
 	return & model.Survey{
