@@ -13,7 +13,7 @@ func defaultSequentialProgramFromQuestions(questions []string) string {
 	}
 
 	strArray := "[" + strings.Join(finalQuestions, ",") + "]"
-	script := "questions = immutable(" + strArray + ")\n" +
+	script := "questions := immutable(" + strArray + ")\n" +
 			  "res := state\n" +
 		      "for i, v in questions {\n" +
 			  "  if v == state { res = questions[i+1] }\n" +
