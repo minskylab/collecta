@@ -24,6 +24,7 @@ type QuestionCreate struct {
 	title       *string
 	description *string
 	metadata    *map[string]string
+	validator   *string
 	anonymous   *bool
 	answers     map[uuid.UUID]struct{}
 	input       map[uuid.UUID]struct{}
@@ -51,6 +52,20 @@ func (qc *QuestionCreate) SetDescription(s string) *QuestionCreate {
 // SetMetadata sets the metadata field.
 func (qc *QuestionCreate) SetMetadata(m map[string]string) *QuestionCreate {
 	qc.metadata = &m
+	return qc
+}
+
+// SetValidator sets the validator field.
+func (qc *QuestionCreate) SetValidator(s string) *QuestionCreate {
+	qc.validator = &s
+	return qc
+}
+
+// SetNillableValidator sets the validator field if the given value is not nil.
+func (qc *QuestionCreate) SetNillableValidator(s *string) *QuestionCreate {
+	if s != nil {
+		qc.SetValidator(*s)
+	}
 	return qc
 }
 
@@ -220,6 +235,14 @@ func (qc *QuestionCreate) sqlSave(ctx context.Context) (*Question, error) {
 			Column: question.FieldMetadata,
 		})
 		q.Metadata = *value
+	}
+	if value := qc.validator; value != nil {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: question.FieldValidator,
+		})
+		q.Validator = *value
 	}
 	if value := qc.anonymous; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{

@@ -3,13 +3,13 @@
 package ent
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/google/uuid"
-	"github.com/minskylab/collecta/ent/domain"
 	"github.com/minskylab/collecta/ent/user"
 )
 
@@ -20,16 +20,17 @@ type User struct {
 	ID uuid.UUID `json:"id,omitempty"`
 	// Name holds the value of the "name" field.
 	Name string `json:"name,omitempty"`
-	// Username holds the value of the "username" field.
-	Username string `json:"username,omitempty"`
 	// LastActivity holds the value of the "lastActivity" field.
 	LastActivity time.Time `json:"lastActivity,omitempty"`
+	// Username holds the value of the "username" field.
+	Username string `json:"username,omitempty"`
 	// Picture holds the value of the "picture" field.
 	Picture string `json:"picture,omitempty"`
+	// Roles holds the value of the "roles" field.
+	Roles []string `json:"roles,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the UserQuery when eager-loading is set.
-	Edges        UserEdges `json:"edges"`
-	domain_users *uuid.UUID
+	Edges UserEdges `json:"edges"`
 }
 
 // UserEdges holds the relations/edges for other nodes in the graph.
@@ -40,11 +41,13 @@ type UserEdges struct {
 	Contacts []*Contact
 	// Surveys holds the value of the surveys edge.
 	Surveys []*Survey
-	// Domain holds the value of the domain edge.
-	Domain *Domain
+	// Domains holds the value of the domains edge.
+	Domains []*Domain
+	// AdminOf holds the value of the adminOf edge.
+	AdminOf []*Domain
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [4]bool
+	loadedTypes [5]bool
 }
 
 // AccountsOrErr returns the Accounts value or an error if the edge
@@ -74,18 +77,22 @@ func (e UserEdges) SurveysOrErr() ([]*Survey, error) {
 	return nil, &NotLoadedError{edge: "surveys"}
 }
 
-// DomainOrErr returns the Domain value or an error if the edge
-// was not loaded in eager-loading, or loaded but was not found.
-func (e UserEdges) DomainOrErr() (*Domain, error) {
+// DomainsOrErr returns the Domains value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) DomainsOrErr() ([]*Domain, error) {
 	if e.loadedTypes[3] {
-		if e.Domain == nil {
-			// The edge domain was loaded in eager-loading,
-			// but was not found.
-			return nil, &NotFoundError{label: domain.Label}
-		}
-		return e.Domain, nil
+		return e.Domains, nil
 	}
-	return nil, &NotLoadedError{edge: "domain"}
+	return nil, &NotLoadedError{edge: "domains"}
+}
+
+// AdminOfOrErr returns the AdminOf value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) AdminOfOrErr() ([]*Domain, error) {
+	if e.loadedTypes[4] {
+		return e.AdminOf, nil
+	}
+	return nil, &NotLoadedError{edge: "adminOf"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -93,16 +100,10 @@ func (*User) scanValues() []interface{} {
 	return []interface{}{
 		&uuid.UUID{},      // id
 		&sql.NullString{}, // name
-		&sql.NullString{}, // username
 		&sql.NullTime{},   // lastActivity
+		&sql.NullString{}, // username
 		&sql.NullString{}, // picture
-	}
-}
-
-// fkValues returns the types for scanning foreign-keys values from sql.Rows.
-func (*User) fkValues() []interface{} {
-	return []interface{}{
-		&uuid.UUID{}, // domain_users
+		&[]byte{},         // roles
 	}
 }
 
@@ -123,27 +124,27 @@ func (u *User) assignValues(values ...interface{}) error {
 	} else if value.Valid {
 		u.Name = value.String
 	}
-	if value, ok := values[1].(*sql.NullString); !ok {
-		return fmt.Errorf("unexpected type %T for field username", values[1])
-	} else if value.Valid {
-		u.Username = value.String
-	}
-	if value, ok := values[2].(*sql.NullTime); !ok {
-		return fmt.Errorf("unexpected type %T for field lastActivity", values[2])
+	if value, ok := values[1].(*sql.NullTime); !ok {
+		return fmt.Errorf("unexpected type %T for field lastActivity", values[1])
 	} else if value.Valid {
 		u.LastActivity = value.Time
+	}
+	if value, ok := values[2].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field username", values[2])
+	} else if value.Valid {
+		u.Username = value.String
 	}
 	if value, ok := values[3].(*sql.NullString); !ok {
 		return fmt.Errorf("unexpected type %T for field picture", values[3])
 	} else if value.Valid {
 		u.Picture = value.String
 	}
-	values = values[4:]
-	if len(values) == len(user.ForeignKeys) {
-		if value, ok := values[0].(*uuid.UUID); !ok {
-			return fmt.Errorf("unexpected type %T for field domain_users", values[0])
-		} else if value != nil {
-			u.domain_users = value
+
+	if value, ok := values[4].(*[]byte); !ok {
+		return fmt.Errorf("unexpected type %T for field roles", values[4])
+	} else if value != nil && len(*value) > 0 {
+		if err := json.Unmarshal(*value, &u.Roles); err != nil {
+			return fmt.Errorf("unmarshal field roles: %v", err)
 		}
 	}
 	return nil
@@ -164,9 +165,14 @@ func (u *User) QuerySurveys() *SurveyQuery {
 	return (&UserClient{config: u.config}).QuerySurveys(u)
 }
 
-// QueryDomain queries the domain edge of the User.
-func (u *User) QueryDomain() *DomainQuery {
-	return (&UserClient{config: u.config}).QueryDomain(u)
+// QueryDomains queries the domains edge of the User.
+func (u *User) QueryDomains() *DomainQuery {
+	return (&UserClient{config: u.config}).QueryDomains(u)
+}
+
+// QueryAdminOf queries the adminOf edge of the User.
+func (u *User) QueryAdminOf() *DomainQuery {
+	return (&UserClient{config: u.config}).QueryAdminOf(u)
 }
 
 // Update returns a builder for updating this User.
@@ -194,12 +200,14 @@ func (u *User) String() string {
 	builder.WriteString(fmt.Sprintf("id=%v", u.ID))
 	builder.WriteString(", name=")
 	builder.WriteString(u.Name)
-	builder.WriteString(", username=")
-	builder.WriteString(u.Username)
 	builder.WriteString(", lastActivity=")
 	builder.WriteString(u.LastActivity.Format(time.ANSIC))
+	builder.WriteString(", username=")
+	builder.WriteString(u.Username)
 	builder.WriteString(", picture=")
 	builder.WriteString(u.Picture)
+	builder.WriteString(", roles=")
+	builder.WriteString(fmt.Sprintf("%v", u.Roles))
 	builder.WriteByte(')')
 	return builder.String()
 }

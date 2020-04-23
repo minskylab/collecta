@@ -106,6 +106,13 @@ func RemoteID(v string) predicate.Account {
 	})
 }
 
+// Secret applies equality check predicate on the "secret" field. It's identical to SecretEQ.
+func Secret(v string) predicate.Account {
+	return predicate.Account(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldSecret), v))
+	})
+}
+
 // TypeEQ applies the EQ predicate on the "type" field.
 func TypeEQ(v Type) predicate.Account {
 	return predicate.Account(func(s *sql.Selector) {
@@ -373,6 +380,131 @@ func RemoteIDEqualFold(v string) predicate.Account {
 func RemoteIDContainsFold(v string) predicate.Account {
 	return predicate.Account(func(s *sql.Selector) {
 		s.Where(sql.ContainsFold(s.C(FieldRemoteID), v))
+	})
+}
+
+// SecretEQ applies the EQ predicate on the "secret" field.
+func SecretEQ(v string) predicate.Account {
+	return predicate.Account(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldSecret), v))
+	})
+}
+
+// SecretNEQ applies the NEQ predicate on the "secret" field.
+func SecretNEQ(v string) predicate.Account {
+	return predicate.Account(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldSecret), v))
+	})
+}
+
+// SecretIn applies the In predicate on the "secret" field.
+func SecretIn(vs ...string) predicate.Account {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Account(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(vs) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.In(s.C(FieldSecret), v...))
+	})
+}
+
+// SecretNotIn applies the NotIn predicate on the "secret" field.
+func SecretNotIn(vs ...string) predicate.Account {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Account(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(vs) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.NotIn(s.C(FieldSecret), v...))
+	})
+}
+
+// SecretGT applies the GT predicate on the "secret" field.
+func SecretGT(v string) predicate.Account {
+	return predicate.Account(func(s *sql.Selector) {
+		s.Where(sql.GT(s.C(FieldSecret), v))
+	})
+}
+
+// SecretGTE applies the GTE predicate on the "secret" field.
+func SecretGTE(v string) predicate.Account {
+	return predicate.Account(func(s *sql.Selector) {
+		s.Where(sql.GTE(s.C(FieldSecret), v))
+	})
+}
+
+// SecretLT applies the LT predicate on the "secret" field.
+func SecretLT(v string) predicate.Account {
+	return predicate.Account(func(s *sql.Selector) {
+		s.Where(sql.LT(s.C(FieldSecret), v))
+	})
+}
+
+// SecretLTE applies the LTE predicate on the "secret" field.
+func SecretLTE(v string) predicate.Account {
+	return predicate.Account(func(s *sql.Selector) {
+		s.Where(sql.LTE(s.C(FieldSecret), v))
+	})
+}
+
+// SecretContains applies the Contains predicate on the "secret" field.
+func SecretContains(v string) predicate.Account {
+	return predicate.Account(func(s *sql.Selector) {
+		s.Where(sql.Contains(s.C(FieldSecret), v))
+	})
+}
+
+// SecretHasPrefix applies the HasPrefix predicate on the "secret" field.
+func SecretHasPrefix(v string) predicate.Account {
+	return predicate.Account(func(s *sql.Selector) {
+		s.Where(sql.HasPrefix(s.C(FieldSecret), v))
+	})
+}
+
+// SecretHasSuffix applies the HasSuffix predicate on the "secret" field.
+func SecretHasSuffix(v string) predicate.Account {
+	return predicate.Account(func(s *sql.Selector) {
+		s.Where(sql.HasSuffix(s.C(FieldSecret), v))
+	})
+}
+
+// SecretIsNil applies the IsNil predicate on the "secret" field.
+func SecretIsNil() predicate.Account {
+	return predicate.Account(func(s *sql.Selector) {
+		s.Where(sql.IsNull(s.C(FieldSecret)))
+	})
+}
+
+// SecretNotNil applies the NotNil predicate on the "secret" field.
+func SecretNotNil() predicate.Account {
+	return predicate.Account(func(s *sql.Selector) {
+		s.Where(sql.NotNull(s.C(FieldSecret)))
+	})
+}
+
+// SecretEqualFold applies the EqualFold predicate on the "secret" field.
+func SecretEqualFold(v string) predicate.Account {
+	return predicate.Account(func(s *sql.Selector) {
+		s.Where(sql.EqualFold(s.C(FieldSecret), v))
+	})
+}
+
+// SecretContainsFold applies the ContainsFold predicate on the "secret" field.
+func SecretContainsFold(v string) predicate.Account {
+	return predicate.Account(func(s *sql.Selector) {
+		s.Where(sql.ContainsFold(s.C(FieldSecret), v))
 	})
 }
 

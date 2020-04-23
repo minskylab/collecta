@@ -19,6 +19,8 @@ const (
 	FieldSub = "sub"
 	// FieldRemoteID holds the string denoting the remoteid vertex property in the database.
 	FieldRemoteID = "remote_id"
+	// FieldSecret holds the string denoting the secret vertex property in the database.
+	FieldSecret = "secret"
 
 	// Table holds the table name of the account in the database.
 	Table = "accounts"
@@ -37,6 +39,7 @@ var Columns = []string{
 	FieldType,
 	FieldSub,
 	FieldRemoteID,
+	FieldSecret,
 }
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the Account type.
@@ -60,6 +63,7 @@ type Type string
 const (
 	TypeGoogle    Type = "Google"
 	TypeAnonymous Type = "Anonymous"
+	TypeEmail     Type = "Email"
 )
 
 func (s Type) String() string {
@@ -69,7 +73,7 @@ func (s Type) String() string {
 // TypeValidator is a validator for the "_type" field enum values. It is called by the builders before save.
 func TypeValidator(_type Type) error {
 	switch _type {
-	case TypeGoogle, TypeAnonymous:
+	case TypeGoogle, TypeAnonymous, TypeEmail:
 		return nil
 	default:
 		return fmt.Errorf("account: invalid enum value for type field: %q", _type)

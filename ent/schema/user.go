@@ -19,9 +19,10 @@ func (User) Fields() []ent.Field {
 	return []ent.Field{
 		field.UUID("id", uuid.UUID{}),
 		field.String("name").NotEmpty(),
-		field.String("username").Optional(),
 		field.Time("lastActivity").Default(time.Now),
+		field.String("username").Optional(),
 		field.String("picture").Optional(),
+		field.Strings("roles").Optional(),
 	}
 }
 
@@ -31,6 +32,7 @@ func (User) Edges() []ent.Edge {
 		edge.To("accounts", Account.Type),
 		edge.To("contacts", Contact.Type),
 		edge.To("surveys", Survey.Type),
-		edge.From("domain", Domain.Type).Ref("users").Unique(),
+		edge.From("domains", Domain.Type).Ref("users"),
+		edge.From("adminOf", Domain.Type).Ref("admins"),
 	}
 }

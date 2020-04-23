@@ -16,9 +16,10 @@ var (
 	// AccountsColumns holds the columns for the "accounts" table.
 	AccountsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
-		{Name: "type", Type: field.TypeEnum, Enums: []string{"Google", "Anonymous"}},
+		{Name: "type", Type: field.TypeEnum, Enums: []string{"Google", "Anonymous", "Email"}},
 		{Name: "sub", Type: field.TypeString},
 		{Name: "remote_id", Type: field.TypeString, Unique: true},
+		{Name: "secret", Type: field.TypeString, Nullable: true},
 		{Name: "user_accounts", Type: field.TypeUUID, Nullable: true},
 	}
 	// AccountsTable holds the schema information for the "accounts" table.
@@ -29,7 +30,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:  "accounts_users_accounts",
-				Columns: []*schema.Column{AccountsColumns[4]},
+				Columns: []*schema.Column{AccountsColumns[5]},
 
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,
@@ -41,7 +42,6 @@ var (
 		{Name: "id", Type: field.TypeUUID},
 		{Name: "at", Type: field.TypeTime},
 		{Name: "responses", Type: field.TypeJSON},
-		{Name: "validator", Type: field.TypeString, Nullable: true},
 		{Name: "valid", Type: field.TypeBool, Nullable: true},
 		{Name: "question_answers", Type: field.TypeUUID, Nullable: true},
 	}
@@ -53,7 +53,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:  "answers_questions_answers",
-				Columns: []*schema.Column{AnswersColumns[5]},
+				Columns: []*schema.Column{AnswersColumns[4]},
 
 				RefColumns: []*schema.Column{QuestionsColumns[0]},
 				OnDelete:   schema.SetNull,
@@ -170,6 +170,7 @@ var (
 		{Name: "title", Type: field.TypeString},
 		{Name: "description", Type: field.TypeString},
 		{Name: "metadata", Type: field.TypeJSON, Nullable: true},
+		{Name: "validator", Type: field.TypeString, Nullable: true},
 		{Name: "anonymous", Type: field.TypeBool, Default: question.DefaultAnonymous},
 		{Name: "flow_questions", Type: field.TypeUUID, Nullable: true},
 	}
@@ -181,7 +182,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:  "questions_flows_questions",
-				Columns: []*schema.Column{QuestionsColumns[6]},
+				Columns: []*schema.Column{QuestionsColumns[7]},
 
 				RefColumns: []*schema.Column{FlowsColumns[0]},
 				OnDelete:   schema.SetNull,
@@ -248,23 +249,69 @@ var (
 	UsersColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
 		{Name: "name", Type: field.TypeString},
-		{Name: "username", Type: field.TypeString, Nullable: true},
 		{Name: "last_activity", Type: field.TypeTime},
+		{Name: "username", Type: field.TypeString, Nullable: true},
 		{Name: "picture", Type: field.TypeString, Nullable: true},
-		{Name: "domain_users", Type: field.TypeUUID, Nullable: true},
+		{Name: "roles", Type: field.TypeJSON, Nullable: true},
 	}
 	// UsersTable holds the schema information for the "users" table.
 	UsersTable = &schema.Table{
-		Name:       "users",
-		Columns:    UsersColumns,
-		PrimaryKey: []*schema.Column{UsersColumns[0]},
+		Name:        "users",
+		Columns:     UsersColumns,
+		PrimaryKey:  []*schema.Column{UsersColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{},
+	}
+	// DomainUsersColumns holds the columns for the "domain_users" table.
+	DomainUsersColumns = []*schema.Column{
+		{Name: "domain_id", Type: field.TypeUUID},
+		{Name: "user_id", Type: field.TypeUUID},
+	}
+	// DomainUsersTable holds the schema information for the "domain_users" table.
+	DomainUsersTable = &schema.Table{
+		Name:       "domain_users",
+		Columns:    DomainUsersColumns,
+		PrimaryKey: []*schema.Column{DomainUsersColumns[0], DomainUsersColumns[1]},
 		ForeignKeys: []*schema.ForeignKey{
 			{
-				Symbol:  "users_domains_users",
-				Columns: []*schema.Column{UsersColumns[5]},
+				Symbol:  "domain_users_domain_id",
+				Columns: []*schema.Column{DomainUsersColumns[0]},
 
 				RefColumns: []*schema.Column{DomainsColumns[0]},
-				OnDelete:   schema.SetNull,
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:  "domain_users_user_id",
+				Columns: []*schema.Column{DomainUsersColumns[1]},
+
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+	}
+	// DomainAdminsColumns holds the columns for the "domain_admins" table.
+	DomainAdminsColumns = []*schema.Column{
+		{Name: "domain_id", Type: field.TypeUUID},
+		{Name: "user_id", Type: field.TypeUUID},
+	}
+	// DomainAdminsTable holds the schema information for the "domain_admins" table.
+	DomainAdminsTable = &schema.Table{
+		Name:       "domain_admins",
+		Columns:    DomainAdminsColumns,
+		PrimaryKey: []*schema.Column{DomainAdminsColumns[0], DomainAdminsColumns[1]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:  "domain_admins_domain_id",
+				Columns: []*schema.Column{DomainAdminsColumns[0]},
+
+				RefColumns: []*schema.Column{DomainsColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:  "domain_admins_user_id",
+				Columns: []*schema.Column{DomainAdminsColumns[1]},
+
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.Cascade,
 			},
 		},
 	}
@@ -282,6 +329,8 @@ var (
 		ShortsTable,
 		SurveysTable,
 		UsersTable,
+		DomainUsersTable,
+		DomainAdminsTable,
 	}
 )
 
@@ -294,5 +343,8 @@ func init() {
 	SurveysTable.ForeignKeys[0].RefTable = DomainsTable
 	SurveysTable.ForeignKeys[1].RefTable = FlowsTable
 	SurveysTable.ForeignKeys[2].RefTable = UsersTable
-	UsersTable.ForeignKeys[0].RefTable = DomainsTable
+	DomainUsersTable.ForeignKeys[0].RefTable = DomainsTable
+	DomainUsersTable.ForeignKeys[1].RefTable = UsersTable
+	DomainAdminsTable.ForeignKeys[0].RefTable = DomainsTable
+	DomainAdminsTable.ForeignKeys[1].RefTable = UsersTable
 }

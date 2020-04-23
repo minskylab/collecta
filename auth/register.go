@@ -40,10 +40,11 @@ func (collectaAuth *Auth) registerNewUserFromGoogle(ctx context.Context, rawUser
 	newUser, err := collectaAuth.db.Ent.User.Create().
 		SetID(uuid.New()).
 		SetName(rawUser.Name).
-		SetDomain(userDomain).
 		SetUsername(rawUser.Name).
 		SetLastActivity(time.Now()).
 		SetPicture(rawUser.AvatarURL).
+		SetRoles([]string{"user"}).
+		AddDomains(userDomain).
 		Save(ctx)
 	if err != nil {
 		return nil, errors.Wrap(err, "error at create new user")
@@ -75,6 +76,7 @@ func (collectaAuth *Auth) registerNewUserFromGoogle(ctx context.Context, rawUser
 	}
 
 	log.Info("generating demo survey")
+	// TODO: refactoring
 	surv, err := drafts.GenerateUTECDemo(ctx, collectaAuth.db, userDomain.ID, newUser.ID)
 	if err != nil {
 		return nil, errors.Wrap(err, "error at utec demo generator")

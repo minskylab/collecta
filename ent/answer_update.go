@@ -19,7 +19,6 @@ import (
 type AnswerUpdate struct {
 	config
 
-	clearvalidator  bool
 	valid           *bool
 	clearvalid      bool
 	question        map[uuid.UUID]struct{}
@@ -125,12 +124,6 @@ func (au *AnswerUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 		}
 	}
-	if au.clearvalidator {
-		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Column: answer.FieldValidator,
-		})
-	}
 	if value := au.valid; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeBool,
@@ -195,7 +188,6 @@ type AnswerUpdateOne struct {
 	config
 	id uuid.UUID
 
-	clearvalidator  bool
 	valid           *bool
 	clearvalid      bool
 	question        map[uuid.UUID]struct{}
@@ -287,12 +279,6 @@ func (auo *AnswerUpdateOne) sqlSave(ctx context.Context) (a *Answer, err error) 
 				Column: answer.FieldID,
 			},
 		},
-	}
-	if auo.clearvalidator {
-		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Column: answer.FieldValidator,
-		})
 	}
 	if value := auo.valid; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{

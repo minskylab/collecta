@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/minskylab/collecta"
+	"github.com/minskylab/collecta/db"
 	"github.com/minskylab/collecta/ent"
 	"github.com/minskylab/collecta/ent/input"
 	"github.com/minskylab/collecta/flows"
@@ -21,7 +21,7 @@ type basicQuestion struct {
 	options             map[string]string
 }
 
-func genQuestion(ctx context.Context, db *collecta.DB, q basicQuestion) (*ent.Question, error) {
+func genQuestion(ctx context.Context, db *db.DB, q basicQuestion) (*ent.Question, error) {
 	newQuestion, err := db.Ent.Question.Create().
 		SetID(uuid.New()).
 		SetTitle(q.questionTitle).
@@ -47,7 +47,7 @@ func genQuestion(ctx context.Context, db *collecta.DB, q basicQuestion) (*ent.Qu
 	return newQuestion, nil
 }
 
-func generateUTECDemoSurvey(ctx context.Context, db *collecta.DB, domainID uuid.UUID, userID uuid.UUID) (*ent.Survey, error) {
+func generateUTECDemoSurvey(ctx context.Context, db *db.DB, domainID uuid.UUID, userID uuid.UUID) (*ent.Survey, error) {
 	q1, err := genQuestion(ctx, db, basicQuestion{
 		questionTitle:       "PREGUNTA 1/4",
 		questionDescription: "Selecciona las dinámicas que usó el profesor que aportaron a la clase.",

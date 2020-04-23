@@ -38,9 +38,11 @@ type DomainEdges struct {
 	Surveys []*Survey
 	// Users holds the value of the users edge.
 	Users []*User
+	// Admins holds the value of the admins edge.
+	Admins []*User
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [2]bool
+	loadedTypes [3]bool
 }
 
 // SurveysOrErr returns the Surveys value or an error if the edge
@@ -59,6 +61,15 @@ func (e DomainEdges) UsersOrErr() ([]*User, error) {
 		return e.Users, nil
 	}
 	return nil, &NotLoadedError{edge: "users"}
+}
+
+// AdminsOrErr returns the Admins value or an error if the edge
+// was not loaded in eager-loading.
+func (e DomainEdges) AdminsOrErr() ([]*User, error) {
+	if e.loadedTypes[2] {
+		return e.Admins, nil
+	}
+	return nil, &NotLoadedError{edge: "admins"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -124,6 +135,11 @@ func (d *Domain) QuerySurveys() *SurveyQuery {
 // QueryUsers queries the users edge of the Domain.
 func (d *Domain) QueryUsers() *UserQuery {
 	return (&DomainClient{config: d.config}).QueryUsers(d)
+}
+
+// QueryAdmins queries the admins edge of the Domain.
+func (d *Domain) QueryAdmins() *UserQuery {
+	return (&DomainClient{config: d.config}).QueryAdmins(d)
 }
 
 // Update returns a builder for updating this Domain.

@@ -20,7 +20,6 @@ func (Answer) Fields() []ent.Field {
 		field.UUID("id", uuid.UUID{}),
 		field.Time("at").Immutable().Default(time.Now),
 		field.Strings("responses").Immutable(),
-		field.String("validator").Optional().Immutable(),
 		field.Bool("valid").Optional(),
 	}
 }

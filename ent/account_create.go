@@ -21,6 +21,7 @@ type AccountCreate struct {
 	_type    *account.Type
 	sub      *string
 	remoteID *string
+	secret   *string
 	owner    map[uuid.UUID]struct{}
 }
 
@@ -39,6 +40,20 @@ func (ac *AccountCreate) SetSub(s string) *AccountCreate {
 // SetRemoteID sets the remoteID field.
 func (ac *AccountCreate) SetRemoteID(s string) *AccountCreate {
 	ac.remoteID = &s
+	return ac
+}
+
+// SetSecret sets the secret field.
+func (ac *AccountCreate) SetSecret(s string) *AccountCreate {
+	ac.secret = &s
+	return ac
+}
+
+// SetNillableSecret sets the secret field if the given value is not nil.
+func (ac *AccountCreate) SetNillableSecret(s *string) *AccountCreate {
+	if s != nil {
+		ac.SetSecret(*s)
+	}
 	return ac
 }
 
@@ -140,6 +155,14 @@ func (ac *AccountCreate) sqlSave(ctx context.Context) (*Account, error) {
 			Column: account.FieldRemoteID,
 		})
 		a.RemoteID = *value
+	}
+	if value := ac.secret; value != nil {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: account.FieldSecret,
+		})
+		a.Secret = *value
 	}
 	if nodes := ac.owner; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

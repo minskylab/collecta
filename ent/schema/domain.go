@@ -29,5 +29,6 @@ func (Domain) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.To("surveys", Survey.Type),
 		edge.To("users", User.Type),
+		edge.To("admins", User.Type),
 	}
 }

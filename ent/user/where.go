@@ -101,17 +101,17 @@ func Name(v string) predicate.User {
 	})
 }
 
-// Username applies equality check predicate on the "username" field. It's identical to UsernameEQ.
-func Username(v string) predicate.User {
-	return predicate.User(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldUsername), v))
-	})
-}
-
 // LastActivity applies equality check predicate on the "lastActivity" field. It's identical to LastActivityEQ.
 func LastActivity(v time.Time) predicate.User {
 	return predicate.User(func(s *sql.Selector) {
 		s.Where(sql.EQ(s.C(FieldLastActivity), v))
+	})
+}
+
+// Username applies equality check predicate on the "username" field. It's identical to UsernameEQ.
+func Username(v string) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldUsername), v))
 	})
 }
 
@@ -230,6 +230,82 @@ func NameEqualFold(v string) predicate.User {
 func NameContainsFold(v string) predicate.User {
 	return predicate.User(func(s *sql.Selector) {
 		s.Where(sql.ContainsFold(s.C(FieldName), v))
+	})
+}
+
+// LastActivityEQ applies the EQ predicate on the "lastActivity" field.
+func LastActivityEQ(v time.Time) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldLastActivity), v))
+	})
+}
+
+// LastActivityNEQ applies the NEQ predicate on the "lastActivity" field.
+func LastActivityNEQ(v time.Time) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldLastActivity), v))
+	})
+}
+
+// LastActivityIn applies the In predicate on the "lastActivity" field.
+func LastActivityIn(vs ...time.Time) predicate.User {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.User(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(vs) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.In(s.C(FieldLastActivity), v...))
+	})
+}
+
+// LastActivityNotIn applies the NotIn predicate on the "lastActivity" field.
+func LastActivityNotIn(vs ...time.Time) predicate.User {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.User(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(vs) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.NotIn(s.C(FieldLastActivity), v...))
+	})
+}
+
+// LastActivityGT applies the GT predicate on the "lastActivity" field.
+func LastActivityGT(v time.Time) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.GT(s.C(FieldLastActivity), v))
+	})
+}
+
+// LastActivityGTE applies the GTE predicate on the "lastActivity" field.
+func LastActivityGTE(v time.Time) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.GTE(s.C(FieldLastActivity), v))
+	})
+}
+
+// LastActivityLT applies the LT predicate on the "lastActivity" field.
+func LastActivityLT(v time.Time) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.LT(s.C(FieldLastActivity), v))
+	})
+}
+
+// LastActivityLTE applies the LTE predicate on the "lastActivity" field.
+func LastActivityLTE(v time.Time) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.LTE(s.C(FieldLastActivity), v))
 	})
 }
 
@@ -358,82 +434,6 @@ func UsernameContainsFold(v string) predicate.User {
 	})
 }
 
-// LastActivityEQ applies the EQ predicate on the "lastActivity" field.
-func LastActivityEQ(v time.Time) predicate.User {
-	return predicate.User(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldLastActivity), v))
-	})
-}
-
-// LastActivityNEQ applies the NEQ predicate on the "lastActivity" field.
-func LastActivityNEQ(v time.Time) predicate.User {
-	return predicate.User(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldLastActivity), v))
-	})
-}
-
-// LastActivityIn applies the In predicate on the "lastActivity" field.
-func LastActivityIn(vs ...time.Time) predicate.User {
-	v := make([]interface{}, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.User(func(s *sql.Selector) {
-		// if not arguments were provided, append the FALSE constants,
-		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
-			s.Where(sql.False())
-			return
-		}
-		s.Where(sql.In(s.C(FieldLastActivity), v...))
-	})
-}
-
-// LastActivityNotIn applies the NotIn predicate on the "lastActivity" field.
-func LastActivityNotIn(vs ...time.Time) predicate.User {
-	v := make([]interface{}, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.User(func(s *sql.Selector) {
-		// if not arguments were provided, append the FALSE constants,
-		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
-			s.Where(sql.False())
-			return
-		}
-		s.Where(sql.NotIn(s.C(FieldLastActivity), v...))
-	})
-}
-
-// LastActivityGT applies the GT predicate on the "lastActivity" field.
-func LastActivityGT(v time.Time) predicate.User {
-	return predicate.User(func(s *sql.Selector) {
-		s.Where(sql.GT(s.C(FieldLastActivity), v))
-	})
-}
-
-// LastActivityGTE applies the GTE predicate on the "lastActivity" field.
-func LastActivityGTE(v time.Time) predicate.User {
-	return predicate.User(func(s *sql.Selector) {
-		s.Where(sql.GTE(s.C(FieldLastActivity), v))
-	})
-}
-
-// LastActivityLT applies the LT predicate on the "lastActivity" field.
-func LastActivityLT(v time.Time) predicate.User {
-	return predicate.User(func(s *sql.Selector) {
-		s.Where(sql.LT(s.C(FieldLastActivity), v))
-	})
-}
-
-// LastActivityLTE applies the LTE predicate on the "lastActivity" field.
-func LastActivityLTE(v time.Time) predicate.User {
-	return predicate.User(func(s *sql.Selector) {
-		s.Where(sql.LTE(s.C(FieldLastActivity), v))
-	})
-}
-
 // PictureEQ applies the EQ predicate on the "picture" field.
 func PictureEQ(v string) predicate.User {
 	return predicate.User(func(s *sql.Selector) {
@@ -559,6 +559,20 @@ func PictureContainsFold(v string) predicate.User {
 	})
 }
 
+// RolesIsNil applies the IsNil predicate on the "roles" field.
+func RolesIsNil() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.IsNull(s.C(FieldRoles)))
+	})
+}
+
+// RolesNotNil applies the NotNil predicate on the "roles" field.
+func RolesNotNil() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		s.Where(sql.NotNull(s.C(FieldRoles)))
+	})
+}
+
 // HasAccounts applies the HasEdge predicate on the "accounts" edge.
 func HasAccounts() predicate.User {
 	return predicate.User(func(s *sql.Selector) {
@@ -643,25 +657,53 @@ func HasSurveysWith(preds ...predicate.Survey) predicate.User {
 	})
 }
 
-// HasDomain applies the HasEdge predicate on the "domain" edge.
-func HasDomain() predicate.User {
+// HasDomains applies the HasEdge predicate on the "domains" edge.
+func HasDomains() predicate.User {
 	return predicate.User(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(DomainTable, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, DomainTable, DomainColumn),
+			sqlgraph.To(DomainsTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, DomainsTable, DomainsPrimaryKey...),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
 }
 
-// HasDomainWith applies the HasEdge predicate on the "domain" edge with a given conditions (other predicates).
-func HasDomainWith(preds ...predicate.Domain) predicate.User {
+// HasDomainsWith applies the HasEdge predicate on the "domains" edge with a given conditions (other predicates).
+func HasDomainsWith(preds ...predicate.Domain) predicate.User {
 	return predicate.User(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(DomainInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, DomainTable, DomainColumn),
+			sqlgraph.To(DomainsInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, DomainsTable, DomainsPrimaryKey...),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasAdminOf applies the HasEdge predicate on the "adminOf" edge.
+func HasAdminOf() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(AdminOfTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, AdminOfTable, AdminOfPrimaryKey...),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasAdminOfWith applies the HasEdge predicate on the "adminOf" edge with a given conditions (other predicates).
+func HasAdminOfWith(preds ...predicate.Domain) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(AdminOfInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, AdminOfTable, AdminOfPrimaryKey...),
 		)
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {

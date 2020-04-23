@@ -19,6 +19,8 @@ const (
 	FieldDescription = "description"
 	// FieldMetadata holds the string denoting the metadata vertex property in the database.
 	FieldMetadata = "metadata"
+	// FieldValidator holds the string denoting the validator vertex property in the database.
+	FieldValidator = "validator"
 	// FieldAnonymous holds the string denoting the anonymous vertex property in the database.
 	FieldAnonymous = "anonymous"
 
@@ -54,6 +56,7 @@ var Columns = []string{
 	FieldTitle,
 	FieldDescription,
 	FieldMetadata,
+	FieldValidator,
 	FieldAnonymous,
 }
 
@@ -71,7 +74,7 @@ var (
 	TitleValidator = descTitle.Validators[0].(func(string) error)
 
 	// descAnonymous is the schema descriptor for anonymous field.
-	descAnonymous = fields[5].Descriptor()
+	descAnonymous = fields[6].Descriptor()
 	// DefaultAnonymous holds the default value on creation for the anonymous field.
 	DefaultAnonymous = descAnonymous.Default.(bool)
 )

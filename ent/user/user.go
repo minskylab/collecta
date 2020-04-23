@@ -15,12 +15,14 @@ const (
 	FieldID = "id"
 	// FieldName holds the string denoting the name vertex property in the database.
 	FieldName = "name"
-	// FieldUsername holds the string denoting the username vertex property in the database.
-	FieldUsername = "username"
 	// FieldLastActivity holds the string denoting the lastactivity vertex property in the database.
 	FieldLastActivity = "last_activity"
+	// FieldUsername holds the string denoting the username vertex property in the database.
+	FieldUsername = "username"
 	// FieldPicture holds the string denoting the picture vertex property in the database.
 	FieldPicture = "picture"
+	// FieldRoles holds the string denoting the roles vertex property in the database.
+	FieldRoles = "roles"
 
 	// Table holds the table name of the user in the database.
 	Table = "users"
@@ -45,28 +47,36 @@ const (
 	SurveysInverseTable = "surveys"
 	// SurveysColumn is the table column denoting the surveys relation/edge.
 	SurveysColumn = "user_surveys"
-	// DomainTable is the table the holds the domain relation/edge.
-	DomainTable = "users"
-	// DomainInverseTable is the table name for the Domain entity.
+	// DomainsTable is the table the holds the domains relation/edge. The primary key declared below.
+	DomainsTable = "domain_users"
+	// DomainsInverseTable is the table name for the Domain entity.
 	// It exists in this package in order to avoid circular dependency with the "domain" package.
-	DomainInverseTable = "domains"
-	// DomainColumn is the table column denoting the domain relation/edge.
-	DomainColumn = "domain_users"
+	DomainsInverseTable = "domains"
+	// AdminOfTable is the table the holds the adminOf relation/edge. The primary key declared below.
+	AdminOfTable = "domain_admins"
+	// AdminOfInverseTable is the table name for the Domain entity.
+	// It exists in this package in order to avoid circular dependency with the "domain" package.
+	AdminOfInverseTable = "domains"
 )
 
 // Columns holds all SQL columns for user fields.
 var Columns = []string{
 	FieldID,
 	FieldName,
-	FieldUsername,
 	FieldLastActivity,
+	FieldUsername,
 	FieldPicture,
+	FieldRoles,
 }
 
-// ForeignKeys holds the SQL foreign-keys that are owned by the User type.
-var ForeignKeys = []string{
-	"domain_users",
-}
+var (
+	// DomainsPrimaryKey and DomainsColumn2 are the table columns denoting the
+	// primary key for the domains relation (M2M).
+	DomainsPrimaryKey = []string{"domain_id", "user_id"}
+	// AdminOfPrimaryKey and AdminOfColumn2 are the table columns denoting the
+	// primary key for the adminOf relation (M2M).
+	AdminOfPrimaryKey = []string{"domain_id", "user_id"}
+)
 
 var (
 	fields = schema.User{}.Fields()
@@ -77,7 +87,7 @@ var (
 	NameValidator = descName.Validators[0].(func(string) error)
 
 	// descLastActivity is the schema descriptor for lastActivity field.
-	descLastActivity = fields[3].Descriptor()
+	descLastActivity = fields[2].Descriptor()
 	// DefaultLastActivity holds the default value on creation for the lastActivity field.
 	DefaultLastActivity = descLastActivity.Default.(func() time.Time)
 )

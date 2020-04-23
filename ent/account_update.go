@@ -22,6 +22,8 @@ type AccountUpdate struct {
 	_type        *account.Type
 	sub          *string
 	remoteID     *string
+	secret       *string
+	clearsecret  bool
 	owner        map[uuid.UUID]struct{}
 	clearedOwner bool
 	predicates   []predicate.Account
@@ -48,6 +50,27 @@ func (au *AccountUpdate) SetSub(s string) *AccountUpdate {
 // SetRemoteID sets the remoteID field.
 func (au *AccountUpdate) SetRemoteID(s string) *AccountUpdate {
 	au.remoteID = &s
+	return au
+}
+
+// SetSecret sets the secret field.
+func (au *AccountUpdate) SetSecret(s string) *AccountUpdate {
+	au.secret = &s
+	return au
+}
+
+// SetNillableSecret sets the secret field if the given value is not nil.
+func (au *AccountUpdate) SetNillableSecret(s *string) *AccountUpdate {
+	if s != nil {
+		au.SetSecret(*s)
+	}
+	return au
+}
+
+// ClearSecret clears the value of secret.
+func (au *AccountUpdate) ClearSecret() *AccountUpdate {
+	au.secret = nil
+	au.clearsecret = true
 	return au
 }
 
@@ -158,6 +181,19 @@ func (au *AccountUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Column: account.FieldRemoteID,
 		})
 	}
+	if value := au.secret; value != nil {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: account.FieldSecret,
+		})
+	}
+	if au.clearsecret {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Column: account.FieldSecret,
+		})
+	}
 	if au.clearedOwner {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -211,6 +247,8 @@ type AccountUpdateOne struct {
 	_type        *account.Type
 	sub          *string
 	remoteID     *string
+	secret       *string
+	clearsecret  bool
 	owner        map[uuid.UUID]struct{}
 	clearedOwner bool
 }
@@ -230,6 +268,27 @@ func (auo *AccountUpdateOne) SetSub(s string) *AccountUpdateOne {
 // SetRemoteID sets the remoteID field.
 func (auo *AccountUpdateOne) SetRemoteID(s string) *AccountUpdateOne {
 	auo.remoteID = &s
+	return auo
+}
+
+// SetSecret sets the secret field.
+func (auo *AccountUpdateOne) SetSecret(s string) *AccountUpdateOne {
+	auo.secret = &s
+	return auo
+}
+
+// SetNillableSecret sets the secret field if the given value is not nil.
+func (auo *AccountUpdateOne) SetNillableSecret(s *string) *AccountUpdateOne {
+	if s != nil {
+		auo.SetSecret(*s)
+	}
+	return auo
+}
+
+// ClearSecret clears the value of secret.
+func (auo *AccountUpdateOne) ClearSecret() *AccountUpdateOne {
+	auo.secret = nil
+	auo.clearsecret = true
 	return auo
 }
 
@@ -332,6 +391,19 @@ func (auo *AccountUpdateOne) sqlSave(ctx context.Context) (a *Account, err error
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: account.FieldRemoteID,
+		})
+	}
+	if value := auo.secret; value != nil {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: account.FieldSecret,
+		})
+	}
+	if auo.clearsecret {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Column: account.FieldSecret,
 		})
 	}
 	if auo.clearedOwner {

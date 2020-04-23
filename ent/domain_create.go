@@ -26,6 +26,7 @@ type DomainCreate struct {
 	collectaDomain *string
 	surveys        map[uuid.UUID]struct{}
 	users          map[uuid.UUID]struct{}
+	admins         map[uuid.UUID]struct{}
 }
 
 // SetTags sets the tags field.
@@ -102,6 +103,26 @@ func (dc *DomainCreate) AddUsers(u ...*User) *DomainCreate {
 		ids[i] = u[i].ID
 	}
 	return dc.AddUserIDs(ids...)
+}
+
+// AddAdminIDs adds the admins edge to User by ids.
+func (dc *DomainCreate) AddAdminIDs(ids ...uuid.UUID) *DomainCreate {
+	if dc.admins == nil {
+		dc.admins = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		dc.admins[ids[i]] = struct{}{}
+	}
+	return dc
+}
+
+// AddAdmins adds the admins edges to User.
+func (dc *DomainCreate) AddAdmins(u ...*User) *DomainCreate {
+	ids := make([]uuid.UUID, len(u))
+	for i := range u {
+		ids[i] = u[i].ID
+	}
+	return dc.AddAdminIDs(ids...)
 }
 
 // Save creates the Domain in the database.
@@ -215,10 +236,29 @@ func (dc *DomainCreate) sqlSave(ctx context.Context) (*Domain, error) {
 	}
 	if nodes := dc.users; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
+			Rel:     sqlgraph.M2M,
 			Inverse: false,
 			Table:   domain.UsersTable,
-			Columns: []string{domain.UsersColumn},
+			Columns: domain.UsersPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: user.FieldID,
+				},
+			},
+		}
+		for k, _ := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := dc.admins; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   domain.AdminsTable,
+			Columns: domain.AdminsPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{

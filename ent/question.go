@@ -27,6 +27,8 @@ type Question struct {
 	Description string `json:"description,omitempty"`
 	// Metadata holds the value of the "metadata" field.
 	Metadata map[string]string `json:"metadata,omitempty"`
+	// Validator holds the value of the "validator" field.
+	Validator string `json:"validator,omitempty"`
 	// Anonymous holds the value of the "anonymous" field.
 	Anonymous bool `json:"anonymous,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
@@ -93,6 +95,7 @@ func (*Question) scanValues() []interface{} {
 		&sql.NullString{}, // title
 		&sql.NullString{}, // description
 		&[]byte{},         // metadata
+		&sql.NullString{}, // validator
 		&sql.NullBool{},   // anonymous
 	}
 }
@@ -139,12 +142,17 @@ func (q *Question) assignValues(values ...interface{}) error {
 			return fmt.Errorf("unmarshal field metadata: %v", err)
 		}
 	}
-	if value, ok := values[4].(*sql.NullBool); !ok {
-		return fmt.Errorf("unexpected type %T for field anonymous", values[4])
+	if value, ok := values[4].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field validator", values[4])
+	} else if value.Valid {
+		q.Validator = value.String
+	}
+	if value, ok := values[5].(*sql.NullBool); !ok {
+		return fmt.Errorf("unexpected type %T for field anonymous", values[5])
 	} else if value.Valid {
 		q.Anonymous = value.Bool
 	}
-	values = values[5:]
+	values = values[6:]
 	if len(values) == len(question.ForeignKeys) {
 		if value, ok := values[0].(*uuid.UUID); !ok {
 			return fmt.Errorf("unexpected type %T for field flow_questions", values[0])
@@ -201,6 +209,8 @@ func (q *Question) String() string {
 	builder.WriteString(q.Description)
 	builder.WriteString(", metadata=")
 	builder.WriteString(fmt.Sprintf("%v", q.Metadata))
+	builder.WriteString(", validator=")
+	builder.WriteString(q.Validator)
 	builder.WriteString(", anonymous=")
 	builder.WriteString(fmt.Sprintf("%v", q.Anonymous))
 	builder.WriteByte(')')

@@ -12,7 +12,7 @@ import (
 var memoizedEvaluation map[string]string
 var memoizedCounter map[string]uint64
 
-const thresholdAlloc = 10
+const thresholdAlloc = 40
 const thresholdUses = 5
 
 type input struct {

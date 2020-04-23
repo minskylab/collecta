@@ -24,3 +24,6 @@ const CorsHeaders = "cors.headers" // env: COLLECTA_CORS_HEADERS
 
 // CorsMaxAge contains the max age for a valid cors policy
 const CorsMaxAge = "cors.maxAge" // env: COLLECTA_CORS_MAXAGE
+
+// DomainHost saves the name of the domain for the collecta instance service
+const DomainHost = "domain" // COLLECTA_DOMAIN

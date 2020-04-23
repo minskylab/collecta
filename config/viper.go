@@ -9,7 +9,7 @@ import (
 )
 
 func readConfig() error {
-	viper.SetConfigName("config")
+	viper.SetConfigName("collecta")
 	viper.SetConfigType("yaml")
 	viper.AddConfigPath("/etc/collecta/")
 	viper.AddConfigPath(".")

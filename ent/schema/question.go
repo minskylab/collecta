@@ -20,6 +20,7 @@ func (Question) Fields() []ent.Field {
 		field.String("title").NotEmpty(),
 		field.String("description"),
 		field.JSON("metadata", map[string]string{}).Optional(),
+		field.String("validator").Optional().Immutable(),
 		field.Bool("anonymous").Default(false),
 	}
 }

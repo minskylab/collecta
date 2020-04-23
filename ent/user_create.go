@@ -23,32 +23,20 @@ type UserCreate struct {
 	config
 	id           *uuid.UUID
 	name         *string
-	username     *string
 	lastActivity *time.Time
+	username     *string
 	picture      *string
+	roles        *[]string
 	accounts     map[uuid.UUID]struct{}
 	contacts     map[uuid.UUID]struct{}
 	surveys      map[uuid.UUID]struct{}
-	domain       map[uuid.UUID]struct{}
+	domains      map[uuid.UUID]struct{}
+	adminOf      map[uuid.UUID]struct{}
 }
 
 // SetName sets the name field.
 func (uc *UserCreate) SetName(s string) *UserCreate {
 	uc.name = &s
-	return uc
-}
-
-// SetUsername sets the username field.
-func (uc *UserCreate) SetUsername(s string) *UserCreate {
-	uc.username = &s
-	return uc
-}
-
-// SetNillableUsername sets the username field if the given value is not nil.
-func (uc *UserCreate) SetNillableUsername(s *string) *UserCreate {
-	if s != nil {
-		uc.SetUsername(*s)
-	}
 	return uc
 }
 
@@ -66,6 +54,20 @@ func (uc *UserCreate) SetNillableLastActivity(t *time.Time) *UserCreate {
 	return uc
 }
 
+// SetUsername sets the username field.
+func (uc *UserCreate) SetUsername(s string) *UserCreate {
+	uc.username = &s
+	return uc
+}
+
+// SetNillableUsername sets the username field if the given value is not nil.
+func (uc *UserCreate) SetNillableUsername(s *string) *UserCreate {
+	if s != nil {
+		uc.SetUsername(*s)
+	}
+	return uc
+}
+
 // SetPicture sets the picture field.
 func (uc *UserCreate) SetPicture(s string) *UserCreate {
 	uc.picture = &s
@@ -77,6 +79,12 @@ func (uc *UserCreate) SetNillablePicture(s *string) *UserCreate {
 	if s != nil {
 		uc.SetPicture(*s)
 	}
+	return uc
+}
+
+// SetRoles sets the roles field.
+func (uc *UserCreate) SetRoles(s []string) *UserCreate {
+	uc.roles = &s
 	return uc
 }
 
@@ -146,26 +154,44 @@ func (uc *UserCreate) AddSurveys(s ...*Survey) *UserCreate {
 	return uc.AddSurveyIDs(ids...)
 }
 
-// SetDomainID sets the domain edge to Domain by id.
-func (uc *UserCreate) SetDomainID(id uuid.UUID) *UserCreate {
-	if uc.domain == nil {
-		uc.domain = make(map[uuid.UUID]struct{})
+// AddDomainIDs adds the domains edge to Domain by ids.
+func (uc *UserCreate) AddDomainIDs(ids ...uuid.UUID) *UserCreate {
+	if uc.domains == nil {
+		uc.domains = make(map[uuid.UUID]struct{})
 	}
-	uc.domain[id] = struct{}{}
-	return uc
-}
-
-// SetNillableDomainID sets the domain edge to Domain by id if the given value is not nil.
-func (uc *UserCreate) SetNillableDomainID(id *uuid.UUID) *UserCreate {
-	if id != nil {
-		uc = uc.SetDomainID(*id)
+	for i := range ids {
+		uc.domains[ids[i]] = struct{}{}
 	}
 	return uc
 }
 
-// SetDomain sets the domain edge to Domain.
-func (uc *UserCreate) SetDomain(d *Domain) *UserCreate {
-	return uc.SetDomainID(d.ID)
+// AddDomains adds the domains edges to Domain.
+func (uc *UserCreate) AddDomains(d ...*Domain) *UserCreate {
+	ids := make([]uuid.UUID, len(d))
+	for i := range d {
+		ids[i] = d[i].ID
+	}
+	return uc.AddDomainIDs(ids...)
+}
+
+// AddAdminOfIDs adds the adminOf edge to Domain by ids.
+func (uc *UserCreate) AddAdminOfIDs(ids ...uuid.UUID) *UserCreate {
+	if uc.adminOf == nil {
+		uc.adminOf = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		uc.adminOf[ids[i]] = struct{}{}
+	}
+	return uc
+}
+
+// AddAdminOf adds the adminOf edges to Domain.
+func (uc *UserCreate) AddAdminOf(d ...*Domain) *UserCreate {
+	ids := make([]uuid.UUID, len(d))
+	for i := range d {
+		ids[i] = d[i].ID
+	}
+	return uc.AddAdminOfIDs(ids...)
 }
 
 // Save creates the User in the database.
@@ -179,9 +205,6 @@ func (uc *UserCreate) Save(ctx context.Context) (*User, error) {
 	if uc.lastActivity == nil {
 		v := user.DefaultLastActivity()
 		uc.lastActivity = &v
-	}
-	if len(uc.domain) > 1 {
-		return nil, errors.New("ent: multiple assignments on a unique edge \"domain\"")
 	}
 	return uc.sqlSave(ctx)
 }
@@ -218,14 +241,6 @@ func (uc *UserCreate) sqlSave(ctx context.Context) (*User, error) {
 		})
 		u.Name = *value
 	}
-	if value := uc.username; value != nil {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  *value,
-			Column: user.FieldUsername,
-		})
-		u.Username = *value
-	}
 	if value := uc.lastActivity; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
@@ -234,6 +249,14 @@ func (uc *UserCreate) sqlSave(ctx context.Context) (*User, error) {
 		})
 		u.LastActivity = *value
 	}
+	if value := uc.username; value != nil {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: user.FieldUsername,
+		})
+		u.Username = *value
+	}
 	if value := uc.picture; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
@@ -241,6 +264,14 @@ func (uc *UserCreate) sqlSave(ctx context.Context) (*User, error) {
 			Column: user.FieldPicture,
 		})
 		u.Picture = *value
+	}
+	if value := uc.roles; value != nil {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeJSON,
+			Value:  *value,
+			Column: user.FieldRoles,
+		})
+		u.Roles = *value
 	}
 	if nodes := uc.accounts; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -299,12 +330,31 @@ func (uc *UserCreate) sqlSave(ctx context.Context) (*User, error) {
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := uc.domain; len(nodes) > 0 {
+	if nodes := uc.domains; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
+			Rel:     sqlgraph.M2M,
 			Inverse: true,
-			Table:   user.DomainTable,
-			Columns: []string{user.DomainColumn},
+			Table:   user.DomainsTable,
+			Columns: user.DomainsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: domain.FieldID,
+				},
+			},
+		}
+		for k, _ := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := uc.adminOf; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   user.AdminOfTable,
+			Columns: user.AdminOfPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{

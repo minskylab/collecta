@@ -4,7 +4,6 @@ package ent
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"time"
 
@@ -24,19 +23,23 @@ import (
 type UserUpdate struct {
 	config
 	name            *string
+	lastActivity    *time.Time
 	username        *string
 	clearusername   bool
-	lastActivity    *time.Time
 	picture         *string
 	clearpicture    bool
+	roles           *[]string
+	clearroles      bool
 	accounts        map[uuid.UUID]struct{}
 	contacts        map[uuid.UUID]struct{}
 	surveys         map[uuid.UUID]struct{}
-	domain          map[uuid.UUID]struct{}
+	domains         map[uuid.UUID]struct{}
+	adminOf         map[uuid.UUID]struct{}
 	removedAccounts map[uuid.UUID]struct{}
 	removedContacts map[uuid.UUID]struct{}
 	removedSurveys  map[uuid.UUID]struct{}
-	clearedDomain   bool
+	removedDomains  map[uuid.UUID]struct{}
+	removedAdminOf  map[uuid.UUID]struct{}
 	predicates      []predicate.User
 }
 
@@ -49,6 +52,20 @@ func (uu *UserUpdate) Where(ps ...predicate.User) *UserUpdate {
 // SetName sets the name field.
 func (uu *UserUpdate) SetName(s string) *UserUpdate {
 	uu.name = &s
+	return uu
+}
+
+// SetLastActivity sets the lastActivity field.
+func (uu *UserUpdate) SetLastActivity(t time.Time) *UserUpdate {
+	uu.lastActivity = &t
+	return uu
+}
+
+// SetNillableLastActivity sets the lastActivity field if the given value is not nil.
+func (uu *UserUpdate) SetNillableLastActivity(t *time.Time) *UserUpdate {
+	if t != nil {
+		uu.SetLastActivity(*t)
+	}
 	return uu
 }
 
@@ -73,20 +90,6 @@ func (uu *UserUpdate) ClearUsername() *UserUpdate {
 	return uu
 }
 
-// SetLastActivity sets the lastActivity field.
-func (uu *UserUpdate) SetLastActivity(t time.Time) *UserUpdate {
-	uu.lastActivity = &t
-	return uu
-}
-
-// SetNillableLastActivity sets the lastActivity field if the given value is not nil.
-func (uu *UserUpdate) SetNillableLastActivity(t *time.Time) *UserUpdate {
-	if t != nil {
-		uu.SetLastActivity(*t)
-	}
-	return uu
-}
-
 // SetPicture sets the picture field.
 func (uu *UserUpdate) SetPicture(s string) *UserUpdate {
 	uu.picture = &s
@@ -105,6 +108,19 @@ func (uu *UserUpdate) SetNillablePicture(s *string) *UserUpdate {
 func (uu *UserUpdate) ClearPicture() *UserUpdate {
 	uu.picture = nil
 	uu.clearpicture = true
+	return uu
+}
+
+// SetRoles sets the roles field.
+func (uu *UserUpdate) SetRoles(s []string) *UserUpdate {
+	uu.roles = &s
+	return uu
+}
+
+// ClearRoles clears the value of roles.
+func (uu *UserUpdate) ClearRoles() *UserUpdate {
+	uu.roles = nil
+	uu.clearroles = true
 	return uu
 }
 
@@ -168,26 +184,44 @@ func (uu *UserUpdate) AddSurveys(s ...*Survey) *UserUpdate {
 	return uu.AddSurveyIDs(ids...)
 }
 
-// SetDomainID sets the domain edge to Domain by id.
-func (uu *UserUpdate) SetDomainID(id uuid.UUID) *UserUpdate {
-	if uu.domain == nil {
-		uu.domain = make(map[uuid.UUID]struct{})
+// AddDomainIDs adds the domains edge to Domain by ids.
+func (uu *UserUpdate) AddDomainIDs(ids ...uuid.UUID) *UserUpdate {
+	if uu.domains == nil {
+		uu.domains = make(map[uuid.UUID]struct{})
 	}
-	uu.domain[id] = struct{}{}
-	return uu
-}
-
-// SetNillableDomainID sets the domain edge to Domain by id if the given value is not nil.
-func (uu *UserUpdate) SetNillableDomainID(id *uuid.UUID) *UserUpdate {
-	if id != nil {
-		uu = uu.SetDomainID(*id)
+	for i := range ids {
+		uu.domains[ids[i]] = struct{}{}
 	}
 	return uu
 }
 
-// SetDomain sets the domain edge to Domain.
-func (uu *UserUpdate) SetDomain(d *Domain) *UserUpdate {
-	return uu.SetDomainID(d.ID)
+// AddDomains adds the domains edges to Domain.
+func (uu *UserUpdate) AddDomains(d ...*Domain) *UserUpdate {
+	ids := make([]uuid.UUID, len(d))
+	for i := range d {
+		ids[i] = d[i].ID
+	}
+	return uu.AddDomainIDs(ids...)
+}
+
+// AddAdminOfIDs adds the adminOf edge to Domain by ids.
+func (uu *UserUpdate) AddAdminOfIDs(ids ...uuid.UUID) *UserUpdate {
+	if uu.adminOf == nil {
+		uu.adminOf = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		uu.adminOf[ids[i]] = struct{}{}
+	}
+	return uu
+}
+
+// AddAdminOf adds the adminOf edges to Domain.
+func (uu *UserUpdate) AddAdminOf(d ...*Domain) *UserUpdate {
+	ids := make([]uuid.UUID, len(d))
+	for i := range d {
+		ids[i] = d[i].ID
+	}
+	return uu.AddAdminOfIDs(ids...)
 }
 
 // RemoveAccountIDs removes the accounts edge to Account by ids.
@@ -250,10 +284,44 @@ func (uu *UserUpdate) RemoveSurveys(s ...*Survey) *UserUpdate {
 	return uu.RemoveSurveyIDs(ids...)
 }
 
-// ClearDomain clears the domain edge to Domain.
-func (uu *UserUpdate) ClearDomain() *UserUpdate {
-	uu.clearedDomain = true
+// RemoveDomainIDs removes the domains edge to Domain by ids.
+func (uu *UserUpdate) RemoveDomainIDs(ids ...uuid.UUID) *UserUpdate {
+	if uu.removedDomains == nil {
+		uu.removedDomains = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		uu.removedDomains[ids[i]] = struct{}{}
+	}
 	return uu
+}
+
+// RemoveDomains removes domains edges to Domain.
+func (uu *UserUpdate) RemoveDomains(d ...*Domain) *UserUpdate {
+	ids := make([]uuid.UUID, len(d))
+	for i := range d {
+		ids[i] = d[i].ID
+	}
+	return uu.RemoveDomainIDs(ids...)
+}
+
+// RemoveAdminOfIDs removes the adminOf edge to Domain by ids.
+func (uu *UserUpdate) RemoveAdminOfIDs(ids ...uuid.UUID) *UserUpdate {
+	if uu.removedAdminOf == nil {
+		uu.removedAdminOf = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		uu.removedAdminOf[ids[i]] = struct{}{}
+	}
+	return uu
+}
+
+// RemoveAdminOf removes adminOf edges to Domain.
+func (uu *UserUpdate) RemoveAdminOf(d ...*Domain) *UserUpdate {
+	ids := make([]uuid.UUID, len(d))
+	for i := range d {
+		ids[i] = d[i].ID
+	}
+	return uu.RemoveAdminOfIDs(ids...)
 }
 
 // Save executes the query and returns the number of rows/vertices matched by this operation.
@@ -262,9 +330,6 @@ func (uu *UserUpdate) Save(ctx context.Context) (int, error) {
 		if err := user.NameValidator(*uu.name); err != nil {
 			return 0, fmt.Errorf("ent: validator failed for field \"name\": %v", err)
 		}
-	}
-	if len(uu.domain) > 1 {
-		return 0, errors.New("ent: multiple assignments on a unique edge \"domain\"")
 	}
 	return uu.sqlSave(ctx)
 }
@@ -316,6 +381,13 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Column: user.FieldName,
 		})
 	}
+	if value := uu.lastActivity; value != nil {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  *value,
+			Column: user.FieldLastActivity,
+		})
+	}
 	if value := uu.username; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
@@ -329,13 +401,6 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Column: user.FieldUsername,
 		})
 	}
-	if value := uu.lastActivity; value != nil {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeTime,
-			Value:  *value,
-			Column: user.FieldLastActivity,
-		})
-	}
 	if value := uu.picture; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
@@ -347,6 +412,19 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: user.FieldPicture,
+		})
+	}
+	if value := uu.roles; value != nil {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeJSON,
+			Value:  *value,
+			Column: user.FieldRoles,
+		})
+	}
+	if uu.clearroles {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeJSON,
+			Column: user.FieldRoles,
 		})
 	}
 	if nodes := uu.removedAccounts; len(nodes) > 0 {
@@ -463,12 +541,12 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if uu.clearedDomain {
+	if nodes := uu.removedDomains; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
+			Rel:     sqlgraph.M2M,
 			Inverse: true,
-			Table:   user.DomainTable,
-			Columns: []string{user.DomainColumn},
+			Table:   user.DomainsTable,
+			Columns: user.DomainsPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -477,14 +555,55 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				},
 			},
 		}
+		for k, _ := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := uu.domain; len(nodes) > 0 {
+	if nodes := uu.domains; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
+			Rel:     sqlgraph.M2M,
 			Inverse: true,
-			Table:   user.DomainTable,
-			Columns: []string{user.DomainColumn},
+			Table:   user.DomainsTable,
+			Columns: user.DomainsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: domain.FieldID,
+				},
+			},
+		}
+		for k, _ := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if nodes := uu.removedAdminOf; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   user.AdminOfTable,
+			Columns: user.AdminOfPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: domain.FieldID,
+				},
+			},
+		}
+		for k, _ := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uu.adminOf; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   user.AdminOfTable,
+			Columns: user.AdminOfPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -514,24 +633,42 @@ type UserUpdateOne struct {
 	config
 	id              uuid.UUID
 	name            *string
+	lastActivity    *time.Time
 	username        *string
 	clearusername   bool
-	lastActivity    *time.Time
 	picture         *string
 	clearpicture    bool
+	roles           *[]string
+	clearroles      bool
 	accounts        map[uuid.UUID]struct{}
 	contacts        map[uuid.UUID]struct{}
 	surveys         map[uuid.UUID]struct{}
-	domain          map[uuid.UUID]struct{}
+	domains         map[uuid.UUID]struct{}
+	adminOf         map[uuid.UUID]struct{}
 	removedAccounts map[uuid.UUID]struct{}
 	removedContacts map[uuid.UUID]struct{}
 	removedSurveys  map[uuid.UUID]struct{}
-	clearedDomain   bool
+	removedDomains  map[uuid.UUID]struct{}
+	removedAdminOf  map[uuid.UUID]struct{}
 }
 
 // SetName sets the name field.
 func (uuo *UserUpdateOne) SetName(s string) *UserUpdateOne {
 	uuo.name = &s
+	return uuo
+}
+
+// SetLastActivity sets the lastActivity field.
+func (uuo *UserUpdateOne) SetLastActivity(t time.Time) *UserUpdateOne {
+	uuo.lastActivity = &t
+	return uuo
+}
+
+// SetNillableLastActivity sets the lastActivity field if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillableLastActivity(t *time.Time) *UserUpdateOne {
+	if t != nil {
+		uuo.SetLastActivity(*t)
+	}
 	return uuo
 }
 
@@ -556,20 +693,6 @@ func (uuo *UserUpdateOne) ClearUsername() *UserUpdateOne {
 	return uuo
 }
 
-// SetLastActivity sets the lastActivity field.
-func (uuo *UserUpdateOne) SetLastActivity(t time.Time) *UserUpdateOne {
-	uuo.lastActivity = &t
-	return uuo
-}
-
-// SetNillableLastActivity sets the lastActivity field if the given value is not nil.
-func (uuo *UserUpdateOne) SetNillableLastActivity(t *time.Time) *UserUpdateOne {
-	if t != nil {
-		uuo.SetLastActivity(*t)
-	}
-	return uuo
-}
-
 // SetPicture sets the picture field.
 func (uuo *UserUpdateOne) SetPicture(s string) *UserUpdateOne {
 	uuo.picture = &s
@@ -588,6 +711,19 @@ func (uuo *UserUpdateOne) SetNillablePicture(s *string) *UserUpdateOne {
 func (uuo *UserUpdateOne) ClearPicture() *UserUpdateOne {
 	uuo.picture = nil
 	uuo.clearpicture = true
+	return uuo
+}
+
+// SetRoles sets the roles field.
+func (uuo *UserUpdateOne) SetRoles(s []string) *UserUpdateOne {
+	uuo.roles = &s
+	return uuo
+}
+
+// ClearRoles clears the value of roles.
+func (uuo *UserUpdateOne) ClearRoles() *UserUpdateOne {
+	uuo.roles = nil
+	uuo.clearroles = true
 	return uuo
 }
 
@@ -651,26 +787,44 @@ func (uuo *UserUpdateOne) AddSurveys(s ...*Survey) *UserUpdateOne {
 	return uuo.AddSurveyIDs(ids...)
 }
 
-// SetDomainID sets the domain edge to Domain by id.
-func (uuo *UserUpdateOne) SetDomainID(id uuid.UUID) *UserUpdateOne {
-	if uuo.domain == nil {
-		uuo.domain = make(map[uuid.UUID]struct{})
+// AddDomainIDs adds the domains edge to Domain by ids.
+func (uuo *UserUpdateOne) AddDomainIDs(ids ...uuid.UUID) *UserUpdateOne {
+	if uuo.domains == nil {
+		uuo.domains = make(map[uuid.UUID]struct{})
 	}
-	uuo.domain[id] = struct{}{}
-	return uuo
-}
-
-// SetNillableDomainID sets the domain edge to Domain by id if the given value is not nil.
-func (uuo *UserUpdateOne) SetNillableDomainID(id *uuid.UUID) *UserUpdateOne {
-	if id != nil {
-		uuo = uuo.SetDomainID(*id)
+	for i := range ids {
+		uuo.domains[ids[i]] = struct{}{}
 	}
 	return uuo
 }
 
-// SetDomain sets the domain edge to Domain.
-func (uuo *UserUpdateOne) SetDomain(d *Domain) *UserUpdateOne {
-	return uuo.SetDomainID(d.ID)
+// AddDomains adds the domains edges to Domain.
+func (uuo *UserUpdateOne) AddDomains(d ...*Domain) *UserUpdateOne {
+	ids := make([]uuid.UUID, len(d))
+	for i := range d {
+		ids[i] = d[i].ID
+	}
+	return uuo.AddDomainIDs(ids...)
+}
+
+// AddAdminOfIDs adds the adminOf edge to Domain by ids.
+func (uuo *UserUpdateOne) AddAdminOfIDs(ids ...uuid.UUID) *UserUpdateOne {
+	if uuo.adminOf == nil {
+		uuo.adminOf = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		uuo.adminOf[ids[i]] = struct{}{}
+	}
+	return uuo
+}
+
+// AddAdminOf adds the adminOf edges to Domain.
+func (uuo *UserUpdateOne) AddAdminOf(d ...*Domain) *UserUpdateOne {
+	ids := make([]uuid.UUID, len(d))
+	for i := range d {
+		ids[i] = d[i].ID
+	}
+	return uuo.AddAdminOfIDs(ids...)
 }
 
 // RemoveAccountIDs removes the accounts edge to Account by ids.
@@ -733,10 +887,44 @@ func (uuo *UserUpdateOne) RemoveSurveys(s ...*Survey) *UserUpdateOne {
 	return uuo.RemoveSurveyIDs(ids...)
 }
 
-// ClearDomain clears the domain edge to Domain.
-func (uuo *UserUpdateOne) ClearDomain() *UserUpdateOne {
-	uuo.clearedDomain = true
+// RemoveDomainIDs removes the domains edge to Domain by ids.
+func (uuo *UserUpdateOne) RemoveDomainIDs(ids ...uuid.UUID) *UserUpdateOne {
+	if uuo.removedDomains == nil {
+		uuo.removedDomains = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		uuo.removedDomains[ids[i]] = struct{}{}
+	}
 	return uuo
+}
+
+// RemoveDomains removes domains edges to Domain.
+func (uuo *UserUpdateOne) RemoveDomains(d ...*Domain) *UserUpdateOne {
+	ids := make([]uuid.UUID, len(d))
+	for i := range d {
+		ids[i] = d[i].ID
+	}
+	return uuo.RemoveDomainIDs(ids...)
+}
+
+// RemoveAdminOfIDs removes the adminOf edge to Domain by ids.
+func (uuo *UserUpdateOne) RemoveAdminOfIDs(ids ...uuid.UUID) *UserUpdateOne {
+	if uuo.removedAdminOf == nil {
+		uuo.removedAdminOf = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		uuo.removedAdminOf[ids[i]] = struct{}{}
+	}
+	return uuo
+}
+
+// RemoveAdminOf removes adminOf edges to Domain.
+func (uuo *UserUpdateOne) RemoveAdminOf(d ...*Domain) *UserUpdateOne {
+	ids := make([]uuid.UUID, len(d))
+	for i := range d {
+		ids[i] = d[i].ID
+	}
+	return uuo.RemoveAdminOfIDs(ids...)
 }
 
 // Save executes the query and returns the updated entity.
@@ -745,9 +933,6 @@ func (uuo *UserUpdateOne) Save(ctx context.Context) (*User, error) {
 		if err := user.NameValidator(*uuo.name); err != nil {
 			return nil, fmt.Errorf("ent: validator failed for field \"name\": %v", err)
 		}
-	}
-	if len(uuo.domain) > 1 {
-		return nil, errors.New("ent: multiple assignments on a unique edge \"domain\"")
 	}
 	return uuo.sqlSave(ctx)
 }
@@ -793,6 +978,13 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (u *User, err error) {
 			Column: user.FieldName,
 		})
 	}
+	if value := uuo.lastActivity; value != nil {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  *value,
+			Column: user.FieldLastActivity,
+		})
+	}
 	if value := uuo.username; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
@@ -806,13 +998,6 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (u *User, err error) {
 			Column: user.FieldUsername,
 		})
 	}
-	if value := uuo.lastActivity; value != nil {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeTime,
-			Value:  *value,
-			Column: user.FieldLastActivity,
-		})
-	}
 	if value := uuo.picture; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
@@ -824,6 +1009,19 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (u *User, err error) {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: user.FieldPicture,
+		})
+	}
+	if value := uuo.roles; value != nil {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeJSON,
+			Value:  *value,
+			Column: user.FieldRoles,
+		})
+	}
+	if uuo.clearroles {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeJSON,
+			Column: user.FieldRoles,
 		})
 	}
 	if nodes := uuo.removedAccounts; len(nodes) > 0 {
@@ -940,12 +1138,12 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (u *User, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if uuo.clearedDomain {
+	if nodes := uuo.removedDomains; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
+			Rel:     sqlgraph.M2M,
 			Inverse: true,
-			Table:   user.DomainTable,
-			Columns: []string{user.DomainColumn},
+			Table:   user.DomainsTable,
+			Columns: user.DomainsPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -954,14 +1152,55 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (u *User, err error) {
 				},
 			},
 		}
+		for k, _ := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := uuo.domain; len(nodes) > 0 {
+	if nodes := uuo.domains; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
+			Rel:     sqlgraph.M2M,
 			Inverse: true,
-			Table:   user.DomainTable,
-			Columns: []string{user.DomainColumn},
+			Table:   user.DomainsTable,
+			Columns: user.DomainsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: domain.FieldID,
+				},
+			},
+		}
+		for k, _ := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if nodes := uuo.removedAdminOf; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   user.AdminOfTable,
+			Columns: user.AdminOfPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: domain.FieldID,
+				},
+			},
+		}
+		for k, _ := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uuo.adminOf; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   user.AdminOfTable,
+			Columns: user.AdminOfPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{

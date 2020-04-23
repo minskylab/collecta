@@ -113,6 +113,13 @@ func Description(v string) predicate.Question {
 	})
 }
 
+// Validator applies equality check predicate on the "validator" field. It's identical to ValidatorEQ.
+func Validator(v string) predicate.Question {
+	return predicate.Question(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldValidator), v))
+	})
+}
+
 // Anonymous applies equality check predicate on the "anonymous" field. It's identical to AnonymousEQ.
 func Anonymous(v bool) predicate.Question {
 	return predicate.Question(func(s *sql.Selector) {
@@ -464,6 +471,131 @@ func MetadataIsNil() predicate.Question {
 func MetadataNotNil() predicate.Question {
 	return predicate.Question(func(s *sql.Selector) {
 		s.Where(sql.NotNull(s.C(FieldMetadata)))
+	})
+}
+
+// ValidatorEQ applies the EQ predicate on the "validator" field.
+func ValidatorEQ(v string) predicate.Question {
+	return predicate.Question(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldValidator), v))
+	})
+}
+
+// ValidatorNEQ applies the NEQ predicate on the "validator" field.
+func ValidatorNEQ(v string) predicate.Question {
+	return predicate.Question(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldValidator), v))
+	})
+}
+
+// ValidatorIn applies the In predicate on the "validator" field.
+func ValidatorIn(vs ...string) predicate.Question {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Question(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(vs) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.In(s.C(FieldValidator), v...))
+	})
+}
+
+// ValidatorNotIn applies the NotIn predicate on the "validator" field.
+func ValidatorNotIn(vs ...string) predicate.Question {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Question(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(vs) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.NotIn(s.C(FieldValidator), v...))
+	})
+}
+
+// ValidatorGT applies the GT predicate on the "validator" field.
+func ValidatorGT(v string) predicate.Question {
+	return predicate.Question(func(s *sql.Selector) {
+		s.Where(sql.GT(s.C(FieldValidator), v))
+	})
+}
+
+// ValidatorGTE applies the GTE predicate on the "validator" field.
+func ValidatorGTE(v string) predicate.Question {
+	return predicate.Question(func(s *sql.Selector) {
+		s.Where(sql.GTE(s.C(FieldValidator), v))
+	})
+}
+
+// ValidatorLT applies the LT predicate on the "validator" field.
+func ValidatorLT(v string) predicate.Question {
+	return predicate.Question(func(s *sql.Selector) {
+		s.Where(sql.LT(s.C(FieldValidator), v))
+	})
+}
+
+// ValidatorLTE applies the LTE predicate on the "validator" field.
+func ValidatorLTE(v string) predicate.Question {
+	return predicate.Question(func(s *sql.Selector) {
+		s.Where(sql.LTE(s.C(FieldValidator), v))
+	})
+}
+
+// ValidatorContains applies the Contains predicate on the "validator" field.
+func ValidatorContains(v string) predicate.Question {
+	return predicate.Question(func(s *sql.Selector) {
+		s.Where(sql.Contains(s.C(FieldValidator), v))
+	})
+}
+
+// ValidatorHasPrefix applies the HasPrefix predicate on the "validator" field.
+func ValidatorHasPrefix(v string) predicate.Question {
+	return predicate.Question(func(s *sql.Selector) {
+		s.Where(sql.HasPrefix(s.C(FieldValidator), v))
+	})
+}
+
+// ValidatorHasSuffix applies the HasSuffix predicate on the "validator" field.
+func ValidatorHasSuffix(v string) predicate.Question {
+	return predicate.Question(func(s *sql.Selector) {
+		s.Where(sql.HasSuffix(s.C(FieldValidator), v))
+	})
+}
+
+// ValidatorIsNil applies the IsNil predicate on the "validator" field.
+func ValidatorIsNil() predicate.Question {
+	return predicate.Question(func(s *sql.Selector) {
+		s.Where(sql.IsNull(s.C(FieldValidator)))
+	})
+}
+
+// ValidatorNotNil applies the NotNil predicate on the "validator" field.
+func ValidatorNotNil() predicate.Question {
+	return predicate.Question(func(s *sql.Selector) {
+		s.Where(sql.NotNull(s.C(FieldValidator)))
+	})
+}
+
+// ValidatorEqualFold applies the EqualFold predicate on the "validator" field.
+func ValidatorEqualFold(v string) predicate.Question {
+	return predicate.Question(func(s *sql.Selector) {
+		s.Where(sql.EqualFold(s.C(FieldValidator), v))
+	})
+}
+
+// ValidatorContainsFold applies the ContainsFold predicate on the "validator" field.
+func ValidatorContainsFold(v string) predicate.Question {
+	return predicate.Question(func(s *sql.Selector) {
+		s.Where(sql.ContainsFold(s.C(FieldValidator), v))
 	})
 }
 

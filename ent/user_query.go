@@ -33,8 +33,8 @@ type UserQuery struct {
 	withAccounts *AccountQuery
 	withContacts *ContactQuery
 	withSurveys  *SurveyQuery
-	withDomain   *DomainQuery
-	withFKs      bool
+	withDomains  *DomainQuery
+	withAdminOf  *DomainQuery
 	// intermediate query.
 	sql *sql.Selector
 }
@@ -99,13 +99,25 @@ func (uq *UserQuery) QuerySurveys() *SurveyQuery {
 	return query
 }
 
-// QueryDomain chains the current query on the domain edge.
-func (uq *UserQuery) QueryDomain() *DomainQuery {
+// QueryDomains chains the current query on the domains edge.
+func (uq *UserQuery) QueryDomains() *DomainQuery {
 	query := &DomainQuery{config: uq.config}
 	step := sqlgraph.NewStep(
 		sqlgraph.From(user.Table, user.FieldID, uq.sqlQuery()),
 		sqlgraph.To(domain.Table, domain.FieldID),
-		sqlgraph.Edge(sqlgraph.M2O, true, user.DomainTable, user.DomainColumn),
+		sqlgraph.Edge(sqlgraph.M2M, true, user.DomainsTable, user.DomainsPrimaryKey...),
+	)
+	query.sql = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
+	return query
+}
+
+// QueryAdminOf chains the current query on the adminOf edge.
+func (uq *UserQuery) QueryAdminOf() *DomainQuery {
+	query := &DomainQuery{config: uq.config}
+	step := sqlgraph.NewStep(
+		sqlgraph.From(user.Table, user.FieldID, uq.sqlQuery()),
+		sqlgraph.To(domain.Table, domain.FieldID),
+		sqlgraph.Edge(sqlgraph.M2M, true, user.AdminOfTable, user.AdminOfPrimaryKey...),
 	)
 	query.sql = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
 	return query
@@ -313,14 +325,25 @@ func (uq *UserQuery) WithSurveys(opts ...func(*SurveyQuery)) *UserQuery {
 	return uq
 }
 
-//  WithDomain tells the query-builder to eager-loads the nodes that are connected to
-// the "domain" edge. The optional arguments used to configure the query builder of the edge.
-func (uq *UserQuery) WithDomain(opts ...func(*DomainQuery)) *UserQuery {
+//  WithDomains tells the query-builder to eager-loads the nodes that are connected to
+// the "domains" edge. The optional arguments used to configure the query builder of the edge.
+func (uq *UserQuery) WithDomains(opts ...func(*DomainQuery)) *UserQuery {
 	query := &DomainQuery{config: uq.config}
 	for _, opt := range opts {
 		opt(query)
 	}
-	uq.withDomain = query
+	uq.withDomains = query
+	return uq
+}
+
+//  WithAdminOf tells the query-builder to eager-loads the nodes that are connected to
+// the "adminOf" edge. The optional arguments used to configure the query builder of the edge.
+func (uq *UserQuery) WithAdminOf(opts ...func(*DomainQuery)) *UserQuery {
+	query := &DomainQuery{config: uq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	uq.withAdminOf = query
 	return uq
 }
 
@@ -368,28 +391,19 @@ func (uq *UserQuery) Select(field string, fields ...string) *UserSelect {
 func (uq *UserQuery) sqlAll(ctx context.Context) ([]*User, error) {
 	var (
 		nodes       = []*User{}
-		withFKs     = uq.withFKs
 		_spec       = uq.querySpec()
-		loadedTypes = [4]bool{
+		loadedTypes = [5]bool{
 			uq.withAccounts != nil,
 			uq.withContacts != nil,
 			uq.withSurveys != nil,
-			uq.withDomain != nil,
+			uq.withDomains != nil,
+			uq.withAdminOf != nil,
 		}
 	)
-	if uq.withDomain != nil {
-		withFKs = true
-	}
-	if withFKs {
-		_spec.Node.Columns = append(_spec.Node.Columns, user.ForeignKeys...)
-	}
 	_spec.ScanValues = func() []interface{} {
 		node := &User{config: uq.config}
 		nodes = append(nodes, node)
 		values := node.scanValues()
-		if withFKs {
-			values = append(values, node.fkValues()...)
-		}
 		return values
 	}
 	_spec.Assign = func(values ...interface{}) error {
@@ -491,27 +505,128 @@ func (uq *UserQuery) sqlAll(ctx context.Context) ([]*User, error) {
 		}
 	}
 
-	if query := uq.withDomain; query != nil {
-		ids := make([]uuid.UUID, 0, len(nodes))
-		nodeids := make(map[uuid.UUID][]*User)
-		for i := range nodes {
-			if fk := nodes[i].domain_users; fk != nil {
-				ids = append(ids, *fk)
-				nodeids[*fk] = append(nodeids[*fk], nodes[i])
-			}
+	if query := uq.withDomains; query != nil {
+		fks := make([]driver.Value, 0, len(nodes))
+		ids := make(map[uuid.UUID]*User, len(nodes))
+		for _, node := range nodes {
+			ids[node.ID] = node
+			fks = append(fks, node.ID)
 		}
-		query.Where(domain.IDIn(ids...))
+		var (
+			edgeids []uuid.UUID
+			edges   = make(map[uuid.UUID][]*User)
+		)
+		_spec := &sqlgraph.EdgeQuerySpec{
+			Edge: &sqlgraph.EdgeSpec{
+				Inverse: true,
+				Table:   user.DomainsTable,
+				Columns: user.DomainsPrimaryKey,
+			},
+			Predicate: func(s *sql.Selector) {
+				s.Where(sql.InValues(user.DomainsPrimaryKey[1], fks...))
+			},
+
+			ScanValues: func() [2]interface{} {
+				return [2]interface{}{&uuid.UUID{}, &uuid.UUID{}}
+			},
+			Assign: func(out, in interface{}) error {
+				eout, ok := out.(*uuid.UUID)
+				if !ok || eout == nil {
+					return fmt.Errorf("unexpected id value for edge-out")
+				}
+				ein, ok := in.(*uuid.UUID)
+				if !ok || ein == nil {
+					return fmt.Errorf("unexpected id value for edge-in")
+				}
+				outValue := *eout
+				inValue := *ein
+				node, ok := ids[outValue]
+				if !ok {
+					return fmt.Errorf("unexpected node id in edges: %v", outValue)
+				}
+				edgeids = append(edgeids, inValue)
+				edges[inValue] = append(edges[inValue], node)
+				return nil
+			},
+		}
+		if err := sqlgraph.QueryEdges(ctx, uq.driver, _spec); err != nil {
+			return nil, fmt.Errorf(`query edges "domains": %v`, err)
+		}
+		query.Where(domain.IDIn(edgeids...))
 		neighbors, err := query.All(ctx)
 		if err != nil {
 			return nil, err
 		}
 		for _, n := range neighbors {
-			nodes, ok := nodeids[n.ID]
+			nodes, ok := edges[n.ID]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "domain_users" returned %v`, n.ID)
+				return nil, fmt.Errorf(`unexpected "domains" node returned %v`, n.ID)
 			}
 			for i := range nodes {
-				nodes[i].Edges.Domain = n
+				nodes[i].Edges.Domains = append(nodes[i].Edges.Domains, n)
+			}
+		}
+	}
+
+	if query := uq.withAdminOf; query != nil {
+		fks := make([]driver.Value, 0, len(nodes))
+		ids := make(map[uuid.UUID]*User, len(nodes))
+		for _, node := range nodes {
+			ids[node.ID] = node
+			fks = append(fks, node.ID)
+		}
+		var (
+			edgeids []uuid.UUID
+			edges   = make(map[uuid.UUID][]*User)
+		)
+		_spec := &sqlgraph.EdgeQuerySpec{
+			Edge: &sqlgraph.EdgeSpec{
+				Inverse: true,
+				Table:   user.AdminOfTable,
+				Columns: user.AdminOfPrimaryKey,
+			},
+			Predicate: func(s *sql.Selector) {
+				s.Where(sql.InValues(user.AdminOfPrimaryKey[1], fks...))
+			},
+
+			ScanValues: func() [2]interface{} {
+				return [2]interface{}{&uuid.UUID{}, &uuid.UUID{}}
+			},
+			Assign: func(out, in interface{}) error {
+				eout, ok := out.(*uuid.UUID)
+				if !ok || eout == nil {
+					return fmt.Errorf("unexpected id value for edge-out")
+				}
+				ein, ok := in.(*uuid.UUID)
+				if !ok || ein == nil {
+					return fmt.Errorf("unexpected id value for edge-in")
+				}
+				outValue := *eout
+				inValue := *ein
+				node, ok := ids[outValue]
+				if !ok {
+					return fmt.Errorf("unexpected node id in edges: %v", outValue)
+				}
+				edgeids = append(edgeids, inValue)
+				edges[inValue] = append(edges[inValue], node)
+				return nil
+			},
+		}
+		if err := sqlgraph.QueryEdges(ctx, uq.driver, _spec); err != nil {
+			return nil, fmt.Errorf(`query edges "adminOf": %v`, err)
+		}
+		query.Where(domain.IDIn(edgeids...))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			nodes, ok := edges[n.ID]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected "adminOf" node returned %v`, n.ID)
+			}
+			for i := range nodes {
+				nodes[i].Edges.AdminOf = append(nodes[i].Edges.AdminOf, n)
 			}
 		}
 	}

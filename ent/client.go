@@ -542,7 +542,21 @@ func (c *DomainClient) QueryUsers(d *Domain) *UserQuery {
 	step := sqlgraph.NewStep(
 		sqlgraph.From(domain.Table, domain.FieldID, id),
 		sqlgraph.To(user.Table, user.FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, domain.UsersTable, domain.UsersColumn),
+		sqlgraph.Edge(sqlgraph.M2M, false, domain.UsersTable, domain.UsersPrimaryKey...),
+	)
+	query.sql = sqlgraph.Neighbors(d.driver.Dialect(), step)
+
+	return query
+}
+
+// QueryAdmins queries the admins edge of a Domain.
+func (c *DomainClient) QueryAdmins(d *Domain) *UserQuery {
+	query := &UserQuery{config: c.config}
+	id := d.ID
+	step := sqlgraph.NewStep(
+		sqlgraph.From(domain.Table, domain.FieldID, id),
+		sqlgraph.To(user.Table, user.FieldID),
+		sqlgraph.Edge(sqlgraph.M2M, false, domain.AdminsTable, domain.AdminsPrimaryKey...),
 	)
 	query.sql = sqlgraph.Neighbors(d.driver.Dialect(), step)
 
@@ -1151,14 +1165,28 @@ func (c *UserClient) QuerySurveys(u *User) *SurveyQuery {
 	return query
 }
 
-// QueryDomain queries the domain edge of a User.
-func (c *UserClient) QueryDomain(u *User) *DomainQuery {
+// QueryDomains queries the domains edge of a User.
+func (c *UserClient) QueryDomains(u *User) *DomainQuery {
 	query := &DomainQuery{config: c.config}
 	id := u.ID
 	step := sqlgraph.NewStep(
 		sqlgraph.From(user.Table, user.FieldID, id),
 		sqlgraph.To(domain.Table, domain.FieldID),
-		sqlgraph.Edge(sqlgraph.M2O, true, user.DomainTable, user.DomainColumn),
+		sqlgraph.Edge(sqlgraph.M2M, true, user.DomainsTable, user.DomainsPrimaryKey...),
+	)
+	query.sql = sqlgraph.Neighbors(u.driver.Dialect(), step)
+
+	return query
+}
+
+// QueryAdminOf queries the adminOf edge of a User.
+func (c *UserClient) QueryAdminOf(u *User) *DomainQuery {
+	query := &DomainQuery{config: c.config}
+	id := u.ID
+	step := sqlgraph.NewStep(
+		sqlgraph.From(user.Table, user.FieldID, id),
+		sqlgraph.To(domain.Table, domain.FieldID),
+		sqlgraph.Edge(sqlgraph.M2M, true, user.AdminOfTable, user.AdminOfPrimaryKey...),
 	)
 	query.sql = sqlgraph.Neighbors(u.driver.Dialect(), step)
 

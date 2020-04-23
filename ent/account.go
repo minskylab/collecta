@@ -23,6 +23,8 @@ type Account struct {
 	Sub string `json:"sub,omitempty"`
 	// RemoteID holds the value of the "remoteID" field.
 	RemoteID string `json:"remoteID,omitempty"`
+	// Secret holds the value of the "secret" field.
+	Secret string `json:"secret,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the AccountQuery when eager-loading is set.
 	Edges         AccountEdges `json:"edges"`
@@ -59,6 +61,7 @@ func (*Account) scanValues() []interface{} {
 		&sql.NullString{}, // type
 		&sql.NullString{}, // sub
 		&sql.NullString{}, // remoteID
+		&sql.NullString{}, // secret
 	}
 }
 
@@ -96,7 +99,12 @@ func (a *Account) assignValues(values ...interface{}) error {
 	} else if value.Valid {
 		a.RemoteID = value.String
 	}
-	values = values[3:]
+	if value, ok := values[3].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field secret", values[3])
+	} else if value.Valid {
+		a.Secret = value.String
+	}
+	values = values[4:]
 	if len(values) == len(account.ForeignKeys) {
 		if value, ok := values[0].(*uuid.UUID); !ok {
 			return fmt.Errorf("unexpected type %T for field user_accounts", values[0])
@@ -141,6 +149,8 @@ func (a *Account) String() string {
 	builder.WriteString(a.Sub)
 	builder.WriteString(", remoteID=")
 	builder.WriteString(a.RemoteID)
+	builder.WriteString(", secret=")
+	builder.WriteString(a.Secret)
 	builder.WriteByte(')')
 	return builder.String()
 }

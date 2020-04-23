@@ -26,8 +26,10 @@ type DomainUpdate struct {
 	collectaDomain *string
 	surveys        map[uuid.UUID]struct{}
 	users          map[uuid.UUID]struct{}
+	admins         map[uuid.UUID]struct{}
 	removedSurveys map[uuid.UUID]struct{}
 	removedUsers   map[uuid.UUID]struct{}
+	removedAdmins  map[uuid.UUID]struct{}
 	predicates     []predicate.Domain
 }
 
@@ -107,6 +109,26 @@ func (du *DomainUpdate) AddUsers(u ...*User) *DomainUpdate {
 	return du.AddUserIDs(ids...)
 }
 
+// AddAdminIDs adds the admins edge to User by ids.
+func (du *DomainUpdate) AddAdminIDs(ids ...uuid.UUID) *DomainUpdate {
+	if du.admins == nil {
+		du.admins = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		du.admins[ids[i]] = struct{}{}
+	}
+	return du
+}
+
+// AddAdmins adds the admins edges to User.
+func (du *DomainUpdate) AddAdmins(u ...*User) *DomainUpdate {
+	ids := make([]uuid.UUID, len(u))
+	for i := range u {
+		ids[i] = u[i].ID
+	}
+	return du.AddAdminIDs(ids...)
+}
+
 // RemoveSurveyIDs removes the surveys edge to Survey by ids.
 func (du *DomainUpdate) RemoveSurveyIDs(ids ...uuid.UUID) *DomainUpdate {
 	if du.removedSurveys == nil {
@@ -145,6 +167,26 @@ func (du *DomainUpdate) RemoveUsers(u ...*User) *DomainUpdate {
 		ids[i] = u[i].ID
 	}
 	return du.RemoveUserIDs(ids...)
+}
+
+// RemoveAdminIDs removes the admins edge to User by ids.
+func (du *DomainUpdate) RemoveAdminIDs(ids ...uuid.UUID) *DomainUpdate {
+	if du.removedAdmins == nil {
+		du.removedAdmins = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		du.removedAdmins[ids[i]] = struct{}{}
+	}
+	return du
+}
+
+// RemoveAdmins removes admins edges to User.
+func (du *DomainUpdate) RemoveAdmins(u ...*User) *DomainUpdate {
+	ids := make([]uuid.UUID, len(u))
+	for i := range u {
+		ids[i] = u[i].ID
+	}
+	return du.RemoveAdminIDs(ids...)
 }
 
 // Save executes the query and returns the number of rows/vertices matched by this operation.
@@ -277,10 +319,10 @@ func (du *DomainUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if nodes := du.removedUsers; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
+			Rel:     sqlgraph.M2M,
 			Inverse: false,
 			Table:   domain.UsersTable,
-			Columns: []string{domain.UsersColumn},
+			Columns: domain.UsersPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -296,10 +338,48 @@ func (du *DomainUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if nodes := du.users; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
+			Rel:     sqlgraph.M2M,
 			Inverse: false,
 			Table:   domain.UsersTable,
-			Columns: []string{domain.UsersColumn},
+			Columns: domain.UsersPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: user.FieldID,
+				},
+			},
+		}
+		for k, _ := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if nodes := du.removedAdmins; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   domain.AdminsTable,
+			Columns: domain.AdminsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: user.FieldID,
+				},
+			},
+		}
+		for k, _ := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := du.admins; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   domain.AdminsTable,
+			Columns: domain.AdminsPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -335,8 +415,10 @@ type DomainUpdateOne struct {
 	collectaDomain *string
 	surveys        map[uuid.UUID]struct{}
 	users          map[uuid.UUID]struct{}
+	admins         map[uuid.UUID]struct{}
 	removedSurveys map[uuid.UUID]struct{}
 	removedUsers   map[uuid.UUID]struct{}
+	removedAdmins  map[uuid.UUID]struct{}
 }
 
 // SetTags sets the tags field.
@@ -409,6 +491,26 @@ func (duo *DomainUpdateOne) AddUsers(u ...*User) *DomainUpdateOne {
 	return duo.AddUserIDs(ids...)
 }
 
+// AddAdminIDs adds the admins edge to User by ids.
+func (duo *DomainUpdateOne) AddAdminIDs(ids ...uuid.UUID) *DomainUpdateOne {
+	if duo.admins == nil {
+		duo.admins = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		duo.admins[ids[i]] = struct{}{}
+	}
+	return duo
+}
+
+// AddAdmins adds the admins edges to User.
+func (duo *DomainUpdateOne) AddAdmins(u ...*User) *DomainUpdateOne {
+	ids := make([]uuid.UUID, len(u))
+	for i := range u {
+		ids[i] = u[i].ID
+	}
+	return duo.AddAdminIDs(ids...)
+}
+
 // RemoveSurveyIDs removes the surveys edge to Survey by ids.
 func (duo *DomainUpdateOne) RemoveSurveyIDs(ids ...uuid.UUID) *DomainUpdateOne {
 	if duo.removedSurveys == nil {
@@ -447,6 +549,26 @@ func (duo *DomainUpdateOne) RemoveUsers(u ...*User) *DomainUpdateOne {
 		ids[i] = u[i].ID
 	}
 	return duo.RemoveUserIDs(ids...)
+}
+
+// RemoveAdminIDs removes the admins edge to User by ids.
+func (duo *DomainUpdateOne) RemoveAdminIDs(ids ...uuid.UUID) *DomainUpdateOne {
+	if duo.removedAdmins == nil {
+		duo.removedAdmins = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		duo.removedAdmins[ids[i]] = struct{}{}
+	}
+	return duo
+}
+
+// RemoveAdmins removes admins edges to User.
+func (duo *DomainUpdateOne) RemoveAdmins(u ...*User) *DomainUpdateOne {
+	ids := make([]uuid.UUID, len(u))
+	for i := range u {
+		ids[i] = u[i].ID
+	}
+	return duo.RemoveAdminIDs(ids...)
 }
 
 // Save executes the query and returns the updated entity.
@@ -573,10 +695,10 @@ func (duo *DomainUpdateOne) sqlSave(ctx context.Context) (d *Domain, err error) 
 	}
 	if nodes := duo.removedUsers; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
+			Rel:     sqlgraph.M2M,
 			Inverse: false,
 			Table:   domain.UsersTable,
-			Columns: []string{domain.UsersColumn},
+			Columns: domain.UsersPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -592,10 +714,48 @@ func (duo *DomainUpdateOne) sqlSave(ctx context.Context) (d *Domain, err error) 
 	}
 	if nodes := duo.users; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
+			Rel:     sqlgraph.M2M,
 			Inverse: false,
 			Table:   domain.UsersTable,
-			Columns: []string{domain.UsersColumn},
+			Columns: domain.UsersPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: user.FieldID,
+				},
+			},
+		}
+		for k, _ := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if nodes := duo.removedAdmins; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   domain.AdminsTable,
+			Columns: domain.AdminsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: user.FieldID,
+				},
+			},
+		}
+		for k, _ := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := duo.admins; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   domain.AdminsTable,
+			Columns: domain.AdminsPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{

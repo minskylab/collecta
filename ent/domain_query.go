@@ -30,6 +30,7 @@ type DomainQuery struct {
 	// eager-loading edges.
 	withSurveys *SurveyQuery
 	withUsers   *UserQuery
+	withAdmins  *UserQuery
 	// intermediate query.
 	sql *sql.Selector
 }
@@ -76,7 +77,19 @@ func (dq *DomainQuery) QueryUsers() *UserQuery {
 	step := sqlgraph.NewStep(
 		sqlgraph.From(domain.Table, domain.FieldID, dq.sqlQuery()),
 		sqlgraph.To(user.Table, user.FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, domain.UsersTable, domain.UsersColumn),
+		sqlgraph.Edge(sqlgraph.M2M, false, domain.UsersTable, domain.UsersPrimaryKey...),
+	)
+	query.sql = sqlgraph.SetNeighbors(dq.driver.Dialect(), step)
+	return query
+}
+
+// QueryAdmins chains the current query on the admins edge.
+func (dq *DomainQuery) QueryAdmins() *UserQuery {
+	query := &UserQuery{config: dq.config}
+	step := sqlgraph.NewStep(
+		sqlgraph.From(domain.Table, domain.FieldID, dq.sqlQuery()),
+		sqlgraph.To(user.Table, user.FieldID),
+		sqlgraph.Edge(sqlgraph.M2M, false, domain.AdminsTable, domain.AdminsPrimaryKey...),
 	)
 	query.sql = sqlgraph.SetNeighbors(dq.driver.Dialect(), step)
 	return query
@@ -273,6 +286,17 @@ func (dq *DomainQuery) WithUsers(opts ...func(*UserQuery)) *DomainQuery {
 	return dq
 }
 
+//  WithAdmins tells the query-builder to eager-loads the nodes that are connected to
+// the "admins" edge. The optional arguments used to configure the query builder of the edge.
+func (dq *DomainQuery) WithAdmins(opts ...func(*UserQuery)) *DomainQuery {
+	query := &UserQuery{config: dq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	dq.withAdmins = query
+	return dq
+}
+
 // GroupBy used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 //
@@ -318,9 +342,10 @@ func (dq *DomainQuery) sqlAll(ctx context.Context) ([]*Domain, error) {
 	var (
 		nodes       = []*Domain{}
 		_spec       = dq.querySpec()
-		loadedTypes = [2]bool{
+		loadedTypes = [3]bool{
 			dq.withSurveys != nil,
 			dq.withUsers != nil,
+			dq.withAdmins != nil,
 		}
 	)
 	_spec.ScanValues = func() []interface{} {
@@ -374,29 +399,127 @@ func (dq *DomainQuery) sqlAll(ctx context.Context) ([]*Domain, error) {
 
 	if query := dq.withUsers; query != nil {
 		fks := make([]driver.Value, 0, len(nodes))
-		nodeids := make(map[uuid.UUID]*Domain)
-		for i := range nodes {
-			fks = append(fks, nodes[i].ID)
-			nodeids[nodes[i].ID] = nodes[i]
+		ids := make(map[uuid.UUID]*Domain, len(nodes))
+		for _, node := range nodes {
+			ids[node.ID] = node
+			fks = append(fks, node.ID)
 		}
-		query.withFKs = true
-		query.Where(predicate.User(func(s *sql.Selector) {
-			s.Where(sql.InValues(domain.UsersColumn, fks...))
-		}))
+		var (
+			edgeids []uuid.UUID
+			edges   = make(map[uuid.UUID][]*Domain)
+		)
+		_spec := &sqlgraph.EdgeQuerySpec{
+			Edge: &sqlgraph.EdgeSpec{
+				Inverse: false,
+				Table:   domain.UsersTable,
+				Columns: domain.UsersPrimaryKey,
+			},
+			Predicate: func(s *sql.Selector) {
+				s.Where(sql.InValues(domain.UsersPrimaryKey[0], fks...))
+			},
+
+			ScanValues: func() [2]interface{} {
+				return [2]interface{}{&uuid.UUID{}, &uuid.UUID{}}
+			},
+			Assign: func(out, in interface{}) error {
+				eout, ok := out.(*uuid.UUID)
+				if !ok || eout == nil {
+					return fmt.Errorf("unexpected id value for edge-out")
+				}
+				ein, ok := in.(*uuid.UUID)
+				if !ok || ein == nil {
+					return fmt.Errorf("unexpected id value for edge-in")
+				}
+				outValue := *eout
+				inValue := *ein
+				node, ok := ids[outValue]
+				if !ok {
+					return fmt.Errorf("unexpected node id in edges: %v", outValue)
+				}
+				edgeids = append(edgeids, inValue)
+				edges[inValue] = append(edges[inValue], node)
+				return nil
+			},
+		}
+		if err := sqlgraph.QueryEdges(ctx, dq.driver, _spec); err != nil {
+			return nil, fmt.Errorf(`query edges "users": %v`, err)
+		}
+		query.Where(user.IDIn(edgeids...))
 		neighbors, err := query.All(ctx)
 		if err != nil {
 			return nil, err
 		}
 		for _, n := range neighbors {
-			fk := n.domain_users
-			if fk == nil {
-				return nil, fmt.Errorf(`foreign-key "domain_users" is nil for node %v`, n.ID)
-			}
-			node, ok := nodeids[*fk]
+			nodes, ok := edges[n.ID]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "domain_users" returned %v for node %v`, *fk, n.ID)
+				return nil, fmt.Errorf(`unexpected "users" node returned %v`, n.ID)
 			}
-			node.Edges.Users = append(node.Edges.Users, n)
+			for i := range nodes {
+				nodes[i].Edges.Users = append(nodes[i].Edges.Users, n)
+			}
+		}
+	}
+
+	if query := dq.withAdmins; query != nil {
+		fks := make([]driver.Value, 0, len(nodes))
+		ids := make(map[uuid.UUID]*Domain, len(nodes))
+		for _, node := range nodes {
+			ids[node.ID] = node
+			fks = append(fks, node.ID)
+		}
+		var (
+			edgeids []uuid.UUID
+			edges   = make(map[uuid.UUID][]*Domain)
+		)
+		_spec := &sqlgraph.EdgeQuerySpec{
+			Edge: &sqlgraph.EdgeSpec{
+				Inverse: false,
+				Table:   domain.AdminsTable,
+				Columns: domain.AdminsPrimaryKey,
+			},
+			Predicate: func(s *sql.Selector) {
+				s.Where(sql.InValues(domain.AdminsPrimaryKey[0], fks...))
+			},
+
+			ScanValues: func() [2]interface{} {
+				return [2]interface{}{&uuid.UUID{}, &uuid.UUID{}}
+			},
+			Assign: func(out, in interface{}) error {
+				eout, ok := out.(*uuid.UUID)
+				if !ok || eout == nil {
+					return fmt.Errorf("unexpected id value for edge-out")
+				}
+				ein, ok := in.(*uuid.UUID)
+				if !ok || ein == nil {
+					return fmt.Errorf("unexpected id value for edge-in")
+				}
+				outValue := *eout
+				inValue := *ein
+				node, ok := ids[outValue]
+				if !ok {
+					return fmt.Errorf("unexpected node id in edges: %v", outValue)
+				}
+				edgeids = append(edgeids, inValue)
+				edges[inValue] = append(edges[inValue], node)
+				return nil
+			},
+		}
+		if err := sqlgraph.QueryEdges(ctx, dq.driver, _spec); err != nil {
+			return nil, fmt.Errorf(`query edges "admins": %v`, err)
+		}
+		query.Where(user.IDIn(edgeids...))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			nodes, ok := edges[n.ID]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected "admins" node returned %v`, n.ID)
+			}
+			for i := range nodes {
+				nodes[i].Edges.Admins = append(nodes[i].Edges.Admins, n)
+			}
 		}
 	}
 

@@ -21,11 +21,13 @@ import (
 // QuestionUpdate is the builder for updating Question entities.
 type QuestionUpdate struct {
 	config
-	hash           *string
-	title          *string
-	description    *string
-	metadata       *map[string]string
-	clearmetadata  bool
+	hash          *string
+	title         *string
+	description   *string
+	metadata      *map[string]string
+	clearmetadata bool
+
+	clearvalidator bool
 	anonymous      *bool
 	answers        map[uuid.UUID]struct{}
 	input          map[uuid.UUID]struct{}
@@ -273,6 +275,12 @@ func (qu *QuestionUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Column: question.FieldMetadata,
 		})
 	}
+	if qu.clearvalidator {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Column: question.FieldValidator,
+		})
+	}
 	if value := qu.anonymous; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeBool,
@@ -402,12 +410,14 @@ func (qu *QuestionUpdate) sqlSave(ctx context.Context) (n int, err error) {
 // QuestionUpdateOne is the builder for updating a single Question entity.
 type QuestionUpdateOne struct {
 	config
-	id             uuid.UUID
-	hash           *string
-	title          *string
-	description    *string
-	metadata       *map[string]string
-	clearmetadata  bool
+	id            uuid.UUID
+	hash          *string
+	title         *string
+	description   *string
+	metadata      *map[string]string
+	clearmetadata bool
+
+	clearvalidator bool
 	anonymous      *bool
 	answers        map[uuid.UUID]struct{}
 	input          map[uuid.UUID]struct{}
@@ -640,6 +650,12 @@ func (quo *QuestionUpdateOne) sqlSave(ctx context.Context) (q *Question, err err
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeJSON,
 			Column: question.FieldMetadata,
+		})
+	}
+	if quo.clearvalidator {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Column: question.FieldValidator,
 		})
 	}
 	if value := quo.anonymous; value != nil {

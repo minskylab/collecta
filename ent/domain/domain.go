@@ -31,13 +31,16 @@ const (
 	SurveysInverseTable = "surveys"
 	// SurveysColumn is the table column denoting the surveys relation/edge.
 	SurveysColumn = "domain_surveys"
-	// UsersTable is the table the holds the users relation/edge.
-	UsersTable = "users"
+	// UsersTable is the table the holds the users relation/edge. The primary key declared below.
+	UsersTable = "domain_users"
 	// UsersInverseTable is the table name for the User entity.
 	// It exists in this package in order to avoid circular dependency with the "user" package.
 	UsersInverseTable = "users"
-	// UsersColumn is the table column denoting the users relation/edge.
-	UsersColumn = "domain_users"
+	// AdminsTable is the table the holds the admins relation/edge. The primary key declared below.
+	AdminsTable = "domain_admins"
+	// AdminsInverseTable is the table name for the User entity.
+	// It exists in this package in order to avoid circular dependency with the "user" package.
+	AdminsInverseTable = "users"
 )
 
 // Columns holds all SQL columns for domain fields.
@@ -49,6 +52,15 @@ var Columns = []string{
 	FieldDomain,
 	FieldCollectaDomain,
 }
+
+var (
+	// UsersPrimaryKey and UsersColumn2 are the table columns denoting the
+	// primary key for the users relation (M2M).
+	UsersPrimaryKey = []string{"domain_id", "user_id"}
+	// AdminsPrimaryKey and AdminsColumn2 are the table columns denoting the
+	// primary key for the admins relation (M2M).
+	AdminsPrimaryKey = []string{"domain_id", "user_id"}
+)
 
 var (
 	fields = schema.Domain{}.Fields()
