@@ -109,17 +109,17 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
-		AnswerQuestion func(childComplexity int, input *model.QuestionResponse) int
+		AnswerQuestion func(childComplexity int, token string, questionID string, answer []string) int
 	}
 
 	Query struct {
-		Domain               func(childComplexity int, id string) int
-		IsFinalQuestion      func(childComplexity int, id string) int
-		IsFirstQuestion      func(childComplexity int, id string) int
-		LastQuestionOfSurvey func(childComplexity int, id string) int
-		Question             func(childComplexity int, id string) int
-		Survey               func(childComplexity int, id string) int
-		User                 func(childComplexity int, id string) int
+		Domain               func(childComplexity int, token string, id string) int
+		IsFinalQuestion      func(childComplexity int, token string, questionID string) int
+		IsFirstQuestion      func(childComplexity int, token string, questionID string) int
+		LastQuestionOfSurvey func(childComplexity int, token string, questionID string) int
+		Question             func(childComplexity int, token string, id string) int
+		Survey               func(childComplexity int, token string, id string) int
+		User                 func(childComplexity int, token string, id string) int
 		UserByToken          func(childComplexity int, token string) int
 	}
 
@@ -183,17 +183,17 @@ type InputResolver interface {
 	Question(ctx context.Context, obj *model.Input) (*model.Question, error)
 }
 type MutationResolver interface {
-	AnswerQuestion(ctx context.Context, input *model.QuestionResponse) (*model.Survey, error)
+	AnswerQuestion(ctx context.Context, token string, questionID string, answer []string) (*model.Survey, error)
 }
 type QueryResolver interface {
-	Domain(ctx context.Context, id string) (*model.Domain, error)
-	Survey(ctx context.Context, id string) (*model.Survey, error)
-	Question(ctx context.Context, id string) (*model.Question, error)
-	User(ctx context.Context, id string) (*model.User, error)
+	Domain(ctx context.Context, token string, id string) (*model.Domain, error)
+	Survey(ctx context.Context, token string, id string) (*model.Survey, error)
+	Question(ctx context.Context, token string, id string) (*model.Question, error)
+	User(ctx context.Context, token string, id string) (*model.User, error)
 	UserByToken(ctx context.Context, token string) (*model.User, error)
-	IsFirstQuestion(ctx context.Context, id string) (bool, error)
-	IsFinalQuestion(ctx context.Context, id string) (bool, error)
-	LastQuestionOfSurvey(ctx context.Context, id string) (*model.Question, error)
+	IsFirstQuestion(ctx context.Context, token string, questionID string) (bool, error)
+	IsFinalQuestion(ctx context.Context, token string, questionID string) (bool, error)
+	LastQuestionOfSurvey(ctx context.Context, token string, questionID string) (*model.Question, error)
 }
 type QuestionResolver interface {
 	Answers(ctx context.Context, obj *model.Question) ([]*model.Answer, error)
@@ -496,7 +496,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.AnswerQuestion(childComplexity, args["input"].(*model.QuestionResponse)), true
+		return e.complexity.Mutation.AnswerQuestion(childComplexity, args["token"].(string), args["questionID"].(string), args["answer"].([]string)), true
 
 	case "Query.domain":
 		if e.complexity.Query.Domain == nil {
@@ -508,7 +508,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.Domain(childComplexity, args["id"].(string)), true
+		return e.complexity.Query.Domain(childComplexity, args["token"].(string), args["id"].(string)), true
 
 	case "Query.isFinalQuestion":
 		if e.complexity.Query.IsFinalQuestion == nil {
@@ -520,7 +520,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.IsFinalQuestion(childComplexity, args["id"].(string)), true
+		return e.complexity.Query.IsFinalQuestion(childComplexity, args["token"].(string), args["questionID"].(string)), true
 
 	case "Query.isFirstQuestion":
 		if e.complexity.Query.IsFirstQuestion == nil {
@@ -532,7 +532,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.IsFirstQuestion(childComplexity, args["id"].(string)), true
+		return e.complexity.Query.IsFirstQuestion(childComplexity, args["token"].(string), args["questionID"].(string)), true
 
 	case "Query.lastQuestionOfSurvey":
 		if e.complexity.Query.LastQuestionOfSurvey == nil {
@@ -544,7 +544,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.LastQuestionOfSurvey(childComplexity, args["id"].(string)), true
+		return e.complexity.Query.LastQuestionOfSurvey(childComplexity, args["token"].(string), args["questionID"].(string)), true
 
 	case "Query.question":
 		if e.complexity.Query.Question == nil {
@@ -556,7 +556,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.Question(childComplexity, args["id"].(string)), true
+		return e.complexity.Query.Question(childComplexity, args["token"].(string), args["id"].(string)), true
 
 	case "Query.survey":
 		if e.complexity.Query.Survey == nil {
@@ -568,7 +568,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.Survey(childComplexity, args["id"].(string)), true
+		return e.complexity.Query.Survey(childComplexity, args["token"].(string), args["id"].(string)), true
 
 	case "Query.user":
 		if e.complexity.Query.User == nil {
@@ -580,7 +580,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.User(childComplexity, args["id"].(string)), true
+		return e.complexity.Query.User(childComplexity, args["token"].(string), args["id"].(string)), true
 
 	case "Query.userByToken":
 		if e.complexity.Query.UserByToken == nil {
@@ -861,7 +861,7 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 }
 
 var sources = []*ast.Source{
-	&ast.Source{Name: "graph/schema/Base.graphqls", Input: `scalar Time
+	&ast.Source{Name: "graph/schema/base.graphqls", Input: `scalar Time
 scalar Map
 
 type User {
@@ -957,28 +957,24 @@ type Flow {
     questions: [Question!]!
 }
 `, BuiltIn: false},
-	&ast.Source{Name: "graph/schema/Mutations.graphqls", Input: `type Mutation {
-    answerQuestion(input: QuestionResponse): Survey!
-}
-
-input QuestionResponse {
-    id: ID!
-    answer: [String!]!
+	&ast.Source{Name: "graph/schema/mutations.graphqls", Input: `type Mutation {
+    answerQuestion(token: String!, questionID: ID!, answer: [String!]!): Survey!
 }
 `, BuiltIn: false},
-	&ast.Source{Name: "graph/schema/Queries.graphqls", Input: `type Query {
-    domain(id: ID!): Domain!
-    survey(id: ID!): Survey!
-    question(id: ID!): Question!
-    user(id: ID!): User!
+	&ast.Source{Name: "graph/schema/queries.graphqls", Input: `type Query {
+    domain(token: String!, id: ID!): Domain!
+    survey(token: String!, id: ID!): Survey!
+    question(token: String!, id: ID!): Question!
+    user(token: String!, id: ID!): User!
 
     userByToken(token: String!): User!
-    isFirstQuestion(id: ID!): Boolean!
-    isFinalQuestion(id: ID!): Boolean!
-    lastQuestionOfSurvey(id: ID!): Question!
+
+    isFirstQuestion(token: String!, questionID: ID!): Boolean!
+    isFinalQuestion(token: String!, questionID: ID!): Boolean!
+    lastQuestionOfSurvey(token: String!, questionID: ID!): Question!
 }
 `, BuiltIn: false},
-	&ast.Source{Name: "graph/schema/Subscriptions.graphqls", Input: ``, BuiltIn: false},
+	&ast.Source{Name: "graph/schema/subscriptions.graphqls", Input: ``, BuiltIn: false},
 }
 var parsedSchema = gqlparser.MustLoadSchema(sources...)
 
@@ -989,14 +985,30 @@ var parsedSchema = gqlparser.MustLoadSchema(sources...)
 func (ec *executionContext) field_Mutation_answerQuestion_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 *model.QuestionResponse
-	if tmp, ok := rawArgs["input"]; ok {
-		arg0, err = ec.unmarshalOQuestionResponse2ᚖgithubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐQuestionResponse(ctx, tmp)
+	var arg0 string
+	if tmp, ok := rawArgs["token"]; ok {
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["input"] = arg0
+	args["token"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["questionID"]; ok {
+		arg1, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["questionID"] = arg1
+	var arg2 []string
+	if tmp, ok := rawArgs["answer"]; ok {
+		arg2, err = ec.unmarshalNString2ᚕstringᚄ(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["answer"] = arg2
 	return args, nil
 }
 
@@ -1018,13 +1030,21 @@ func (ec *executionContext) field_Query_domain_args(ctx context.Context, rawArgs
 	var err error
 	args := map[string]interface{}{}
 	var arg0 string
-	if tmp, ok := rawArgs["id"]; ok {
-		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+	if tmp, ok := rawArgs["token"]; ok {
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["id"] = arg0
+	args["token"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["id"]; ok {
+		arg1, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg1
 	return args, nil
 }
 
@@ -1032,13 +1052,21 @@ func (ec *executionContext) field_Query_isFinalQuestion_args(ctx context.Context
 	var err error
 	args := map[string]interface{}{}
 	var arg0 string
-	if tmp, ok := rawArgs["id"]; ok {
-		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+	if tmp, ok := rawArgs["token"]; ok {
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["id"] = arg0
+	args["token"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["questionID"]; ok {
+		arg1, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["questionID"] = arg1
 	return args, nil
 }
 
@@ -1046,13 +1074,21 @@ func (ec *executionContext) field_Query_isFirstQuestion_args(ctx context.Context
 	var err error
 	args := map[string]interface{}{}
 	var arg0 string
-	if tmp, ok := rawArgs["id"]; ok {
-		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+	if tmp, ok := rawArgs["token"]; ok {
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["id"] = arg0
+	args["token"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["questionID"]; ok {
+		arg1, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["questionID"] = arg1
 	return args, nil
 }
 
@@ -1060,13 +1096,21 @@ func (ec *executionContext) field_Query_lastQuestionOfSurvey_args(ctx context.Co
 	var err error
 	args := map[string]interface{}{}
 	var arg0 string
-	if tmp, ok := rawArgs["id"]; ok {
-		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+	if tmp, ok := rawArgs["token"]; ok {
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["id"] = arg0
+	args["token"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["questionID"]; ok {
+		arg1, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["questionID"] = arg1
 	return args, nil
 }
 
@@ -1074,13 +1118,21 @@ func (ec *executionContext) field_Query_question_args(ctx context.Context, rawAr
 	var err error
 	args := map[string]interface{}{}
 	var arg0 string
-	if tmp, ok := rawArgs["id"]; ok {
-		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+	if tmp, ok := rawArgs["token"]; ok {
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["id"] = arg0
+	args["token"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["id"]; ok {
+		arg1, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg1
 	return args, nil
 }
 
@@ -1088,13 +1140,21 @@ func (ec *executionContext) field_Query_survey_args(ctx context.Context, rawArgs
 	var err error
 	args := map[string]interface{}{}
 	var arg0 string
-	if tmp, ok := rawArgs["id"]; ok {
-		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+	if tmp, ok := rawArgs["token"]; ok {
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["id"] = arg0
+	args["token"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["id"]; ok {
+		arg1, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg1
 	return args, nil
 }
 
@@ -1116,13 +1176,21 @@ func (ec *executionContext) field_Query_user_args(ctx context.Context, rawArgs m
 	var err error
 	args := map[string]interface{}{}
 	var arg0 string
-	if tmp, ok := rawArgs["id"]; ok {
-		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+	if tmp, ok := rawArgs["token"]; ok {
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["id"] = arg0
+	args["token"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["id"]; ok {
+		arg1, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg1
 	return args, nil
 }
 
@@ -2441,7 +2509,7 @@ func (ec *executionContext) _Mutation_answerQuestion(ctx context.Context, field 
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().AnswerQuestion(rctx, args["input"].(*model.QuestionResponse))
+		return ec.resolvers.Mutation().AnswerQuestion(rctx, args["token"].(string), args["questionID"].(string), args["answer"].([]string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2482,7 +2550,7 @@ func (ec *executionContext) _Query_domain(ctx context.Context, field graphql.Col
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Domain(rctx, args["id"].(string))
+		return ec.resolvers.Query().Domain(rctx, args["token"].(string), args["id"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2523,7 +2591,7 @@ func (ec *executionContext) _Query_survey(ctx context.Context, field graphql.Col
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Survey(rctx, args["id"].(string))
+		return ec.resolvers.Query().Survey(rctx, args["token"].(string), args["id"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2564,7 +2632,7 @@ func (ec *executionContext) _Query_question(ctx context.Context, field graphql.C
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Question(rctx, args["id"].(string))
+		return ec.resolvers.Query().Question(rctx, args["token"].(string), args["id"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2605,7 +2673,7 @@ func (ec *executionContext) _Query_user(ctx context.Context, field graphql.Colle
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().User(rctx, args["id"].(string))
+		return ec.resolvers.Query().User(rctx, args["token"].(string), args["id"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2687,7 +2755,7 @@ func (ec *executionContext) _Query_isFirstQuestion(ctx context.Context, field gr
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().IsFirstQuestion(rctx, args["id"].(string))
+		return ec.resolvers.Query().IsFirstQuestion(rctx, args["token"].(string), args["questionID"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2728,7 +2796,7 @@ func (ec *executionContext) _Query_isFinalQuestion(ctx context.Context, field gr
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().IsFinalQuestion(rctx, args["id"].(string))
+		return ec.resolvers.Query().IsFinalQuestion(rctx, args["token"].(string), args["questionID"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2769,7 +2837,7 @@ func (ec *executionContext) _Query_lastQuestionOfSurvey(ctx context.Context, fie
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().LastQuestionOfSurvey(rctx, args["id"].(string))
+		return ec.resolvers.Query().LastQuestionOfSurvey(rctx, args["token"].(string), args["questionID"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -4896,30 +4964,6 @@ func (ec *executionContext) ___Type_ofType(ctx context.Context, field graphql.Co
 
 // region    **************************** input.gotpl *****************************
 
-func (ec *executionContext) unmarshalInputQuestionResponse(ctx context.Context, obj interface{}) (model.QuestionResponse, error) {
-	var it model.QuestionResponse
-	var asMap = obj.(map[string]interface{})
-
-	for k, v := range asMap {
-		switch k {
-		case "id":
-			var err error
-			it.ID, err = ec.unmarshalNID2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "answer":
-			var err error
-			it.Answer, err = ec.unmarshalNString2ᚕstringᚄ(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		}
-	}
-
-	return it, nil
-}
-
 // endregion **************************** input.gotpl *****************************
 
 // region    ************************** interface.gotpl ***************************
@@ -6691,18 +6735,6 @@ func (ec *executionContext) marshalOBoolean2ᚖbool(ctx context.Context, sel ast
 		return graphql.Null
 	}
 	return ec.marshalOBoolean2bool(ctx, sel, *v)
-}
-
-func (ec *executionContext) unmarshalOQuestionResponse2githubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐQuestionResponse(ctx context.Context, v interface{}) (model.QuestionResponse, error) {
-	return ec.unmarshalInputQuestionResponse(ctx, v)
-}
-
-func (ec *executionContext) unmarshalOQuestionResponse2ᚖgithubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐQuestionResponse(ctx context.Context, v interface{}) (*model.QuestionResponse, error) {
-	if v == nil {
-		return nil, nil
-	}
-	res, err := ec.unmarshalOQuestionResponse2githubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐQuestionResponse(ctx, v)
-	return &res, err
 }
 
 func (ec *executionContext) unmarshalOString2string(ctx context.Context, v interface{}) (string, error) {

@@ -25,7 +25,7 @@ func New(r *gin.Engine, db *db.DB, auth *auth.Auth) (*API, error) {
 }
 
 // RegisterGraphQLHandlers register the playground and graphql query endpoint to my main gin engine
-func (api *API) RegisterGraphQLHandlers() {
+func (api *API) RegisterGraphQLHandlers(withPlayground bool) {
 	srv := handler.NewDefaultServer(
 		generated.NewExecutableSchema(
 			generated.Config{Resolvers: &graph.Resolver{
@@ -39,10 +39,11 @@ func (api *API) RegisterGraphQLHandlers() {
 		srv.ServeHTTP(c.Writer, c.Request)
 	}
 
-	play := func(c *gin.Context) {
-		playground.Handler("Colecta playground", "/graphql").ServeHTTP(c.Writer, c.Request)
+	if withPlayground {
+		play := func(c *gin.Context) {
+			playground.Handler("GraphQL Playground | Collecta", "/graphql").ServeHTTP(c.Writer, c.Request)
+		}
+		api.engine.GET("/", play)
 	}
-
-	api.engine.GET("/", play)
 	api.engine.POST("/graphql", query)
 }

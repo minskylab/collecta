@@ -1,8 +1,8 @@
 type Query {
-    domain(id: ID!): Domain!
-    survey(id: ID!): Survey!
-    question(id: ID!): Question!
-    user(id: ID!): User!
+    domain(token: String!, id: ID!): Domain!
+    survey(token: String!, id: ID!): Survey!
+    question(token: String!, id: ID!): Question!
+    user(token: String!, id: ID!): User!
 
     userByToken(token: String!): User!
 

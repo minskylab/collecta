@@ -73,11 +73,6 @@ type Question struct {
 	Flow        *Flow                  `json:"flow"`
 }
 
-type QuestionResponse struct {
-	ID     string   `json:"id"`
-	Answer []string `json:"answer"`
-}
-
 type Survey struct {
 	ID              string                 `json:"id"`
 	Tags            []string               `json:"tags"`

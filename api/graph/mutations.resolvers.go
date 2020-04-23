@@ -7,17 +7,17 @@ import (
 	"context"
 	"time"
 
+	"github.com/pkg/errors"
+
 	"github.com/google/uuid"
 	"github.com/minskylab/collecta/api/graph/generated"
 	"github.com/minskylab/collecta/api/graph/model"
 	"github.com/minskylab/collecta/ent/flow"
 	"github.com/minskylab/collecta/ent/survey"
 	"github.com/minskylab/collecta/flows"
-	"github.com/pkg/errors"
 )
 
-func (r *mutationResolver) AnswerQuestion(ctx context.Context, input *model.QuestionResponse) (*model.Survey, error) {
-	questionID := input.ID
+func (r *mutationResolver) AnswerQuestion(ctx context.Context, token string, questionID string, answer []string) (*model.Survey, error) {
 	q, err := r.DB.Ent.Question.Get(ctx, uuid.MustParse(questionID))
 	if err != nil {
 		return nil, errors.Wrap(err, "error at try to fetch question")
@@ -28,7 +28,7 @@ func (r *mutationResolver) AnswerQuestion(ctx context.Context, input *model.Ques
 	_, err = r.DB.Ent.Answer.Create().
 		SetID(uuid.New()).
 		SetQuestion(q).
-		SetResponses(input.Answer).
+		SetResponses(answer).
 		Save(ctx)
 	if err != nil {
 		return nil, errors.Wrap(err, "error at try to create new answer")
@@ -36,12 +36,12 @@ func (r *mutationResolver) AnswerQuestion(ctx context.Context, input *model.Ques
 
 	f, err := q.QueryFlow().Only(ctx)
 	if err != nil {
-		return nil, errors.Wrap(err , "error at fetch flow")
+		return nil, errors.Wrap(err, "error at fetch flow")
 	}
 
-	surv, err :=  r.DB.Ent.Survey.Query().Where(survey.HasFlowWith(flow.ID(f.ID))).Only(ctx)
+	surv, err := r.DB.Ent.Survey.Query().Where(survey.HasFlowWith(flow.ID(f.ID))).Only(ctx)
 	if err != nil {
-		return nil, errors.Wrap(err , "error at fetch survey")
+		return nil, errors.Wrap(err, "error at fetch survey")
 	}
 
 	// TODO: That is completely incorrect, please Bregy solve it fast!
@@ -59,7 +59,7 @@ func (r *mutationResolver) AnswerQuestion(ctx context.Context, input *model.Ques
 		return nil, errors.Wrap(err, "error at update last interaction of the survey")
 	}
 
-	return & model.Survey{
+	return &model.Survey{
 		ID:              surv.ID.String(),
 		Tags:            surv.Tags,
 		LastInteraction: surv.LastInteraction,
