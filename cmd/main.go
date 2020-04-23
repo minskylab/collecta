@@ -6,10 +6,10 @@ import (
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	"github.com/minskylab/collecta"
 	"github.com/minskylab/collecta/api"
 	"github.com/minskylab/collecta/auth"
 	"github.com/minskylab/collecta/config"
+	"github.com/minskylab/collecta/db"
 	"github.com/pkg/errors"
 )
 
@@ -24,25 +24,28 @@ func main() {
 		AllowOrigins:     []string{"http://localhost:3000", "https://core.collecta.site", "https://utec.collecta.site"},
 		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "HEAD"},
 		AllowHeaders:     []string{"Origin", "Content-Length", "Content-Type", "Collecta-Token"},
-		// AllowAllOrigins:  true,
-		// ExposeHeaders:    []string{"Content-Length"},
 		AllowCredentials: true,
 		MaxAge:           12 * time.Hour,
 	}))
 
-	db, err := collecta.NewDB(context.Background())
+	collectaDB, err := db.NewDB(context.Background())
 	if err != nil {
 		panic(errors.Cause(err))
 	}
 
-	collectaAuth, err := auth.New(httpEngine, db)
+	collectaAuth, err := auth.New(httpEngine, collectaDB)
 	if err != nil {
 		panic(errors.Cause(err))
 	}
 
-	collectaAuth.RegisterCallback("https://core.collecta.site")
+	collectaAuth.RegisterCallbacks("https://core.collecta.site")
 
-	api.RegisterGraphQLHandlers(httpEngine, db, collectaAuth)
+	collectaAPI, err := api.New(httpEngine, collectaDB, collectaAuth)
+	if err != nil {
+		panic(errors.Cause(err))
+	}
+
+	collectaAPI.RegisterGraphQLHandlers()
 
 	if err = httpEngine.Run(":8080"); err != nil {
 		panic(errors.Cause(err))

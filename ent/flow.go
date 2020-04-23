@@ -21,6 +21,8 @@ type Flow struct {
 	State uuid.UUID `json:"state,omitempty"`
 	// StateTable holds the value of the "stateTable" field.
 	StateTable string `json:"stateTable,omitempty"`
+	// PastState holds the value of the "pastState" field.
+	PastState uuid.UUID `json:"pastState,omitempty"`
 	// Inputs holds the value of the "inputs" field.
 	Inputs []string `json:"inputs,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
@@ -52,6 +54,7 @@ func (*Flow) scanValues() []interface{} {
 		&uuid.UUID{},      // id
 		&uuid.UUID{},      // state
 		&sql.NullString{}, // stateTable
+		&uuid.UUID{},      // pastState
 		&[]byte{},         // inputs
 	}
 }
@@ -78,9 +81,14 @@ func (f *Flow) assignValues(values ...interface{}) error {
 	} else if value.Valid {
 		f.StateTable = value.String
 	}
+	if value, ok := values[2].(*uuid.UUID); !ok {
+		return fmt.Errorf("unexpected type %T for field pastState", values[2])
+	} else if value != nil {
+		f.PastState = *value
+	}
 
-	if value, ok := values[2].(*[]byte); !ok {
-		return fmt.Errorf("unexpected type %T for field inputs", values[2])
+	if value, ok := values[3].(*[]byte); !ok {
+		return fmt.Errorf("unexpected type %T for field inputs", values[3])
 	} else if value != nil && len(*value) > 0 {
 		if err := json.Unmarshal(*value, &f.Inputs); err != nil {
 			return fmt.Errorf("unmarshal field inputs: %v", err)
@@ -121,6 +129,8 @@ func (f *Flow) String() string {
 	builder.WriteString(fmt.Sprintf("%v", f.State))
 	builder.WriteString(", stateTable=")
 	builder.WriteString(f.StateTable)
+	builder.WriteString(", pastState=")
+	builder.WriteString(fmt.Sprintf("%v", f.PastState))
 	builder.WriteString(", inputs=")
 	builder.WriteString(fmt.Sprintf("%v", f.Inputs))
 	builder.WriteByte(')')

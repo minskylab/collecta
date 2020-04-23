@@ -4,11 +4,11 @@ package graph
 //
 // It serves as dependency injection for your app, add any dependencies you require here.
 import (
-	"github.com/minskylab/collecta"
 	"github.com/minskylab/collecta/auth"
+	"github.com/minskylab/collecta/db"
 )
 
 type Resolver struct {
-	Auth *auth.CollectaAuth
-	DB *collecta.DB
+	Auth *auth.Auth
+	DB *db.DB
 }

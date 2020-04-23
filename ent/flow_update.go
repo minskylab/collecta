@@ -18,8 +18,10 @@ import (
 // FlowUpdate is the builder for updating Flow entities.
 type FlowUpdate struct {
 	config
-	state      *uuid.UUID
-	stateTable *string
+	state          *uuid.UUID
+	stateTable     *string
+	pastState      *uuid.UUID
+	clearpastState bool
 
 	clearinputs      bool
 	questions        map[uuid.UUID]struct{}
@@ -42,6 +44,19 @@ func (fu *FlowUpdate) SetState(u uuid.UUID) *FlowUpdate {
 // SetStateTable sets the stateTable field.
 func (fu *FlowUpdate) SetStateTable(s string) *FlowUpdate {
 	fu.stateTable = &s
+	return fu
+}
+
+// SetPastState sets the pastState field.
+func (fu *FlowUpdate) SetPastState(u uuid.UUID) *FlowUpdate {
+	fu.pastState = &u
+	return fu
+}
+
+// ClearPastState clears the value of pastState.
+func (fu *FlowUpdate) ClearPastState() *FlowUpdate {
+	fu.pastState = nil
+	fu.clearpastState = true
 	return fu
 }
 
@@ -149,6 +164,19 @@ func (fu *FlowUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Column: flow.FieldStateTable,
 		})
 	}
+	if value := fu.pastState; value != nil {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeUUID,
+			Value:  *value,
+			Column: flow.FieldPastState,
+		})
+	}
+	if fu.clearpastState {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeUUID,
+			Column: flow.FieldPastState,
+		})
+	}
 	if fu.clearinputs {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeJSON,
@@ -207,9 +235,11 @@ func (fu *FlowUpdate) sqlSave(ctx context.Context) (n int, err error) {
 // FlowUpdateOne is the builder for updating a single Flow entity.
 type FlowUpdateOne struct {
 	config
-	id         uuid.UUID
-	state      *uuid.UUID
-	stateTable *string
+	id             uuid.UUID
+	state          *uuid.UUID
+	stateTable     *string
+	pastState      *uuid.UUID
+	clearpastState bool
 
 	clearinputs      bool
 	questions        map[uuid.UUID]struct{}
@@ -225,6 +255,19 @@ func (fuo *FlowUpdateOne) SetState(u uuid.UUID) *FlowUpdateOne {
 // SetStateTable sets the stateTable field.
 func (fuo *FlowUpdateOne) SetStateTable(s string) *FlowUpdateOne {
 	fuo.stateTable = &s
+	return fuo
+}
+
+// SetPastState sets the pastState field.
+func (fuo *FlowUpdateOne) SetPastState(u uuid.UUID) *FlowUpdateOne {
+	fuo.pastState = &u
+	return fuo
+}
+
+// ClearPastState clears the value of pastState.
+func (fuo *FlowUpdateOne) ClearPastState() *FlowUpdateOne {
+	fuo.pastState = nil
+	fuo.clearpastState = true
 	return fuo
 }
 
@@ -324,6 +367,19 @@ func (fuo *FlowUpdateOne) sqlSave(ctx context.Context) (f *Flow, err error) {
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: flow.FieldStateTable,
+		})
+	}
+	if value := fuo.pastState; value != nil {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeUUID,
+			Value:  *value,
+			Column: flow.FieldPastState,
+		})
+	}
+	if fuo.clearpastState {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeUUID,
+			Column: flow.FieldPastState,
 		})
 	}
 	if fuo.clearinputs {

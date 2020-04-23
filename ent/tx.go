@@ -30,6 +30,8 @@ type Tx struct {
 	Input *InputClient
 	// Question is the client for interacting with the Question builders.
 	Question *QuestionClient
+	// Shorts is the client for interacting with the Shorts builders.
+	Shorts *ShortsClient
 	// Survey is the client for interacting with the Survey builders.
 	Survey *SurveyClient
 	// User is the client for interacting with the User builders.
@@ -60,6 +62,7 @@ func (tx *Tx) Client() *Client {
 		IP:       NewIPClient(tx.config),
 		Input:    NewInputClient(tx.config),
 		Question: NewQuestionClient(tx.config),
+		Shorts:   NewShortsClient(tx.config),
 		Survey:   NewSurveyClient(tx.config),
 		User:     NewUserClient(tx.config),
 	}

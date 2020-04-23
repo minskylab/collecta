@@ -14,7 +14,7 @@ import (
 	"github.com/spf13/viper"
 )
 
-func (collectaAuth *CollectaAuth) startGoogleAuth(callbackURL string) {
+func (collectaAuth *Auth) startGoogleAuth(callbackURL string) {
 	clientID := viper.GetString(config.GoogleClientID)
 	secretKey := viper.GetString(config.GoogleSecretKey)
 
@@ -47,7 +47,10 @@ func (collectaAuth *CollectaAuth) startGoogleAuth(callbackURL string) {
 			log.WithError(err).Info("fail at complete google user auth")
 			return
 		}
+
 		// TODO: Verify the correctness of the google auth token
+		// TODO: Above TODO it's necessary
+
 		log.Info(user)
 		jwtToken, err := collectaAuth.ingressWithGoogle(c, user)
 		if err != nil {

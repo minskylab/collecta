@@ -4,19 +4,33 @@ import (
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/gin-gonic/gin"
-	"github.com/minskylab/collecta"
 	"github.com/minskylab/collecta/api/graph"
 	"github.com/minskylab/collecta/api/graph/generated"
 	"github.com/minskylab/collecta/auth"
+	"github.com/minskylab/collecta/db"
 )
 
+type API struct {
+	engine *gin.Engine
+	db *db.DB
+	auth *auth.Auth
+}
+
+func New(r *gin.Engine, db *db.DB, auth *auth.Auth) (*API, error) {
+	return &API{
+		engine: r,
+		db:     db,
+		auth:   auth,
+	}, nil
+}
+
 // RegisterGraphQLHandlers register the playground and graphql query endpoint to my main gin engine
-func RegisterGraphQLHandlers(r *gin.Engine, db *collecta.DB, auth *auth.CollectaAuth) {
+func (api *API) RegisterGraphQLHandlers() {
 	srv := handler.NewDefaultServer(
 		generated.NewExecutableSchema(
 			generated.Config{Resolvers: &graph.Resolver{
-				DB: db,
-				Auth: auth,
+				DB: api.db,
+				Auth: api.auth,
 			}},
 		),
 	)
@@ -29,6 +43,6 @@ func RegisterGraphQLHandlers(r *gin.Engine, db *collecta.DB, auth *auth.Collecta
 		playground.Handler("Colecta playground", "/graphql").ServeHTTP(c.Writer, c.Request)
 	}
 
-	r.GET("/", play)
-	r.POST("/graphql", query)
+	api.engine.GET("/", play)
+	api.engine.POST("/graphql", query)
 }

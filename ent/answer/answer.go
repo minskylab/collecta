@@ -17,6 +17,8 @@ const (
 	FieldAt = "at"
 	// FieldResponses holds the string denoting the responses vertex property in the database.
 	FieldResponses = "responses"
+	// FieldValidator holds the string denoting the validator vertex property in the database.
+	FieldValidator = "validator"
 	// FieldValid holds the string denoting the valid vertex property in the database.
 	FieldValid = "valid"
 
@@ -36,6 +38,7 @@ var Columns = []string{
 	FieldID,
 	FieldAt,
 	FieldResponses,
+	FieldValidator,
 	FieldValid,
 }
 

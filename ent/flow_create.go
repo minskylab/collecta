@@ -20,6 +20,7 @@ type FlowCreate struct {
 	id         *uuid.UUID
 	state      *uuid.UUID
 	stateTable *string
+	pastState  *uuid.UUID
 	inputs     *[]string
 	questions  map[uuid.UUID]struct{}
 }
@@ -33,6 +34,12 @@ func (fc *FlowCreate) SetState(u uuid.UUID) *FlowCreate {
 // SetStateTable sets the stateTable field.
 func (fc *FlowCreate) SetStateTable(s string) *FlowCreate {
 	fc.stateTable = &s
+	return fc
+}
+
+// SetPastState sets the pastState field.
+func (fc *FlowCreate) SetPastState(u uuid.UUID) *FlowCreate {
+	fc.pastState = &u
 	return fc
 }
 
@@ -124,6 +131,14 @@ func (fc *FlowCreate) sqlSave(ctx context.Context) (*Flow, error) {
 			Column: flow.FieldStateTable,
 		})
 		f.StateTable = *value
+	}
+	if value := fc.pastState; value != nil {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeUUID,
+			Value:  *value,
+			Column: flow.FieldPastState,
+		})
+		f.PastState = *value
 	}
 	if value := fc.inputs; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{

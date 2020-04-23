@@ -8,7 +8,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-func (collectaAuth *CollectaAuth) matchGoogleUserWithCollectaDomain(ctx context.Context, rawUser goth.User) (string, error) {
+func (collectaAuth *Auth) matchGoogleUserWithCollectaDomain(ctx context.Context, rawUser goth.User) (string, error) {
 	domainHost, ok := rawUser.RawData["hd"].(string)
 	if !ok {
 		return "", errors.New("invalid domain in raw rawUser data")

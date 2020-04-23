@@ -20,6 +20,7 @@ type AnswerCreate struct {
 	id        *uuid.UUID
 	at        *time.Time
 	responses *[]string
+	validator *string
 	valid     *bool
 	question  map[uuid.UUID]struct{}
 }
@@ -41,6 +42,20 @@ func (ac *AnswerCreate) SetNillableAt(t *time.Time) *AnswerCreate {
 // SetResponses sets the responses field.
 func (ac *AnswerCreate) SetResponses(s []string) *AnswerCreate {
 	ac.responses = &s
+	return ac
+}
+
+// SetValidator sets the validator field.
+func (ac *AnswerCreate) SetValidator(s string) *AnswerCreate {
+	ac.validator = &s
+	return ac
+}
+
+// SetNillableValidator sets the validator field if the given value is not nil.
+func (ac *AnswerCreate) SetNillableValidator(s *string) *AnswerCreate {
+	if s != nil {
+		ac.SetValidator(*s)
+	}
 	return ac
 }
 
@@ -135,6 +150,14 @@ func (ac *AnswerCreate) sqlSave(ctx context.Context) (*Answer, error) {
 			Column: answer.FieldResponses,
 		})
 		a.Responses = *value
+	}
+	if value := ac.validator; value != nil {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: answer.FieldValidator,
+		})
+		a.Validator = *value
 	}
 	if value := ac.valid; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{

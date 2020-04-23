@@ -41,6 +41,7 @@ var (
 		{Name: "id", Type: field.TypeUUID},
 		{Name: "at", Type: field.TypeTime},
 		{Name: "responses", Type: field.TypeJSON},
+		{Name: "validator", Type: field.TypeString, Nullable: true},
 		{Name: "valid", Type: field.TypeBool, Nullable: true},
 		{Name: "question_answers", Type: field.TypeUUID, Nullable: true},
 	}
@@ -52,7 +53,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:  "answers_questions_answers",
-				Columns: []*schema.Column{AnswersColumns[4]},
+				Columns: []*schema.Column{AnswersColumns[5]},
 
 				RefColumns: []*schema.Column{QuestionsColumns[0]},
 				OnDelete:   schema.SetNull,
@@ -117,6 +118,7 @@ var (
 		{Name: "id", Type: field.TypeUUID},
 		{Name: "state", Type: field.TypeUUID},
 		{Name: "state_table", Type: field.TypeString},
+		{Name: "past_state", Type: field.TypeUUID, Nullable: true},
 		{Name: "inputs", Type: field.TypeJSON, Nullable: true},
 	}
 	// FlowsTable holds the schema information for the "flows" table.
@@ -185,6 +187,19 @@ var (
 				OnDelete:   schema.SetNull,
 			},
 		},
+	}
+	// ShortsColumns holds the columns for the "shorts" table.
+	ShortsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "key", Type: field.TypeString, Unique: true},
+		{Name: "value", Type: field.TypeUUID},
+	}
+	// ShortsTable holds the schema information for the "shorts" table.
+	ShortsTable = &schema.Table{
+		Name:        "shorts",
+		Columns:     ShortsColumns,
+		PrimaryKey:  []*schema.Column{ShortsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{},
 	}
 	// SurveysColumns holds the columns for the "surveys" table.
 	SurveysColumns = []*schema.Column{
@@ -264,6 +279,7 @@ var (
 		IPsTable,
 		InputsTable,
 		QuestionsTable,
+		ShortsTable,
 		SurveysTable,
 		UsersTable,
 	}

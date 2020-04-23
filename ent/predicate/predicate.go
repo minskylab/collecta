@@ -33,6 +33,9 @@ type Input func(*sql.Selector)
 // Question is the predicate function for question builders.
 type Question func(*sql.Selector)
 
+// Shorts is the predicate function for shorts builders.
+type Shorts func(*sql.Selector)
+
 // Survey is the predicate function for survey builders.
 type Survey func(*sql.Selector)
 

@@ -106,6 +106,13 @@ func StateTable(v string) predicate.Flow {
 	})
 }
 
+// PastState applies equality check predicate on the "pastState" field. It's identical to PastStateEQ.
+func PastState(v uuid.UUID) predicate.Flow {
+	return predicate.Flow(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldPastState), v))
+	})
+}
+
 // StateEQ applies the EQ predicate on the "state" field.
 func StateEQ(v uuid.UUID) predicate.Flow {
 	return predicate.Flow(func(s *sql.Selector) {
@@ -290,6 +297,96 @@ func StateTableEqualFold(v string) predicate.Flow {
 func StateTableContainsFold(v string) predicate.Flow {
 	return predicate.Flow(func(s *sql.Selector) {
 		s.Where(sql.ContainsFold(s.C(FieldStateTable), v))
+	})
+}
+
+// PastStateEQ applies the EQ predicate on the "pastState" field.
+func PastStateEQ(v uuid.UUID) predicate.Flow {
+	return predicate.Flow(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldPastState), v))
+	})
+}
+
+// PastStateNEQ applies the NEQ predicate on the "pastState" field.
+func PastStateNEQ(v uuid.UUID) predicate.Flow {
+	return predicate.Flow(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldPastState), v))
+	})
+}
+
+// PastStateIn applies the In predicate on the "pastState" field.
+func PastStateIn(vs ...uuid.UUID) predicate.Flow {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Flow(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(vs) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.In(s.C(FieldPastState), v...))
+	})
+}
+
+// PastStateNotIn applies the NotIn predicate on the "pastState" field.
+func PastStateNotIn(vs ...uuid.UUID) predicate.Flow {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Flow(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(vs) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.NotIn(s.C(FieldPastState), v...))
+	})
+}
+
+// PastStateGT applies the GT predicate on the "pastState" field.
+func PastStateGT(v uuid.UUID) predicate.Flow {
+	return predicate.Flow(func(s *sql.Selector) {
+		s.Where(sql.GT(s.C(FieldPastState), v))
+	})
+}
+
+// PastStateGTE applies the GTE predicate on the "pastState" field.
+func PastStateGTE(v uuid.UUID) predicate.Flow {
+	return predicate.Flow(func(s *sql.Selector) {
+		s.Where(sql.GTE(s.C(FieldPastState), v))
+	})
+}
+
+// PastStateLT applies the LT predicate on the "pastState" field.
+func PastStateLT(v uuid.UUID) predicate.Flow {
+	return predicate.Flow(func(s *sql.Selector) {
+		s.Where(sql.LT(s.C(FieldPastState), v))
+	})
+}
+
+// PastStateLTE applies the LTE predicate on the "pastState" field.
+func PastStateLTE(v uuid.UUID) predicate.Flow {
+	return predicate.Flow(func(s *sql.Selector) {
+		s.Where(sql.LTE(s.C(FieldPastState), v))
+	})
+}
+
+// PastStateIsNil applies the IsNil predicate on the "pastState" field.
+func PastStateIsNil() predicate.Flow {
+	return predicate.Flow(func(s *sql.Selector) {
+		s.Where(sql.IsNull(s.C(FieldPastState)))
+	})
+}
+
+// PastStateNotNil applies the NotNil predicate on the "pastState" field.
+func PastStateNotNil() predicate.Flow {
+	return predicate.Flow(func(s *sql.Selector) {
+		s.Where(sql.NotNull(s.C(FieldPastState)))
 	})
 }
 

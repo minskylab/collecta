@@ -1,4 +1,4 @@
-package collecta
+package db
 
 import (
 	"context"
@@ -26,7 +26,9 @@ func NewDB(ctx context.Context) (*DB, error) {
 }
 
 func openDBConnection(ctx context.Context) (*ent.Client, error) {
+	// TODO: Update this later
 	databaseDSN := os.Getenv("DATABASE_URL")
+
 	if databaseDSN == "" {
 		return nil, errors.New("invalid database dsn")
 	}
@@ -46,6 +48,6 @@ func openDBConnection(ctx context.Context) (*ent.Client, error) {
 	if err := client.Schema.Create(ctx); err != nil {
 		return nil, errors.Wrap(err, "failed creating schema resources")
 	}
-
+	
 	return client, nil
 }

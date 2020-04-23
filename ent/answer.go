@@ -23,6 +23,8 @@ type Answer struct {
 	At time.Time `json:"at,omitempty"`
 	// Responses holds the value of the "responses" field.
 	Responses []string `json:"responses,omitempty"`
+	// Validator holds the value of the "validator" field.
+	Validator string `json:"validator,omitempty"`
 	// Valid holds the value of the "valid" field.
 	Valid bool `json:"valid,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
@@ -57,10 +59,11 @@ func (e AnswerEdges) QuestionOrErr() (*Question, error) {
 // scanValues returns the types for scanning values from sql.Rows.
 func (*Answer) scanValues() []interface{} {
 	return []interface{}{
-		&uuid.UUID{},    // id
-		&sql.NullTime{}, // at
-		&[]byte{},       // responses
-		&sql.NullBool{}, // valid
+		&uuid.UUID{},      // id
+		&sql.NullTime{},   // at
+		&[]byte{},         // responses
+		&sql.NullString{}, // validator
+		&sql.NullBool{},   // valid
 	}
 }
 
@@ -96,12 +99,17 @@ func (a *Answer) assignValues(values ...interface{}) error {
 			return fmt.Errorf("unmarshal field responses: %v", err)
 		}
 	}
-	if value, ok := values[2].(*sql.NullBool); !ok {
-		return fmt.Errorf("unexpected type %T for field valid", values[2])
+	if value, ok := values[2].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field validator", values[2])
+	} else if value.Valid {
+		a.Validator = value.String
+	}
+	if value, ok := values[3].(*sql.NullBool); !ok {
+		return fmt.Errorf("unexpected type %T for field valid", values[3])
 	} else if value.Valid {
 		a.Valid = value.Bool
 	}
-	values = values[3:]
+	values = values[4:]
 	if len(values) == len(answer.ForeignKeys) {
 		if value, ok := values[0].(*uuid.UUID); !ok {
 			return fmt.Errorf("unexpected type %T for field question_answers", values[0])
@@ -144,6 +152,8 @@ func (a *Answer) String() string {
 	builder.WriteString(a.At.Format(time.ANSIC))
 	builder.WriteString(", responses=")
 	builder.WriteString(fmt.Sprintf("%v", a.Responses))
+	builder.WriteString(", validator=")
+	builder.WriteString(a.Validator)
 	builder.WriteString(", valid=")
 	builder.WriteString(fmt.Sprintf("%v", a.Valid))
 	builder.WriteByte(')')

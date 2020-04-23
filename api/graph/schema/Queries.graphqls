@@ -5,7 +5,8 @@ type Query {
     user(id: ID!): User!
 
     userByToken(token: String!): User!
-    isFirstQuestion(id: ID!): Boolean!
-    isFinalQuestion(id: ID!): Boolean!
-    lastQuestionOfSurvey(id: ID!): Question!
+
+    isFirstQuestion(token: String!, questionID: ID!): Boolean!
+    isFinalQuestion(token: String!, questionID: ID!): Boolean!
+    lastQuestionOfSurvey(token: String!, questionID: ID!): Question!
 }
