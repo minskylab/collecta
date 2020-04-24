@@ -22,7 +22,7 @@ type Auth struct {
 
 func New(engine *gin.Engine, db *db.DB) (*Auth, error) {
 	secret := viper.GetString(config.AuthJWTSecret)
-	if secret != "" {
+	if secret == "" {
 		return nil, errors.New("invalid secret for jwt, please set a valid one")
 	}
 

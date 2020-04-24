@@ -11,7 +11,7 @@ const GoogleSecretKey = "google.secret" //  env: COLLECTA_GOOGLE_SECRET
 const AuthJWTExpiration = "auth.jwtExpiration" // env: COLLECTA_AUTH_JWTEXPIRATION
 
 // AuthJWTSecret saves the HS256 jwt secret
-const AuthJWTSecret = "auth.jwtSecret" // env: COLLECTA_AUTH_SECRET
+const AuthJWTSecret = "auth.jwtSecret" // env: COLLECTA_AUTH_JWTSECRET
 
 // CorsOrigins contains the list of allowed domains
 const CorsOrigins = "cors.origins" // env: COLLECTA_CORS_ORIGINS
