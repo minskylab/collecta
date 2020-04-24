@@ -116,7 +116,7 @@ type ComplexityRoot struct {
 		Domain               func(childComplexity int, token string, id string) int
 		IsFinalQuestion      func(childComplexity int, token string, questionID string) int
 		IsFirstQuestion      func(childComplexity int, token string, questionID string) int
-		LastQuestionOfSurvey func(childComplexity int, token string, questionID string) int
+		LastQuestionOfSurvey func(childComplexity int, token string, surveyID string) int
 		Question             func(childComplexity int, token string, id string) int
 		Survey               func(childComplexity int, token string, id string) int
 		User                 func(childComplexity int, token string, id string) int
@@ -193,7 +193,7 @@ type QueryResolver interface {
 	UserByToken(ctx context.Context, token string) (*model.User, error)
 	IsFirstQuestion(ctx context.Context, token string, questionID string) (bool, error)
 	IsFinalQuestion(ctx context.Context, token string, questionID string) (bool, error)
-	LastQuestionOfSurvey(ctx context.Context, token string, questionID string) (*model.Question, error)
+	LastQuestionOfSurvey(ctx context.Context, token string, surveyID string) (*model.Question, error)
 }
 type QuestionResolver interface {
 	Answers(ctx context.Context, obj *model.Question) ([]*model.Answer, error)
@@ -544,7 +544,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.LastQuestionOfSurvey(childComplexity, args["token"].(string), args["questionID"].(string)), true
+		return e.complexity.Query.LastQuestionOfSurvey(childComplexity, args["token"].(string), args["surveyID"].(string)), true
 
 	case "Query.question":
 		if e.complexity.Query.Question == nil {
@@ -971,7 +971,7 @@ type Flow {
 
     isFirstQuestion(token: String!, questionID: ID!): Boolean!
     isFinalQuestion(token: String!, questionID: ID!): Boolean!
-    lastQuestionOfSurvey(token: String!, questionID: ID!): Question!
+    lastQuestionOfSurvey(token: String!, surveyID: ID!): Question!
 }
 `, BuiltIn: false},
 	&ast.Source{Name: "graph/schema/subscriptions.graphqls", Input: ``, BuiltIn: false},
@@ -1104,13 +1104,13 @@ func (ec *executionContext) field_Query_lastQuestionOfSurvey_args(ctx context.Co
 	}
 	args["token"] = arg0
 	var arg1 string
-	if tmp, ok := rawArgs["questionID"]; ok {
+	if tmp, ok := rawArgs["surveyID"]; ok {
 		arg1, err = ec.unmarshalNID2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["questionID"] = arg1
+	args["surveyID"] = arg1
 	return args, nil
 }
 
@@ -2837,7 +2837,7 @@ func (ec *executionContext) _Query_lastQuestionOfSurvey(ctx context.Context, fie
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().LastQuestionOfSurvey(rctx, args["token"].(string), args["questionID"].(string))
+		return ec.resolvers.Query().LastQuestionOfSurvey(rctx, args["token"].(string), args["surveyID"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)

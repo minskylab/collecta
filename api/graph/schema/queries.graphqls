@@ -8,5 +8,5 @@ type Query {
 
     isFirstQuestion(token: String!, questionID: ID!): Boolean!
     isFinalQuestion(token: String!, questionID: ID!): Boolean!
-    lastQuestionOfSurvey(token: String!, questionID: ID!): Question!
+    lastQuestionOfSurvey(token: String!, surveyID: ID!): Question!
 }
