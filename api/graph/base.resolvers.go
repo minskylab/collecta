@@ -6,6 +6,7 @@ package graph
 import (
 	"context"
 
+
 	"github.com/google/uuid"
 	"github.com/minskylab/collecta/api/commons"
 	"github.com/minskylab/collecta/api/graph/generated"
@@ -307,6 +308,26 @@ func (r *userResolver) Surveys(ctx context.Context, obj *model.User) ([]*model.S
 	for _, a := range e {
 		if a != nil {
 			arr = append(arr, commons.SurveyToGQL(a))
+		}
+	}
+
+	return arr, nil
+}
+
+func (r *userResolver) Domains(ctx context.Context, obj *model.User) ([]*model.Domain, error) {
+	e, err := r.DB.Ent.User.Query().
+		Where(user.ID(uuid.MustParse(obj.ID))).
+		QueryDomains().
+		All(ctx)
+
+	if err != nil {
+		return nil, errors.Wrap(err, "error at ent query")
+	}
+
+	arr := make([]*model.Domain, 0)
+	for _, a := range e {
+		if a != nil {
+			arr = append(arr, commons.DomainToGQL(a))
 		}
 	}
 

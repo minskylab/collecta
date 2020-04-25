@@ -109,6 +109,6 @@ type User struct {
 	Accounts     *Account  `json:"accounts"`
 	Contacts     *Contact  `json:"contacts"`
 	Surveys      []*Survey `json:"surveys"`
-	Domains      *Domain   `json:"domains"`
+	Domains      []*Domain `json:"domains"`
 	AdminOf      []*Domain `json:"adminOf"`
 }

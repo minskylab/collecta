@@ -224,7 +224,7 @@ type UserResolver interface {
 	Accounts(ctx context.Context, obj *model.User) (*model.Account, error)
 	Contacts(ctx context.Context, obj *model.User) (*model.Contact, error)
 	Surveys(ctx context.Context, obj *model.User) ([]*model.Survey, error)
-
+	Domains(ctx context.Context, obj *model.User) ([]*model.Domain, error)
 	AdminOf(ctx context.Context, obj *model.User) ([]*model.Domain, error)
 }
 
@@ -967,7 +967,7 @@ type User {
     accounts: Account!
     contacts: Contact!
     surveys: [Survey!]!
-    domains: Domain!
+    domains: [Domain!]!
     adminOf: [Domain!]!
 }
 
@@ -4338,13 +4338,13 @@ func (ec *executionContext) _User_domains(ctx context.Context, field graphql.Col
 		Object:   "User",
 		Field:    field,
 		Args:     nil,
-		IsMethod: false,
+		IsMethod: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Domains, nil
+		return ec.resolvers.User().Domains(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -4356,9 +4356,9 @@ func (ec *executionContext) _User_domains(ctx context.Context, field graphql.Col
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*model.Domain)
+	res := resTmp.([]*model.Domain)
 	fc.Result = res
-	return ec.marshalNDomain2ᚖgithubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐDomain(ctx, field.Selections, res)
+	return ec.marshalNDomain2ᚕᚖgithubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐDomainᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _User_adminOf(ctx context.Context, field graphql.CollectedField, obj *model.User) (ret graphql.Marshaler) {
@@ -6375,10 +6375,19 @@ func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj
 				return res
 			})
 		case "domains":
-			out.Values[i] = ec._User_domains(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._User_domains(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		case "adminOf":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {

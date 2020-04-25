@@ -55,7 +55,7 @@ models:
         resolver: true
       surveys:
         resolver: true
-      domain:
+      domains:
         resolver: true
       adminOf:
         resolver: true

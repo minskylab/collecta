@@ -11,7 +11,7 @@ type User {
     accounts: Account!
     contacts: Contact!
     surveys: [Survey!]!
-    domains: Domain!
+    domains: [Domain!]!
     adminOf: [Domain!]!
 }
 
