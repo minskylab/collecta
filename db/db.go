@@ -48,6 +48,6 @@ func openDBConnection(ctx context.Context) (*ent.Client, error) {
 	if err := client.Schema.Create(ctx); err != nil {
 		return nil, errors.Wrap(err, "failed creating schema resources")
 	}
-	
+
 	return client, nil
 }

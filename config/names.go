@@ -1,6 +1,5 @@
 package config
 
-
 // GoogleClientID is the name of viper variable that saved the client google id for oauth2
 const GoogleClientID = "google.clientID" // env: COLLECTA_GOOGLE_CLIENTID
 

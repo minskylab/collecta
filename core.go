@@ -9,7 +9,7 @@ import (
 // Collecta wraps all the thing related to data manipulation on collecta, that is for
 // create a robust API based on Golang
 type Collecta struct {
-	db *db.DB
+	db  *db.DB
 	api *api.API
 
 	auth *auth.Auth

@@ -12,8 +12,8 @@ import (
 
 type API struct {
 	engine *gin.Engine
-	db *db.DB
-	auth *auth.Auth
+	db     *db.DB
+	auth   *auth.Auth
 }
 
 func New(r *gin.Engine, db *db.DB, auth *auth.Auth) (*API, error) {
@@ -29,7 +29,7 @@ func (api *API) RegisterGraphQLHandlers(withPlayground bool) {
 	srv := handler.NewDefaultServer(
 		generated.NewExecutableSchema(
 			generated.Config{Resolvers: &graph.Resolver{
-				DB: api.db,
+				DB:   api.db,
 				Auth: api.auth,
 			}},
 		),

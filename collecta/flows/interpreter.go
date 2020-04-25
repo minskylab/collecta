@@ -16,7 +16,7 @@ const thresholdAlloc = 40
 const thresholdUses = 5
 
 type input struct {
-	state string
+	state          string
 	externalInputs []string
 }
 
@@ -36,7 +36,6 @@ func cleanMemoized() {
 		}
 	}
 }
-
 
 func memo(input input) string {
 	if memoizedEvaluation == nil {
@@ -63,7 +62,6 @@ func memo(input input) string {
 
 	return val
 }
-
 
 func evalProgram(ctx context.Context, program string, input input) (string, error) {
 	sanitizeInput(&input) // TODO: Improve this
@@ -100,7 +98,7 @@ func evalProgram(ctx context.Context, program string, input input) (string, erro
 
 	newState := compiled.Get("res").String()
 	if _, err = uuid.Parse(newState); err != nil {
-		return "", errors.Wrap(err,"invalid response, it must be an uuid")
+		return "", errors.Wrap(err, "invalid response, it must be an uuid")
 	}
 
 	return newState, nil

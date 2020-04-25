@@ -15,7 +15,6 @@ const Option AnswerKind = "option"
 const Text AnswerKind = "text"
 const Boolean AnswerKind = "boolean"
 
-
 func validate(input []string, kind AnswerKind, options ...map[string]string) (bool, bool, error) {
 	if len(input) == 0 {
 		return false, false, errors.New("invalid answers length, please add one answer at lest")
@@ -101,5 +100,3 @@ func AnswerIsBoolean(input []string, acceptMultiple bool) (bool, error) {
 func AnswerIsText(input []string, acceptMultiple bool) (bool, error) {
 	return answerIsOfKind(Text, input, acceptMultiple)
 }
-
-

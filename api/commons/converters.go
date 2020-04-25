@@ -23,7 +23,7 @@ func UserToGQL(e *ent.User) *model.User {
 		Username:     e.Username,
 		LastActivity: e.LastActivity,
 		Picture:      e.Picture,
-		Roles: e.Roles,
+		Roles:        e.Roles,
 	}
 }
 
@@ -51,16 +51,15 @@ func ContactToGQL(e *ent.Contact) *model.Contact {
 
 func FlowToGQL(e *ent.Flow) *model.Flow {
 	return &model.Flow{
-		ID:         e.ID.String(),
-		State:      e.State.String(),
-		StateTable: e.StateTable,
-		Inputs:     e.Inputs,
-		InitialState: e.InitialState.String(),
+		ID:               e.ID.String(),
+		State:            e.State.String(),
+		StateTable:       e.StateTable,
+		Inputs:           e.Inputs,
+		InitialState:     e.InitialState.String(),
 		TerminationState: e.TerminationState.String(),
-		PastState: e.PastState.String(),
+		PastState:        e.PastState.String(),
 	}
 }
-
 
 func QuestionToGQL(e *ent.Question) *model.Question {
 	meta := map[string]interface{}{}
@@ -73,11 +72,10 @@ func QuestionToGQL(e *ent.Question) *model.Question {
 		Title:       e.Title,
 		Description: e.Description,
 		Anonymous:   e.Anonymous,
-		Validator: e.Validator,
-		Metadata: meta,
+		Validator:   e.Validator,
+		Metadata:    meta,
 	}
 }
-
 
 func AnswerToGQL(e *ent.Answer) *model.Answer {
 	return &model.Answer{
@@ -109,7 +107,6 @@ func InputToGQL(e *ent.Input) *model.Input {
 	}
 }
 
-
 func SurveyToGQL(e *ent.Survey) *model.Survey {
 	meta := map[string]interface{}{}
 	for k, v := range e.Metadata {
@@ -122,9 +119,8 @@ func SurveyToGQL(e *ent.Survey) *model.Survey {
 		DueDate:         e.DueDate,
 		Title:           e.Title,
 		Description:     e.Description,
-		Done: e.Done,
-		IsPublic: e.IsPublic,
+		Done:            e.Done,
+		IsPublic:        e.IsPublic,
 		Metadata:        meta,
 	}
 }
-

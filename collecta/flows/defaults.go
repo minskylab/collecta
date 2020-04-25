@@ -9,15 +9,15 @@ import (
 func defaultSequentialProgramFromQuestions(questions []string) string {
 	finalQuestions := make([]string, 0)
 	for _, q := range questions {
-		finalQuestions = append(finalQuestions, "\"" + q + "\"")
+		finalQuestions = append(finalQuestions, "\""+q+"\"")
 	}
 
 	strArray := "[" + strings.Join(finalQuestions, ",") + "]"
 	script := "questions := immutable(" + strArray + ")\n" +
-			  "res := state\n" +
-		      "for i, v in questions {\n" +
-			  "  if v == state { res = questions[i+1] }\n" +
-			  "}"
+		"res := state\n" +
+		"for i, v in questions {\n" +
+		"  if v == state { res = questions[i+1] }\n" +
+		"}"
 	return script
 }
 

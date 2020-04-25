@@ -14,9 +14,9 @@ import (
 )
 
 type Auth struct {
-	mainRouter *gin.Engine
-	db         *db.DB
-	jwtSecret []byte
+	mainRouter  *gin.Engine
+	db          *db.DB
+	jwtSecret   []byte
 	jwtDuration time.Duration
 }
 

@@ -11,16 +11,14 @@ import (
 	"github.com/pkg/errors"
 )
 
-
-
 func (collectaAuth *Auth) createJWTToken(u *ent.User) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.StandardClaims{
 		Audience:  "user",
 		ExpiresAt: time.Now().Add(collectaAuth.jwtDuration).Unix(),
 		// Id:        u.ID.String(),
-		IssuedAt:  time.Now().Unix(),
-		Issuer:    "collecta",
-		Subject:   u.ID.String(),
+		IssuedAt: time.Now().Unix(),
+		Issuer:   "collecta",
+		Subject:  u.ID.String(),
 	})
 
 	t, err := token.SignedString(collectaAuth.jwtSecret)
@@ -31,11 +29,10 @@ func (collectaAuth *Auth) createJWTToken(u *ent.User) (string, error) {
 	return t, nil
 }
 
-
 func (collectaAuth *Auth) verifyJWTToken(ctx context.Context, tokenString string) (*ent.User, error) {
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, errors.New( "unexpected signing method")
+			return nil, errors.New("unexpected signing method")
 		}
 		return collectaAuth.jwtSecret, nil
 	})

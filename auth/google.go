@@ -67,7 +67,7 @@ func (collectaAuth *Auth) startGoogleAuth(callbackURL string) {
 			c.Redirect(http.StatusPermanentRedirect, "/")
 			return
 		}
-		
+
 		u, err := url.Parse(redirect)
 		if err != nil {
 			log.WithError(err).Info("error at parse redirect url")

@@ -10,5 +10,5 @@ import (
 
 type Resolver struct {
 	Auth *auth.Auth
-	DB *db.DB
+	DB   *db.DB
 }

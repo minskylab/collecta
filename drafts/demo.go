@@ -5,10 +5,10 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/minskylab/collecta/collecta/flows"
 	"github.com/minskylab/collecta/db"
 	"github.com/minskylab/collecta/ent"
 	"github.com/minskylab/collecta/ent/input"
-	"github.com/minskylab/collecta/flows"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 )

@@ -19,7 +19,6 @@ func getPort() string {
 	return port
 }
 
-
 func getHost() string {
 	host := viper.GetString(config.DomainHost)
 	if host == "" {
