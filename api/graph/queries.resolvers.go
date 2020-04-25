@@ -6,9 +6,6 @@ package graph
 import (
 	"context"
 
-	"github.com/minskylab/collecta/ent/user"
-	"github.com/pkg/errors"
-
 	"github.com/google/uuid"
 	"github.com/minskylab/collecta/api/graph/generated"
 	"github.com/minskylab/collecta/api/graph/model"
@@ -16,6 +13,8 @@ import (
 	"github.com/minskylab/collecta/ent/flow"
 	"github.com/minskylab/collecta/ent/question"
 	"github.com/minskylab/collecta/ent/survey"
+	"github.com/minskylab/collecta/ent/user"
+	"github.com/minskylab/collecta/errors"
 )
 
 func (r *queryResolver) Domain(ctx context.Context, token string, id string) (*model.Domain, error) {
@@ -194,13 +193,13 @@ func (r *queryResolver) UserByToken(ctx context.Context, token string) (*model.U
 	}, nil
 }
 
-func (r *queryResolver) IsFirstQuestion(ctx context.Context, token string, qID string) (bool, error) {
+func (r *queryResolver) IsFirstQuestion(ctx context.Context, token string, questionID string) (bool, error) {
 	userRequester, err := r.Auth.VerifyJWTToken(ctx, token)
 	if err != nil {
 		return false, errors.Wrap(err, "invalid token, probably user not registered")
 	}
 
-	questionID, err := uuid.Parse(qID)
+	qID, err := uuid.Parse(questionID)
 	if err != nil {
 		return false, errors.Wrap(err, "error at try to parse the domain id")
 	}
@@ -210,7 +209,7 @@ func (r *queryResolver) IsFirstQuestion(ctx context.Context, token string, qID s
 		Where(
 			domain.HasSurveysWith(
 				survey.HasFlowWith(
-					flow.HasQuestionsWith(question.ID(questionID)),
+					flow.HasQuestionsWith(question.ID(qID)),
 				),
 			),
 		).Exist(ctx)
@@ -219,7 +218,7 @@ func (r *queryResolver) IsFirstQuestion(ctx context.Context, token string, qID s
 	}
 
 	if !isOwnerOfQuestionSurveyDomain {
-		isQuestionOwner, err := userRequester.QuerySurveys().QueryFlow().QueryQuestions().Where(question.ID(questionID)).Exist(ctx)
+		isQuestionOwner, err := userRequester.QuerySurveys().QueryFlow().QueryQuestions().Where(question.ID(qID)).Exist(ctx)
 		if err != nil {
 			return false, errors.Wrap(err, "question cannot be fetch")
 		}
@@ -228,7 +227,7 @@ func (r *queryResolver) IsFirstQuestion(ctx context.Context, token string, qID s
 		}
 	}
 
-	q, err := r.DB.Ent.Question.Get(ctx, questionID)
+	q, err := r.DB.Ent.Question.Get(ctx, qID)
 	if err != nil {
 		return false, errors.Wrap(err, "error at try to get from ent")
 	}
@@ -238,16 +237,16 @@ func (r *queryResolver) IsFirstQuestion(ctx context.Context, token string, qID s
 		return false, errors.Wrap(err, "error at fetch the question flow")
 	}
 
-	return questionID == f.InitialState, nil
+	return qID == f.InitialState, nil
 }
 
-func (r *queryResolver) IsFinalQuestion(ctx context.Context, token string, qID string) (bool, error) {
+func (r *queryResolver) IsFinalQuestion(ctx context.Context, token string, questionID string) (bool, error) {
 	userRequester, err := r.Auth.VerifyJWTToken(ctx, token)
 	if err != nil {
 		return false, errors.Wrap(err, "invalid token, probably user not registered")
 	}
 
-	questionID, err := uuid.Parse(qID)
+	qID, err := uuid.Parse(questionID)
 	if err != nil {
 		return false, errors.Wrap(err, "error at try to parse the domain id")
 	}
@@ -257,7 +256,7 @@ func (r *queryResolver) IsFinalQuestion(ctx context.Context, token string, qID s
 		Where(
 			domain.HasSurveysWith(
 				survey.HasFlowWith(
-					flow.HasQuestionsWith(question.ID(questionID)),
+					flow.HasQuestionsWith(question.ID(qID)),
 				),
 			),
 		).Exist(ctx)
@@ -266,7 +265,7 @@ func (r *queryResolver) IsFinalQuestion(ctx context.Context, token string, qID s
 	}
 
 	if !isOwnerOfQuestionSurveyDomain {
-		isQuestionOwner, err := userRequester.QuerySurveys().QueryFlow().QueryQuestions().Where(question.ID(questionID)).Exist(ctx)
+		isQuestionOwner, err := userRequester.QuerySurveys().QueryFlow().QueryQuestions().Where(question.ID(qID)).Exist(ctx)
 		if err != nil {
 			return false, errors.Wrap(err, "question cannot be fetch")
 		}
@@ -275,7 +274,7 @@ func (r *queryResolver) IsFinalQuestion(ctx context.Context, token string, qID s
 		}
 	}
 
-	q, err := r.DB.Ent.Question.Get(ctx, questionID)
+	q, err := r.DB.Ent.Question.Get(ctx, qID)
 	if err != nil {
 		return false, errors.Wrap(err, "error at try to get from ent")
 	}
@@ -285,7 +284,7 @@ func (r *queryResolver) IsFinalQuestion(ctx context.Context, token string, qID s
 		return false, errors.Wrap(err, "error at fetch the question flow")
 	}
 
-	return questionID == f.TerminationState, nil
+	return qID == f.TerminationState, nil
 }
 
 func (r *queryResolver) LastQuestionOfSurvey(ctx context.Context, token string, surveyID string) (*model.Question, error) {

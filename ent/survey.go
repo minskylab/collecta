@@ -35,6 +35,8 @@ type Survey struct {
 	Metadata map[string]string `json:"metadata,omitempty"`
 	// Done holds the value of the "done" field.
 	Done bool `json:"done,omitempty"`
+	// IsPublic holds the value of the "isPublic" field.
+	IsPublic bool `json:"isPublic,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the SurveyQuery when eager-loading is set.
 	Edges          SurveyEdges `json:"edges"`
@@ -109,6 +111,7 @@ func (*Survey) scanValues() []interface{} {
 		&sql.NullString{}, // description
 		&[]byte{},         // metadata
 		&sql.NullBool{},   // done
+		&sql.NullBool{},   // isPublic
 	}
 }
 
@@ -174,7 +177,12 @@ func (s *Survey) assignValues(values ...interface{}) error {
 	} else if value.Valid {
 		s.Done = value.Bool
 	}
-	values = values[7:]
+	if value, ok := values[7].(*sql.NullBool); !ok {
+		return fmt.Errorf("unexpected type %T for field isPublic", values[7])
+	} else if value.Valid {
+		s.IsPublic = value.Bool
+	}
+	values = values[8:]
 	if len(values) == len(survey.ForeignKeys) {
 		if value, ok := values[0].(*uuid.UUID); !ok {
 			return fmt.Errorf("unexpected type %T for field domain_surveys", values[0])
@@ -247,6 +255,8 @@ func (s *Survey) String() string {
 	builder.WriteString(fmt.Sprintf("%v", s.Metadata))
 	builder.WriteString(", done=")
 	builder.WriteString(fmt.Sprintf("%v", s.Done))
+	builder.WriteString(", isPublic=")
+	builder.WriteString(fmt.Sprintf("%v", s.IsPublic))
 	builder.WriteByte(')')
 	return builder.String()
 }

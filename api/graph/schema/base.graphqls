@@ -7,10 +7,12 @@ type User {
     username: String!
     lastActivity: Time!
     picture: String!
+    roles: [String!]!
     accounts: Account!
     contacts: Contact!
     surveys: [Survey!]!
-    domain: Domain!
+    domains: Domain!
+    adminOf: [Domain!]!
 }
 
 type Survey {
@@ -22,6 +24,7 @@ type Survey {
     description: String!
     metadata: Map!
     done: Boolean!
+    isPublic: Boolean!
     flow: Flow!
     for: User!
     owner: Domain!
@@ -36,6 +39,7 @@ type Domain {
     collectaDomain: String!
     surveys: [Survey!]!
     users: [User!]!
+    admins: [User!]!
 }
 
 type Contact {
@@ -54,6 +58,7 @@ type Account {
     type: String!
     sub: String!
     remoteID: String!
+    secret: String!
     owner: User!
 }
 
@@ -64,6 +69,7 @@ type Question {
     description: String!
     anonymous: Boolean!
     metadata: Map!
+    validator: String!
     answers: [Answer!]!
     input: Input!
     flow: Flow!
@@ -90,6 +96,14 @@ type Flow {
     id: ID!
     state: ID!
     stateTable: String!
+    initialState: ID!
+    terminationState: ID!
+    pastState: ID!
     inputs: [String!]!
     questions: [Question!]!
+}
+
+type Short {
+    key: String!
+    value: ID!
 }

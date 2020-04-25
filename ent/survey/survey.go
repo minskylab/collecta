@@ -27,6 +27,8 @@ const (
 	FieldMetadata = "metadata"
 	// FieldDone holds the string denoting the done vertex property in the database.
 	FieldDone = "done"
+	// FieldIsPublic holds the string denoting the ispublic vertex property in the database.
+	FieldIsPublic = "is_public"
 
 	// Table holds the table name of the survey in the database.
 	Table = "surveys"
@@ -63,6 +65,7 @@ var Columns = []string{
 	FieldDescription,
 	FieldMetadata,
 	FieldDone,
+	FieldIsPublic,
 }
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the Survey type.
@@ -89,4 +92,9 @@ var (
 	descDone = fields[7].Descriptor()
 	// DefaultDone holds the default value on creation for the done field.
 	DefaultDone = descDone.Default.(bool)
+
+	// descIsPublic is the schema descriptor for isPublic field.
+	descIsPublic = fields[8].Descriptor()
+	// DefaultIsPublic holds the default value on creation for the isPublic field.
+	DefaultIsPublic = descIsPublic.Default.(bool)
 )

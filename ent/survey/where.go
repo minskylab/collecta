@@ -129,6 +129,13 @@ func Done(v bool) predicate.Survey {
 	})
 }
 
+// IsPublic applies equality check predicate on the "isPublic" field. It's identical to IsPublicEQ.
+func IsPublic(v bool) predicate.Survey {
+	return predicate.Survey(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldIsPublic), v))
+	})
+}
+
 // LastInteractionEQ applies the EQ predicate on the "lastInteraction" field.
 func LastInteractionEQ(v time.Time) predicate.Survey {
 	return predicate.Survey(func(s *sql.Selector) {
@@ -542,6 +549,48 @@ func DoneEQ(v bool) predicate.Survey {
 func DoneNEQ(v bool) predicate.Survey {
 	return predicate.Survey(func(s *sql.Selector) {
 		s.Where(sql.NEQ(s.C(FieldDone), v))
+	})
+}
+
+// DoneIsNil applies the IsNil predicate on the "done" field.
+func DoneIsNil() predicate.Survey {
+	return predicate.Survey(func(s *sql.Selector) {
+		s.Where(sql.IsNull(s.C(FieldDone)))
+	})
+}
+
+// DoneNotNil applies the NotNil predicate on the "done" field.
+func DoneNotNil() predicate.Survey {
+	return predicate.Survey(func(s *sql.Selector) {
+		s.Where(sql.NotNull(s.C(FieldDone)))
+	})
+}
+
+// IsPublicEQ applies the EQ predicate on the "isPublic" field.
+func IsPublicEQ(v bool) predicate.Survey {
+	return predicate.Survey(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldIsPublic), v))
+	})
+}
+
+// IsPublicNEQ applies the NEQ predicate on the "isPublic" field.
+func IsPublicNEQ(v bool) predicate.Survey {
+	return predicate.Survey(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldIsPublic), v))
+	})
+}
+
+// IsPublicIsNil applies the IsNil predicate on the "isPublic" field.
+func IsPublicIsNil() predicate.Survey {
+	return predicate.Survey(func(s *sql.Selector) {
+		s.Where(sql.IsNull(s.C(FieldIsPublic)))
+	})
+}
+
+// IsPublicNotNil applies the NotNil predicate on the "isPublic" field.
+func IsPublicNotNil() predicate.Survey {
+	return predicate.Survey(func(s *sql.Selector) {
+		s.Where(sql.NotNull(s.C(FieldIsPublic)))
 	})
 }
 

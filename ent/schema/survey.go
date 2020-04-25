@@ -26,7 +26,8 @@ func (Survey) Fields() []ent.Field {
 		field.String("title").NotEmpty(),
 		field.String("description").Optional(),
 		field.JSON("metadata", map[string]string{}).Optional(),
-		field.Bool("done").Default(false),
+		field.Bool("done").Default(false).Optional(),
+		field.Bool("isPublic").Default(false).Optional(),
 	}
 }
 

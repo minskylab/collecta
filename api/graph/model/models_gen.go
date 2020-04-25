@@ -11,6 +11,7 @@ type Account struct {
 	Type     string `json:"type"`
 	Sub      string `json:"sub"`
 	RemoteID string `json:"remoteID"`
+	Secret   string `json:"secret"`
 	Owner    *User  `json:"owner"`
 }
 
@@ -42,14 +43,18 @@ type Domain struct {
 	CollectaDomain string    `json:"collectaDomain"`
 	Surveys        []*Survey `json:"surveys"`
 	Users          []*User   `json:"users"`
+	Admins         []*User   `json:"admins"`
 }
 
 type Flow struct {
-	ID         string      `json:"id"`
-	State      string      `json:"state"`
-	StateTable string      `json:"stateTable"`
-	Inputs     []string    `json:"inputs"`
-	Questions  []*Question `json:"questions"`
+	ID               string      `json:"id"`
+	State            string      `json:"state"`
+	StateTable       string      `json:"stateTable"`
+	InitialState     string      `json:"initialState"`
+	TerminationState string      `json:"terminationState"`
+	PastState        string      `json:"pastState"`
+	Inputs           []string    `json:"inputs"`
+	Questions        []*Question `json:"questions"`
 }
 
 type Input struct {
@@ -68,9 +73,15 @@ type Question struct {
 	Description string                 `json:"description"`
 	Anonymous   bool                   `json:"anonymous"`
 	Metadata    map[string]interface{} `json:"metadata"`
+	Validator   string                 `json:"validator"`
 	Answers     []*Answer              `json:"answers"`
 	Input       *Input                 `json:"input"`
 	Flow        *Flow                  `json:"flow"`
+}
+
+type Short struct {
+	Key   string `json:"key"`
+	Value string `json:"value"`
 }
 
 type Survey struct {
@@ -82,6 +93,7 @@ type Survey struct {
 	Description     string                 `json:"description"`
 	Metadata        map[string]interface{} `json:"metadata"`
 	Done            bool                   `json:"done"`
+	IsPublic        bool                   `json:"isPublic"`
 	Flow            *Flow                  `json:"flow"`
 	For             *User                  `json:"for"`
 	Owner           *Domain                `json:"owner"`
@@ -93,8 +105,10 @@ type User struct {
 	Username     string    `json:"username"`
 	LastActivity time.Time `json:"lastActivity"`
 	Picture      string    `json:"picture"`
+	Roles        []string  `json:"roles"`
 	Accounts     *Account  `json:"accounts"`
 	Contacts     *Contact  `json:"contacts"`
 	Surveys      []*Survey `json:"surveys"`
-	Domain       *Domain   `json:"domain"`
+	Domains      *Domain   `json:"domains"`
+	AdminOf      []*Domain `json:"adminOf"`
 }

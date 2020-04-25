@@ -12,59 +12,59 @@ import (
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
 	"github.com/facebookincubator/ent/schema/field"
 	"github.com/minskylab/collecta/ent/predicate"
-	"github.com/minskylab/collecta/ent/shorts"
+	"github.com/minskylab/collecta/ent/short"
 )
 
-// ShortsQuery is the builder for querying Shorts entities.
-type ShortsQuery struct {
+// ShortQuery is the builder for querying Short entities.
+type ShortQuery struct {
 	config
 	limit      *int
 	offset     *int
 	order      []Order
 	unique     []string
-	predicates []predicate.Shorts
+	predicates []predicate.Short
 	// intermediate query.
 	sql *sql.Selector
 }
 
 // Where adds a new predicate for the builder.
-func (sq *ShortsQuery) Where(ps ...predicate.Shorts) *ShortsQuery {
+func (sq *ShortQuery) Where(ps ...predicate.Short) *ShortQuery {
 	sq.predicates = append(sq.predicates, ps...)
 	return sq
 }
 
 // Limit adds a limit step to the query.
-func (sq *ShortsQuery) Limit(limit int) *ShortsQuery {
+func (sq *ShortQuery) Limit(limit int) *ShortQuery {
 	sq.limit = &limit
 	return sq
 }
 
 // Offset adds an offset step to the query.
-func (sq *ShortsQuery) Offset(offset int) *ShortsQuery {
+func (sq *ShortQuery) Offset(offset int) *ShortQuery {
 	sq.offset = &offset
 	return sq
 }
 
 // Order adds an order step to the query.
-func (sq *ShortsQuery) Order(o ...Order) *ShortsQuery {
+func (sq *ShortQuery) Order(o ...Order) *ShortQuery {
 	sq.order = append(sq.order, o...)
 	return sq
 }
 
-// First returns the first Shorts entity in the query. Returns *NotFoundError when no shorts was found.
-func (sq *ShortsQuery) First(ctx context.Context) (*Shorts, error) {
+// First returns the first Short entity in the query. Returns *NotFoundError when no short was found.
+func (sq *ShortQuery) First(ctx context.Context) (*Short, error) {
 	sSlice, err := sq.Limit(1).All(ctx)
 	if err != nil {
 		return nil, err
 	}
 	if len(sSlice) == 0 {
-		return nil, &NotFoundError{shorts.Label}
+		return nil, &NotFoundError{short.Label}
 	}
 	return sSlice[0], nil
 }
 
 // FirstX is like First, but panics if an error occurs.
-func (sq *ShortsQuery) FirstX(ctx context.Context) *Shorts {
+func (sq *ShortQuery) FirstX(ctx context.Context) *Short {
 	s, err := sq.First(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -72,21 +72,21 @@ func (sq *ShortsQuery) FirstX(ctx context.Context) *Shorts {
 	return s
 }
 
-// FirstID returns the first Shorts id in the query. Returns *NotFoundError when no id was found.
-func (sq *ShortsQuery) FirstID(ctx context.Context) (id int, err error) {
+// FirstID returns the first Short id in the query. Returns *NotFoundError when no id was found.
+func (sq *ShortQuery) FirstID(ctx context.Context) (id int, err error) {
 	var ids []int
 	if ids, err = sq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
 	if len(ids) == 0 {
-		err = &NotFoundError{shorts.Label}
+		err = &NotFoundError{short.Label}
 		return
 	}
 	return ids[0], nil
 }
 
 // FirstXID is like FirstID, but panics if an error occurs.
-func (sq *ShortsQuery) FirstXID(ctx context.Context) int {
+func (sq *ShortQuery) FirstXID(ctx context.Context) int {
 	id, err := sq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -94,8 +94,8 @@ func (sq *ShortsQuery) FirstXID(ctx context.Context) int {
 	return id
 }
 
-// Only returns the only Shorts entity in the query, returns an error if not exactly one entity was returned.
-func (sq *ShortsQuery) Only(ctx context.Context) (*Shorts, error) {
+// Only returns the only Short entity in the query, returns an error if not exactly one entity was returned.
+func (sq *ShortQuery) Only(ctx context.Context) (*Short, error) {
 	sSlice, err := sq.Limit(2).All(ctx)
 	if err != nil {
 		return nil, err
@@ -104,14 +104,14 @@ func (sq *ShortsQuery) Only(ctx context.Context) (*Shorts, error) {
 	case 1:
 		return sSlice[0], nil
 	case 0:
-		return nil, &NotFoundError{shorts.Label}
+		return nil, &NotFoundError{short.Label}
 	default:
-		return nil, &NotSingularError{shorts.Label}
+		return nil, &NotSingularError{short.Label}
 	}
 }
 
 // OnlyX is like Only, but panics if an error occurs.
-func (sq *ShortsQuery) OnlyX(ctx context.Context) *Shorts {
+func (sq *ShortQuery) OnlyX(ctx context.Context) *Short {
 	s, err := sq.Only(ctx)
 	if err != nil {
 		panic(err)
@@ -119,8 +119,8 @@ func (sq *ShortsQuery) OnlyX(ctx context.Context) *Shorts {
 	return s
 }
 
-// OnlyID returns the only Shorts id in the query, returns an error if not exactly one id was returned.
-func (sq *ShortsQuery) OnlyID(ctx context.Context) (id int, err error) {
+// OnlyID returns the only Short id in the query, returns an error if not exactly one id was returned.
+func (sq *ShortQuery) OnlyID(ctx context.Context) (id int, err error) {
 	var ids []int
 	if ids, err = sq.Limit(2).IDs(ctx); err != nil {
 		return
@@ -129,15 +129,15 @@ func (sq *ShortsQuery) OnlyID(ctx context.Context) (id int, err error) {
 	case 1:
 		id = ids[0]
 	case 0:
-		err = &NotFoundError{shorts.Label}
+		err = &NotFoundError{short.Label}
 	default:
-		err = &NotSingularError{shorts.Label}
+		err = &NotSingularError{short.Label}
 	}
 	return
 }
 
 // OnlyXID is like OnlyID, but panics if an error occurs.
-func (sq *ShortsQuery) OnlyXID(ctx context.Context) int {
+func (sq *ShortQuery) OnlyXID(ctx context.Context) int {
 	id, err := sq.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -145,13 +145,13 @@ func (sq *ShortsQuery) OnlyXID(ctx context.Context) int {
 	return id
 }
 
-// All executes the query and returns a list of ShortsSlice.
-func (sq *ShortsQuery) All(ctx context.Context) ([]*Shorts, error) {
+// All executes the query and returns a list of Shorts.
+func (sq *ShortQuery) All(ctx context.Context) ([]*Short, error) {
 	return sq.sqlAll(ctx)
 }
 
 // AllX is like All, but panics if an error occurs.
-func (sq *ShortsQuery) AllX(ctx context.Context) []*Shorts {
+func (sq *ShortQuery) AllX(ctx context.Context) []*Short {
 	sSlice, err := sq.All(ctx)
 	if err != nil {
 		panic(err)
@@ -159,17 +159,17 @@ func (sq *ShortsQuery) AllX(ctx context.Context) []*Shorts {
 	return sSlice
 }
 
-// IDs executes the query and returns a list of Shorts ids.
-func (sq *ShortsQuery) IDs(ctx context.Context) ([]int, error) {
+// IDs executes the query and returns a list of Short ids.
+func (sq *ShortQuery) IDs(ctx context.Context) ([]int, error) {
 	var ids []int
-	if err := sq.Select(shorts.FieldID).Scan(ctx, &ids); err != nil {
+	if err := sq.Select(short.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
 	return ids, nil
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (sq *ShortsQuery) IDsX(ctx context.Context) []int {
+func (sq *ShortQuery) IDsX(ctx context.Context) []int {
 	ids, err := sq.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -178,12 +178,12 @@ func (sq *ShortsQuery) IDsX(ctx context.Context) []int {
 }
 
 // Count returns the count of the given query.
-func (sq *ShortsQuery) Count(ctx context.Context) (int, error) {
+func (sq *ShortQuery) Count(ctx context.Context) (int, error) {
 	return sq.sqlCount(ctx)
 }
 
 // CountX is like Count, but panics if an error occurs.
-func (sq *ShortsQuery) CountX(ctx context.Context) int {
+func (sq *ShortQuery) CountX(ctx context.Context) int {
 	count, err := sq.Count(ctx)
 	if err != nil {
 		panic(err)
@@ -192,12 +192,12 @@ func (sq *ShortsQuery) CountX(ctx context.Context) int {
 }
 
 // Exist returns true if the query has elements in the graph.
-func (sq *ShortsQuery) Exist(ctx context.Context) (bool, error) {
+func (sq *ShortQuery) Exist(ctx context.Context) (bool, error) {
 	return sq.sqlExist(ctx)
 }
 
 // ExistX is like Exist, but panics if an error occurs.
-func (sq *ShortsQuery) ExistX(ctx context.Context) bool {
+func (sq *ShortQuery) ExistX(ctx context.Context) bool {
 	exist, err := sq.Exist(ctx)
 	if err != nil {
 		panic(err)
@@ -207,14 +207,14 @@ func (sq *ShortsQuery) ExistX(ctx context.Context) bool {
 
 // Clone returns a duplicate of the query builder, including all associated steps. It can be
 // used to prepare common query builders and use them differently after the clone is made.
-func (sq *ShortsQuery) Clone() *ShortsQuery {
-	return &ShortsQuery{
+func (sq *ShortQuery) Clone() *ShortQuery {
+	return &ShortQuery{
 		config:     sq.config,
 		limit:      sq.limit,
 		offset:     sq.offset,
 		order:      append([]Order{}, sq.order...),
 		unique:     append([]string{}, sq.unique...),
-		predicates: append([]predicate.Shorts{}, sq.predicates...),
+		predicates: append([]predicate.Short{}, sq.predicates...),
 		// clone intermediate query.
 		sql: sq.sql.Clone(),
 	}
@@ -230,13 +230,13 @@ func (sq *ShortsQuery) Clone() *ShortsQuery {
 //		Count int `json:"count,omitempty"`
 //	}
 //
-//	client.Shorts.Query().
-//		GroupBy(shorts.FieldKey).
+//	client.Short.Query().
+//		GroupBy(short.FieldKey).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
 //
-func (sq *ShortsQuery) GroupBy(field string, fields ...string) *ShortsGroupBy {
-	group := &ShortsGroupBy{config: sq.config}
+func (sq *ShortQuery) GroupBy(field string, fields ...string) *ShortGroupBy {
+	group := &ShortGroupBy{config: sq.config}
 	group.fields = append([]string{field}, fields...)
 	group.sql = sq.sqlQuery()
 	return group
@@ -250,24 +250,24 @@ func (sq *ShortsQuery) GroupBy(field string, fields ...string) *ShortsGroupBy {
 //		Key string `json:"key,omitempty"`
 //	}
 //
-//	client.Shorts.Query().
-//		Select(shorts.FieldKey).
+//	client.Short.Query().
+//		Select(short.FieldKey).
 //		Scan(ctx, &v)
 //
-func (sq *ShortsQuery) Select(field string, fields ...string) *ShortsSelect {
-	selector := &ShortsSelect{config: sq.config}
+func (sq *ShortQuery) Select(field string, fields ...string) *ShortSelect {
+	selector := &ShortSelect{config: sq.config}
 	selector.fields = append([]string{field}, fields...)
 	selector.sql = sq.sqlQuery()
 	return selector
 }
 
-func (sq *ShortsQuery) sqlAll(ctx context.Context) ([]*Shorts, error) {
+func (sq *ShortQuery) sqlAll(ctx context.Context) ([]*Short, error) {
 	var (
-		nodes = []*Shorts{}
+		nodes = []*Short{}
 		_spec = sq.querySpec()
 	)
 	_spec.ScanValues = func() []interface{} {
-		node := &Shorts{config: sq.config}
+		node := &Short{config: sq.config}
 		nodes = append(nodes, node)
 		values := node.scanValues()
 		return values
@@ -288,12 +288,12 @@ func (sq *ShortsQuery) sqlAll(ctx context.Context) ([]*Shorts, error) {
 	return nodes, nil
 }
 
-func (sq *ShortsQuery) sqlCount(ctx context.Context) (int, error) {
+func (sq *ShortQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := sq.querySpec()
 	return sqlgraph.CountNodes(ctx, sq.driver, _spec)
 }
 
-func (sq *ShortsQuery) sqlExist(ctx context.Context) (bool, error) {
+func (sq *ShortQuery) sqlExist(ctx context.Context) (bool, error) {
 	n, err := sq.sqlCount(ctx)
 	if err != nil {
 		return false, fmt.Errorf("ent: check existence: %v", err)
@@ -301,14 +301,14 @@ func (sq *ShortsQuery) sqlExist(ctx context.Context) (bool, error) {
 	return n > 0, nil
 }
 
-func (sq *ShortsQuery) querySpec() *sqlgraph.QuerySpec {
+func (sq *ShortQuery) querySpec() *sqlgraph.QuerySpec {
 	_spec := &sqlgraph.QuerySpec{
 		Node: &sqlgraph.NodeSpec{
-			Table:   shorts.Table,
-			Columns: shorts.Columns,
+			Table:   short.Table,
+			Columns: short.Columns,
 			ID: &sqlgraph.FieldSpec{
 				Type:   field.TypeInt,
-				Column: shorts.FieldID,
+				Column: short.FieldID,
 			},
 		},
 		From:   sq.sql,
@@ -337,13 +337,13 @@ func (sq *ShortsQuery) querySpec() *sqlgraph.QuerySpec {
 	return _spec
 }
 
-func (sq *ShortsQuery) sqlQuery() *sql.Selector {
+func (sq *ShortQuery) sqlQuery() *sql.Selector {
 	builder := sql.Dialect(sq.driver.Dialect())
-	t1 := builder.Table(shorts.Table)
-	selector := builder.Select(t1.Columns(shorts.Columns...)...).From(t1)
+	t1 := builder.Table(short.Table)
+	selector := builder.Select(t1.Columns(short.Columns...)...).From(t1)
 	if sq.sql != nil {
 		selector = sq.sql
-		selector.Select(selector.Columns(shorts.Columns...)...)
+		selector.Select(selector.Columns(short.Columns...)...)
 	}
 	for _, p := range sq.predicates {
 		p(selector)
@@ -362,8 +362,8 @@ func (sq *ShortsQuery) sqlQuery() *sql.Selector {
 	return selector
 }
 
-// ShortsGroupBy is the builder for group-by Shorts entities.
-type ShortsGroupBy struct {
+// ShortGroupBy is the builder for group-by Short entities.
+type ShortGroupBy struct {
 	config
 	fields []string
 	fns    []Aggregate
@@ -372,27 +372,27 @@ type ShortsGroupBy struct {
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
-func (sgb *ShortsGroupBy) Aggregate(fns ...Aggregate) *ShortsGroupBy {
+func (sgb *ShortGroupBy) Aggregate(fns ...Aggregate) *ShortGroupBy {
 	sgb.fns = append(sgb.fns, fns...)
 	return sgb
 }
 
 // Scan applies the group-by query and scan the result into the given value.
-func (sgb *ShortsGroupBy) Scan(ctx context.Context, v interface{}) error {
+func (sgb *ShortGroupBy) Scan(ctx context.Context, v interface{}) error {
 	return sgb.sqlScan(ctx, v)
 }
 
 // ScanX is like Scan, but panics if an error occurs.
-func (sgb *ShortsGroupBy) ScanX(ctx context.Context, v interface{}) {
+func (sgb *ShortGroupBy) ScanX(ctx context.Context, v interface{}) {
 	if err := sgb.Scan(ctx, v); err != nil {
 		panic(err)
 	}
 }
 
 // Strings returns list of strings from group-by. It is only allowed when querying group-by with one field.
-func (sgb *ShortsGroupBy) Strings(ctx context.Context) ([]string, error) {
+func (sgb *ShortGroupBy) Strings(ctx context.Context) ([]string, error) {
 	if len(sgb.fields) > 1 {
-		return nil, errors.New("ent: ShortsGroupBy.Strings is not achievable when grouping more than 1 field")
+		return nil, errors.New("ent: ShortGroupBy.Strings is not achievable when grouping more than 1 field")
 	}
 	var v []string
 	if err := sgb.Scan(ctx, &v); err != nil {
@@ -402,7 +402,7 @@ func (sgb *ShortsGroupBy) Strings(ctx context.Context) ([]string, error) {
 }
 
 // StringsX is like Strings, but panics if an error occurs.
-func (sgb *ShortsGroupBy) StringsX(ctx context.Context) []string {
+func (sgb *ShortGroupBy) StringsX(ctx context.Context) []string {
 	v, err := sgb.Strings(ctx)
 	if err != nil {
 		panic(err)
@@ -411,9 +411,9 @@ func (sgb *ShortsGroupBy) StringsX(ctx context.Context) []string {
 }
 
 // Ints returns list of ints from group-by. It is only allowed when querying group-by with one field.
-func (sgb *ShortsGroupBy) Ints(ctx context.Context) ([]int, error) {
+func (sgb *ShortGroupBy) Ints(ctx context.Context) ([]int, error) {
 	if len(sgb.fields) > 1 {
-		return nil, errors.New("ent: ShortsGroupBy.Ints is not achievable when grouping more than 1 field")
+		return nil, errors.New("ent: ShortGroupBy.Ints is not achievable when grouping more than 1 field")
 	}
 	var v []int
 	if err := sgb.Scan(ctx, &v); err != nil {
@@ -423,7 +423,7 @@ func (sgb *ShortsGroupBy) Ints(ctx context.Context) ([]int, error) {
 }
 
 // IntsX is like Ints, but panics if an error occurs.
-func (sgb *ShortsGroupBy) IntsX(ctx context.Context) []int {
+func (sgb *ShortGroupBy) IntsX(ctx context.Context) []int {
 	v, err := sgb.Ints(ctx)
 	if err != nil {
 		panic(err)
@@ -432,9 +432,9 @@ func (sgb *ShortsGroupBy) IntsX(ctx context.Context) []int {
 }
 
 // Float64s returns list of float64s from group-by. It is only allowed when querying group-by with one field.
-func (sgb *ShortsGroupBy) Float64s(ctx context.Context) ([]float64, error) {
+func (sgb *ShortGroupBy) Float64s(ctx context.Context) ([]float64, error) {
 	if len(sgb.fields) > 1 {
-		return nil, errors.New("ent: ShortsGroupBy.Float64s is not achievable when grouping more than 1 field")
+		return nil, errors.New("ent: ShortGroupBy.Float64s is not achievable when grouping more than 1 field")
 	}
 	var v []float64
 	if err := sgb.Scan(ctx, &v); err != nil {
@@ -444,7 +444,7 @@ func (sgb *ShortsGroupBy) Float64s(ctx context.Context) ([]float64, error) {
 }
 
 // Float64sX is like Float64s, but panics if an error occurs.
-func (sgb *ShortsGroupBy) Float64sX(ctx context.Context) []float64 {
+func (sgb *ShortGroupBy) Float64sX(ctx context.Context) []float64 {
 	v, err := sgb.Float64s(ctx)
 	if err != nil {
 		panic(err)
@@ -453,9 +453,9 @@ func (sgb *ShortsGroupBy) Float64sX(ctx context.Context) []float64 {
 }
 
 // Bools returns list of bools from group-by. It is only allowed when querying group-by with one field.
-func (sgb *ShortsGroupBy) Bools(ctx context.Context) ([]bool, error) {
+func (sgb *ShortGroupBy) Bools(ctx context.Context) ([]bool, error) {
 	if len(sgb.fields) > 1 {
-		return nil, errors.New("ent: ShortsGroupBy.Bools is not achievable when grouping more than 1 field")
+		return nil, errors.New("ent: ShortGroupBy.Bools is not achievable when grouping more than 1 field")
 	}
 	var v []bool
 	if err := sgb.Scan(ctx, &v); err != nil {
@@ -465,7 +465,7 @@ func (sgb *ShortsGroupBy) Bools(ctx context.Context) ([]bool, error) {
 }
 
 // BoolsX is like Bools, but panics if an error occurs.
-func (sgb *ShortsGroupBy) BoolsX(ctx context.Context) []bool {
+func (sgb *ShortGroupBy) BoolsX(ctx context.Context) []bool {
 	v, err := sgb.Bools(ctx)
 	if err != nil {
 		panic(err)
@@ -473,7 +473,7 @@ func (sgb *ShortsGroupBy) BoolsX(ctx context.Context) []bool {
 	return v
 }
 
-func (sgb *ShortsGroupBy) sqlScan(ctx context.Context, v interface{}) error {
+func (sgb *ShortGroupBy) sqlScan(ctx context.Context, v interface{}) error {
 	rows := &sql.Rows{}
 	query, args := sgb.sqlQuery().Query()
 	if err := sgb.driver.Query(ctx, query, args, rows); err != nil {
@@ -483,7 +483,7 @@ func (sgb *ShortsGroupBy) sqlScan(ctx context.Context, v interface{}) error {
 	return sql.ScanSlice(rows, v)
 }
 
-func (sgb *ShortsGroupBy) sqlQuery() *sql.Selector {
+func (sgb *ShortGroupBy) sqlQuery() *sql.Selector {
 	selector := sgb.sql
 	columns := make([]string, 0, len(sgb.fields)+len(sgb.fns))
 	columns = append(columns, sgb.fields...)
@@ -493,8 +493,8 @@ func (sgb *ShortsGroupBy) sqlQuery() *sql.Selector {
 	return selector.Select(columns...).GroupBy(sgb.fields...)
 }
 
-// ShortsSelect is the builder for select fields of Shorts entities.
-type ShortsSelect struct {
+// ShortSelect is the builder for select fields of Short entities.
+type ShortSelect struct {
 	config
 	fields []string
 	// intermediate queries.
@@ -502,21 +502,21 @@ type ShortsSelect struct {
 }
 
 // Scan applies the selector query and scan the result into the given value.
-func (ss *ShortsSelect) Scan(ctx context.Context, v interface{}) error {
+func (ss *ShortSelect) Scan(ctx context.Context, v interface{}) error {
 	return ss.sqlScan(ctx, v)
 }
 
 // ScanX is like Scan, but panics if an error occurs.
-func (ss *ShortsSelect) ScanX(ctx context.Context, v interface{}) {
+func (ss *ShortSelect) ScanX(ctx context.Context, v interface{}) {
 	if err := ss.Scan(ctx, v); err != nil {
 		panic(err)
 	}
 }
 
 // Strings returns list of strings from selector. It is only allowed when selecting one field.
-func (ss *ShortsSelect) Strings(ctx context.Context) ([]string, error) {
+func (ss *ShortSelect) Strings(ctx context.Context) ([]string, error) {
 	if len(ss.fields) > 1 {
-		return nil, errors.New("ent: ShortsSelect.Strings is not achievable when selecting more than 1 field")
+		return nil, errors.New("ent: ShortSelect.Strings is not achievable when selecting more than 1 field")
 	}
 	var v []string
 	if err := ss.Scan(ctx, &v); err != nil {
@@ -526,7 +526,7 @@ func (ss *ShortsSelect) Strings(ctx context.Context) ([]string, error) {
 }
 
 // StringsX is like Strings, but panics if an error occurs.
-func (ss *ShortsSelect) StringsX(ctx context.Context) []string {
+func (ss *ShortSelect) StringsX(ctx context.Context) []string {
 	v, err := ss.Strings(ctx)
 	if err != nil {
 		panic(err)
@@ -535,9 +535,9 @@ func (ss *ShortsSelect) StringsX(ctx context.Context) []string {
 }
 
 // Ints returns list of ints from selector. It is only allowed when selecting one field.
-func (ss *ShortsSelect) Ints(ctx context.Context) ([]int, error) {
+func (ss *ShortSelect) Ints(ctx context.Context) ([]int, error) {
 	if len(ss.fields) > 1 {
-		return nil, errors.New("ent: ShortsSelect.Ints is not achievable when selecting more than 1 field")
+		return nil, errors.New("ent: ShortSelect.Ints is not achievable when selecting more than 1 field")
 	}
 	var v []int
 	if err := ss.Scan(ctx, &v); err != nil {
@@ -547,7 +547,7 @@ func (ss *ShortsSelect) Ints(ctx context.Context) ([]int, error) {
 }
 
 // IntsX is like Ints, but panics if an error occurs.
-func (ss *ShortsSelect) IntsX(ctx context.Context) []int {
+func (ss *ShortSelect) IntsX(ctx context.Context) []int {
 	v, err := ss.Ints(ctx)
 	if err != nil {
 		panic(err)
@@ -556,9 +556,9 @@ func (ss *ShortsSelect) IntsX(ctx context.Context) []int {
 }
 
 // Float64s returns list of float64s from selector. It is only allowed when selecting one field.
-func (ss *ShortsSelect) Float64s(ctx context.Context) ([]float64, error) {
+func (ss *ShortSelect) Float64s(ctx context.Context) ([]float64, error) {
 	if len(ss.fields) > 1 {
-		return nil, errors.New("ent: ShortsSelect.Float64s is not achievable when selecting more than 1 field")
+		return nil, errors.New("ent: ShortSelect.Float64s is not achievable when selecting more than 1 field")
 	}
 	var v []float64
 	if err := ss.Scan(ctx, &v); err != nil {
@@ -568,7 +568,7 @@ func (ss *ShortsSelect) Float64s(ctx context.Context) ([]float64, error) {
 }
 
 // Float64sX is like Float64s, but panics if an error occurs.
-func (ss *ShortsSelect) Float64sX(ctx context.Context) []float64 {
+func (ss *ShortSelect) Float64sX(ctx context.Context) []float64 {
 	v, err := ss.Float64s(ctx)
 	if err != nil {
 		panic(err)
@@ -577,9 +577,9 @@ func (ss *ShortsSelect) Float64sX(ctx context.Context) []float64 {
 }
 
 // Bools returns list of bools from selector. It is only allowed when selecting one field.
-func (ss *ShortsSelect) Bools(ctx context.Context) ([]bool, error) {
+func (ss *ShortSelect) Bools(ctx context.Context) ([]bool, error) {
 	if len(ss.fields) > 1 {
-		return nil, errors.New("ent: ShortsSelect.Bools is not achievable when selecting more than 1 field")
+		return nil, errors.New("ent: ShortSelect.Bools is not achievable when selecting more than 1 field")
 	}
 	var v []bool
 	if err := ss.Scan(ctx, &v); err != nil {
@@ -589,7 +589,7 @@ func (ss *ShortsSelect) Bools(ctx context.Context) ([]bool, error) {
 }
 
 // BoolsX is like Bools, but panics if an error occurs.
-func (ss *ShortsSelect) BoolsX(ctx context.Context) []bool {
+func (ss *ShortSelect) BoolsX(ctx context.Context) []bool {
 	v, err := ss.Bools(ctx)
 	if err != nil {
 		panic(err)
@@ -597,7 +597,7 @@ func (ss *ShortsSelect) BoolsX(ctx context.Context) []bool {
 	return v
 }
 
-func (ss *ShortsSelect) sqlScan(ctx context.Context, v interface{}) error {
+func (ss *ShortSelect) sqlScan(ctx context.Context, v interface{}) error {
 	rows := &sql.Rows{}
 	query, args := ss.sqlQuery().Query()
 	if err := ss.driver.Query(ctx, query, args, rows); err != nil {
@@ -607,7 +607,7 @@ func (ss *ShortsSelect) sqlScan(ctx context.Context, v interface{}) error {
 	return sql.ScanSlice(rows, v)
 }
 
-func (ss *ShortsSelect) sqlQuery() sql.Querier {
+func (ss *ShortSelect) sqlQuery() sql.Querier {
 	selector := ss.sql
 	selector.Select(selector.Columns(ss.fields...)...)
 	return selector

@@ -57,6 +57,7 @@ type ComplexityRoot struct {
 		ID       func(childComplexity int) int
 		Owner    func(childComplexity int) int
 		RemoteID func(childComplexity int) int
+		Secret   func(childComplexity int) int
 		Sub      func(childComplexity int) int
 		Type     func(childComplexity int) int
 	}
@@ -81,6 +82,7 @@ type ComplexityRoot struct {
 	}
 
 	Domain struct {
+		Admins         func(childComplexity int) int
 		CollectaDomain func(childComplexity int) int
 		Domain         func(childComplexity int) int
 		Email          func(childComplexity int) int
@@ -92,11 +94,14 @@ type ComplexityRoot struct {
 	}
 
 	Flow struct {
-		ID         func(childComplexity int) int
-		Inputs     func(childComplexity int) int
-		Questions  func(childComplexity int) int
-		State      func(childComplexity int) int
-		StateTable func(childComplexity int) int
+		ID               func(childComplexity int) int
+		InitialState     func(childComplexity int) int
+		Inputs           func(childComplexity int) int
+		PastState        func(childComplexity int) int
+		Questions        func(childComplexity int) int
+		State            func(childComplexity int) int
+		StateTable       func(childComplexity int) int
+		TerminationState func(childComplexity int) int
 	}
 
 	Input struct {
@@ -133,6 +138,12 @@ type ComplexityRoot struct {
 		Input       func(childComplexity int) int
 		Metadata    func(childComplexity int) int
 		Title       func(childComplexity int) int
+		Validator   func(childComplexity int) int
+	}
+
+	Short struct {
+		Key   func(childComplexity int) int
+		Value func(childComplexity int) int
 	}
 
 	Survey struct {
@@ -142,6 +153,7 @@ type ComplexityRoot struct {
 		Flow            func(childComplexity int) int
 		For             func(childComplexity int) int
 		ID              func(childComplexity int) int
+		IsPublic        func(childComplexity int) int
 		LastInteraction func(childComplexity int) int
 		Metadata        func(childComplexity int) int
 		Owner           func(childComplexity int) int
@@ -151,12 +163,14 @@ type ComplexityRoot struct {
 
 	User struct {
 		Accounts     func(childComplexity int) int
+		AdminOf      func(childComplexity int) int
 		Contacts     func(childComplexity int) int
-		Domain       func(childComplexity int) int
+		Domains      func(childComplexity int) int
 		ID           func(childComplexity int) int
 		LastActivity func(childComplexity int) int
 		Name         func(childComplexity int) int
 		Picture      func(childComplexity int) int
+		Roles        func(childComplexity int) int
 		Surveys      func(childComplexity int) int
 		Username     func(childComplexity int) int
 	}
@@ -174,6 +188,7 @@ type ContactResolver interface {
 type DomainResolver interface {
 	Surveys(ctx context.Context, obj *model.Domain) ([]*model.Survey, error)
 	Users(ctx context.Context, obj *model.Domain) ([]*model.User, error)
+	Admins(ctx context.Context, obj *model.Domain) ([]*model.User, error)
 }
 type FlowResolver interface {
 	Questions(ctx context.Context, obj *model.Flow) ([]*model.Question, error)
@@ -209,7 +224,8 @@ type UserResolver interface {
 	Accounts(ctx context.Context, obj *model.User) (*model.Account, error)
 	Contacts(ctx context.Context, obj *model.User) (*model.Contact, error)
 	Surveys(ctx context.Context, obj *model.User) ([]*model.Survey, error)
-	Domain(ctx context.Context, obj *model.User) (*model.Domain, error)
+
+	AdminOf(ctx context.Context, obj *model.User) ([]*model.Domain, error)
 }
 
 type executableSchema struct {
@@ -247,6 +263,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Account.RemoteID(childComplexity), true
+
+	case "Account.secret":
+		if e.complexity.Account.Secret == nil {
+			break
+		}
+
+		return e.complexity.Account.Secret(childComplexity), true
 
 	case "Account.sub":
 		if e.complexity.Account.Sub == nil {
@@ -353,6 +376,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Contact.Value(childComplexity), true
 
+	case "Domain.admins":
+		if e.complexity.Domain.Admins == nil {
+			break
+		}
+
+		return e.complexity.Domain.Admins(childComplexity), true
+
 	case "Domain.collectaDomain":
 		if e.complexity.Domain.CollectaDomain == nil {
 			break
@@ -416,12 +446,26 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Flow.ID(childComplexity), true
 
+	case "Flow.initialState":
+		if e.complexity.Flow.InitialState == nil {
+			break
+		}
+
+		return e.complexity.Flow.InitialState(childComplexity), true
+
 	case "Flow.inputs":
 		if e.complexity.Flow.Inputs == nil {
 			break
 		}
 
 		return e.complexity.Flow.Inputs(childComplexity), true
+
+	case "Flow.pastState":
+		if e.complexity.Flow.PastState == nil {
+			break
+		}
+
+		return e.complexity.Flow.PastState(childComplexity), true
 
 	case "Flow.questions":
 		if e.complexity.Flow.Questions == nil {
@@ -443,6 +487,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Flow.StateTable(childComplexity), true
+
+	case "Flow.terminationState":
+		if e.complexity.Flow.TerminationState == nil {
+			break
+		}
+
+		return e.complexity.Flow.TerminationState(childComplexity), true
 
 	case "Input.defaults":
 		if e.complexity.Input.Defaults == nil {
@@ -657,6 +708,27 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Question.Title(childComplexity), true
 
+	case "Question.validator":
+		if e.complexity.Question.Validator == nil {
+			break
+		}
+
+		return e.complexity.Question.Validator(childComplexity), true
+
+	case "Short.key":
+		if e.complexity.Short.Key == nil {
+			break
+		}
+
+		return e.complexity.Short.Key(childComplexity), true
+
+	case "Short.value":
+		if e.complexity.Short.Value == nil {
+			break
+		}
+
+		return e.complexity.Short.Value(childComplexity), true
+
 	case "Survey.description":
 		if e.complexity.Survey.Description == nil {
 			break
@@ -698,6 +770,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Survey.ID(childComplexity), true
+
+	case "Survey.isPublic":
+		if e.complexity.Survey.IsPublic == nil {
+			break
+		}
+
+		return e.complexity.Survey.IsPublic(childComplexity), true
 
 	case "Survey.lastInteraction":
 		if e.complexity.Survey.LastInteraction == nil {
@@ -741,6 +820,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.User.Accounts(childComplexity), true
 
+	case "User.adminOf":
+		if e.complexity.User.AdminOf == nil {
+			break
+		}
+
+		return e.complexity.User.AdminOf(childComplexity), true
+
 	case "User.contacts":
 		if e.complexity.User.Contacts == nil {
 			break
@@ -748,12 +834,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.User.Contacts(childComplexity), true
 
-	case "User.domain":
-		if e.complexity.User.Domain == nil {
+	case "User.domains":
+		if e.complexity.User.Domains == nil {
 			break
 		}
 
-		return e.complexity.User.Domain(childComplexity), true
+		return e.complexity.User.Domains(childComplexity), true
 
 	case "User.id":
 		if e.complexity.User.ID == nil {
@@ -782,6 +868,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.User.Picture(childComplexity), true
+
+	case "User.roles":
+		if e.complexity.User.Roles == nil {
+			break
+		}
+
+		return e.complexity.User.Roles(childComplexity), true
 
 	case "User.surveys":
 		if e.complexity.User.Surveys == nil {
@@ -870,10 +963,12 @@ type User {
     username: String!
     lastActivity: Time!
     picture: String!
+    roles: [String!]!
     accounts: Account!
     contacts: Contact!
     surveys: [Survey!]!
-    domain: Domain!
+    domains: Domain!
+    adminOf: [Domain!]!
 }
 
 type Survey {
@@ -885,6 +980,7 @@ type Survey {
     description: String!
     metadata: Map!
     done: Boolean!
+    isPublic: Boolean!
     flow: Flow!
     for: User!
     owner: Domain!
@@ -899,6 +995,7 @@ type Domain {
     collectaDomain: String!
     surveys: [Survey!]!
     users: [User!]!
+    admins: [User!]!
 }
 
 type Contact {
@@ -917,6 +1014,7 @@ type Account {
     type: String!
     sub: String!
     remoteID: String!
+    secret: String!
     owner: User!
 }
 
@@ -927,6 +1025,7 @@ type Question {
     description: String!
     anonymous: Boolean!
     metadata: Map!
+    validator: String!
     answers: [Answer!]!
     input: Input!
     flow: Flow!
@@ -953,22 +1052,35 @@ type Flow {
     id: ID!
     state: ID!
     stateTable: String!
+    initialState: ID!
+    terminationState: ID!
+    pastState: ID!
     inputs: [String!]!
     questions: [Question!]!
 }
-`, BuiltIn: false},
+
+type Short {
+    key: String!
+    value: ID!
+}`, BuiltIn: false},
 	&ast.Source{Name: "graph/schema/mutations.graphqls", Input: `type Mutation {
     answerQuestion(token: String!, questionID: ID!, answer: [String!]!): Survey!
 }
 `, BuiltIn: false},
 	&ast.Source{Name: "graph/schema/queries.graphqls", Input: `type Query {
+    # General API
     domain(token: String!, id: ID!): Domain!
     survey(token: String!, id: ID!): Survey!
     question(token: String!, id: ID!): Question!
     user(token: String!, id: ID!): User!
 
+    # User Related
     userByToken(token: String!): User!
 
+    # Admin Related
+
+
+    # Survey Related
     isFirstQuestion(token: String!, questionID: ID!): Boolean!
     isFinalQuestion(token: String!, questionID: ID!): Boolean!
     lastQuestionOfSurvey(token: String!, surveyID: ID!): Question!
@@ -1350,6 +1462,40 @@ func (ec *executionContext) _Account_remoteID(ctx context.Context, field graphql
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.RemoteID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Account_secret(ctx context.Context, field graphql.CollectedField, obj *model.Account) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Account",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Secret, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2111,6 +2257,40 @@ func (ec *executionContext) _Domain_users(ctx context.Context, field graphql.Col
 	return ec.marshalNUser2ᚕᚖgithubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐUserᚄ(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Domain_admins(ctx context.Context, field graphql.CollectedField, obj *model.Domain) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Domain",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Domain().Admins(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.User)
+	fc.Result = res
+	return ec.marshalNUser2ᚕᚖgithubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐUserᚄ(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Flow_id(ctx context.Context, field graphql.CollectedField, obj *model.Flow) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -2211,6 +2391,108 @@ func (ec *executionContext) _Flow_stateTable(ctx context.Context, field graphql.
 	res := resTmp.(string)
 	fc.Result = res
 	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Flow_initialState(ctx context.Context, field graphql.CollectedField, obj *model.Flow) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Flow",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.InitialState, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Flow_terminationState(ctx context.Context, field graphql.CollectedField, obj *model.Flow) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Flow",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TerminationState, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Flow_pastState(ctx context.Context, field graphql.CollectedField, obj *model.Flow) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Flow",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.PastState, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Flow_inputs(ctx context.Context, field graphql.CollectedField, obj *model.Flow) (ret graphql.Marshaler) {
@@ -3127,6 +3409,40 @@ func (ec *executionContext) _Question_metadata(ctx context.Context, field graphq
 	return ec.marshalNMap2map(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Question_validator(ctx context.Context, field graphql.CollectedField, obj *model.Question) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Question",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Validator, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Question_answers(ctx context.Context, field graphql.CollectedField, obj *model.Question) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -3227,6 +3543,74 @@ func (ec *executionContext) _Question_flow(ctx context.Context, field graphql.Co
 	res := resTmp.(*model.Flow)
 	fc.Result = res
 	return ec.marshalNFlow2ᚖgithubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐFlow(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Short_key(ctx context.Context, field graphql.CollectedField, obj *model.Short) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Short",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Key, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Short_value(ctx context.Context, field graphql.CollectedField, obj *model.Short) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Short",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Value, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Survey_id(ctx context.Context, field graphql.CollectedField, obj *model.Survey) (ret graphql.Marshaler) {
@@ -3485,6 +3869,40 @@ func (ec *executionContext) _Survey_done(ctx context.Context, field graphql.Coll
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Done, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Survey_isPublic(ctx context.Context, field graphql.CollectedField, obj *model.Survey) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Survey",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.IsPublic, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -3773,6 +4191,40 @@ func (ec *executionContext) _User_picture(ctx context.Context, field graphql.Col
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _User_roles(ctx context.Context, field graphql.CollectedField, obj *model.User) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "User",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Roles, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]string)
+	fc.Result = res
+	return ec.marshalNString2ᚕstringᚄ(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _User_accounts(ctx context.Context, field graphql.CollectedField, obj *model.User) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -3875,7 +4327,41 @@ func (ec *executionContext) _User_surveys(ctx context.Context, field graphql.Col
 	return ec.marshalNSurvey2ᚕᚖgithubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐSurveyᚄ(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _User_domain(ctx context.Context, field graphql.CollectedField, obj *model.User) (ret graphql.Marshaler) {
+func (ec *executionContext) _User_domains(ctx context.Context, field graphql.CollectedField, obj *model.User) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "User",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Domains, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.Domain)
+	fc.Result = res
+	return ec.marshalNDomain2ᚖgithubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐDomain(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _User_adminOf(ctx context.Context, field graphql.CollectedField, obj *model.User) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -3892,7 +4378,7 @@ func (ec *executionContext) _User_domain(ctx context.Context, field graphql.Coll
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.User().Domain(rctx, obj)
+		return ec.resolvers.User().AdminOf(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -3904,9 +4390,9 @@ func (ec *executionContext) _User_domain(ctx context.Context, field graphql.Coll
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*model.Domain)
+	res := resTmp.([]*model.Domain)
 	fc.Result = res
-	return ec.marshalNDomain2ᚖgithubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐDomain(ctx, field.Selections, res)
+	return ec.marshalNDomain2ᚕᚖgithubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐDomainᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) ___Directive_name(ctx context.Context, field graphql.CollectedField, obj *introspection.Directive) (ret graphql.Marshaler) {
@@ -5003,6 +5489,11 @@ func (ec *executionContext) _Account(ctx context.Context, sel ast.SelectionSet, 
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
+		case "secret":
+			out.Values[i] = ec._Account_secret(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
 		case "owner":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
@@ -5221,6 +5712,20 @@ func (ec *executionContext) _Domain(ctx context.Context, sel ast.SelectionSet, o
 				}
 				return res
 			})
+		case "admins":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Domain_admins(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -5255,6 +5760,21 @@ func (ec *executionContext) _Flow(ctx context.Context, sel ast.SelectionSet, obj
 			}
 		case "stateTable":
 			out.Values[i] = ec._Flow_stateTable(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "initialState":
+			out.Values[i] = ec._Flow_initialState(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "terminationState":
+			out.Values[i] = ec._Flow_terminationState(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "pastState":
+			out.Values[i] = ec._Flow_pastState(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
@@ -5572,6 +6092,11 @@ func (ec *executionContext) _Question(ctx context.Context, sel ast.SelectionSet,
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
+		case "validator":
+			out.Values[i] = ec._Question_validator(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
 		case "answers":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
@@ -5614,6 +6139,38 @@ func (ec *executionContext) _Question(ctx context.Context, sel ast.SelectionSet,
 				}
 				return res
 			})
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var shortImplementors = []string{"Short"}
+
+func (ec *executionContext) _Short(ctx context.Context, sel ast.SelectionSet, obj *model.Short) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, shortImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("Short")
+		case "key":
+			out.Values[i] = ec._Short_key(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "value":
+			out.Values[i] = ec._Short_value(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -5673,6 +6230,11 @@ func (ec *executionContext) _Survey(ctx context.Context, sel ast.SelectionSet, o
 			}
 		case "done":
 			out.Values[i] = ec._Survey_done(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "isPublic":
+			out.Values[i] = ec._Survey_isPublic(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
@@ -5765,6 +6327,11 @@ func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
+		case "roles":
+			out.Values[i] = ec._User_roles(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
 		case "accounts":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
@@ -5807,7 +6374,12 @@ func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj
 				}
 				return res
 			})
-		case "domain":
+		case "domains":
+			out.Values[i] = ec._User_domains(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "adminOf":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
 				defer func() {
@@ -5815,7 +6387,7 @@ func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._User_domain(ctx, field, obj)
+				res = ec._User_adminOf(ctx, field, obj)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
@@ -6172,6 +6744,43 @@ func (ec *executionContext) marshalNContact2ᚖgithubᚗcomᚋminskylabᚋcollec
 
 func (ec *executionContext) marshalNDomain2githubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐDomain(ctx context.Context, sel ast.SelectionSet, v model.Domain) graphql.Marshaler {
 	return ec._Domain(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNDomain2ᚕᚖgithubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐDomainᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Domain) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNDomain2ᚖgithubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐDomain(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
 }
 
 func (ec *executionContext) marshalNDomain2ᚖgithubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐDomain(ctx context.Context, sel ast.SelectionSet, v *model.Domain) graphql.Marshaler {

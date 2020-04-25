@@ -8,11 +8,11 @@ import (
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/google/uuid"
-	"github.com/minskylab/collecta/ent/shorts"
+	"github.com/minskylab/collecta/ent/short"
 )
 
-// Shorts is the model entity for the Shorts schema.
-type Shorts struct {
+// Short is the model entity for the Short schema.
+type Short struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID int `json:"id,omitempty"`
@@ -23,7 +23,7 @@ type Shorts struct {
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
-func (*Shorts) scanValues() []interface{} {
+func (*Short) scanValues() []interface{} {
 	return []interface{}{
 		&sql.NullInt64{},  // id
 		&sql.NullString{}, // key
@@ -32,9 +32,9 @@ func (*Shorts) scanValues() []interface{} {
 }
 
 // assignValues assigns the values that were returned from sql.Rows (after scanning)
-// to the Shorts fields.
-func (s *Shorts) assignValues(values ...interface{}) error {
-	if m, n := len(values), len(shorts.Columns); m < n {
+// to the Short fields.
+func (s *Short) assignValues(values ...interface{}) error {
+	if m, n := len(values), len(short.Columns); m < n {
 		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
 	value, ok := values[0].(*sql.NullInt64)
@@ -56,28 +56,28 @@ func (s *Shorts) assignValues(values ...interface{}) error {
 	return nil
 }
 
-// Update returns a builder for updating this Shorts.
-// Note that, you need to call Shorts.Unwrap() before calling this method, if this Shorts
+// Update returns a builder for updating this Short.
+// Note that, you need to call Short.Unwrap() before calling this method, if this Short
 // was returned from a transaction, and the transaction was committed or rolled back.
-func (s *Shorts) Update() *ShortsUpdateOne {
-	return (&ShortsClient{config: s.config}).UpdateOne(s)
+func (s *Short) Update() *ShortUpdateOne {
+	return (&ShortClient{config: s.config}).UpdateOne(s)
 }
 
 // Unwrap unwraps the entity that was returned from a transaction after it was closed,
 // so that all next queries will be executed through the driver which created the transaction.
-func (s *Shorts) Unwrap() *Shorts {
+func (s *Short) Unwrap() *Short {
 	tx, ok := s.config.driver.(*txDriver)
 	if !ok {
-		panic("ent: Shorts is not a transactional entity")
+		panic("ent: Short is not a transactional entity")
 	}
 	s.config.driver = tx.drv
 	return s
 }
 
 // String implements the fmt.Stringer.
-func (s *Shorts) String() string {
+func (s *Short) String() string {
 	var builder strings.Builder
-	builder.WriteString("Shorts(")
+	builder.WriteString("Short(")
 	builder.WriteString(fmt.Sprintf("id=%v", s.ID))
 	builder.WriteString(", key=")
 	builder.WriteString(s.Key)
@@ -87,10 +87,10 @@ func (s *Shorts) String() string {
 	return builder.String()
 }
 
-// ShortsSlice is a parsable slice of Shorts.
-type ShortsSlice []*Shorts
+// Shorts is a parsable slice of Short.
+type Shorts []*Short
 
-func (s ShortsSlice) config(cfg config) {
+func (s Shorts) config(cfg config) {
 	for _i := range s {
 		s[_i].config = cfg
 	}

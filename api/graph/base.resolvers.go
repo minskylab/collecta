@@ -6,9 +6,8 @@ package graph
 import (
 	"context"
 
-	"github.com/pkg/errors"
-
 	"github.com/google/uuid"
+	"github.com/minskylab/collecta/api/commons"
 	"github.com/minskylab/collecta/api/graph/generated"
 	"github.com/minskylab/collecta/api/graph/model"
 	"github.com/minskylab/collecta/ent/account"
@@ -20,6 +19,7 @@ import (
 	"github.com/minskylab/collecta/ent/question"
 	"github.com/minskylab/collecta/ent/survey"
 	"github.com/minskylab/collecta/ent/user"
+	"github.com/minskylab/collecta/errors"
 )
 
 func (r *accountResolver) Owner(ctx context.Context, obj *model.Account) (*model.User, error) {
@@ -31,13 +31,7 @@ func (r *accountResolver) Owner(ctx context.Context, obj *model.Account) (*model
 		return nil, errors.Wrap(err, "error at ent query")
 	}
 
-	m := &model.User{
-		ID:           e.ID.String(),
-		Name:         e.Name,
-		Username:     e.Username,
-		LastActivity: e.LastActivity,
-		Picture:      e.Picture,
-	}
+	m := commons.UserToGQL(e)
 
 	return m, nil
 }
@@ -51,14 +45,7 @@ func (r *answerResolver) Question(ctx context.Context, obj *model.Answer) (*mode
 		return nil, errors.Wrap(err, "error at ent query")
 	}
 
-	m := &model.Question{
-		ID:          e.ID.String(),
-		Hash:        e.Hash,
-		Title:       e.Title,
-		Description: e.Description,
-		Anonymous:   e.Anonymous,
-		// Metadata:   (e.Metadata),
-	}
+	m := commons.QuestionToGQL(e)
 
 	return m, nil
 }
@@ -72,13 +59,7 @@ func (r *contactResolver) Owner(ctx context.Context, obj *model.Contact) (*model
 		return nil, errors.Wrap(err, "error at ent query")
 	}
 
-	m := &model.User{
-		ID:           e.ID.String(),
-		Name:         e.Name,
-		Username:     e.Username,
-		LastActivity: e.LastActivity,
-		Picture:      e.Picture,
-	}
+	m := commons.UserToGQL(e)
 
 	return m, nil
 }
@@ -96,16 +77,7 @@ func (r *domainResolver) Surveys(ctx context.Context, obj *model.Domain) ([]*mod
 	arr := make([]*model.Survey, 0)
 	for _, a := range e {
 		if a != nil {
-			aa := *a
-			arr = append(arr, &model.Survey{
-				ID:              aa.ID.String(),
-				Tags:            aa.Tags,
-				LastInteraction: aa.LastInteraction,
-				DueDate:         aa.DueDate,
-				Title:           aa.Title,
-				Description:     aa.Description,
-				// Metadata:        nil,
-			})
+			arr = append(arr, commons.SurveyToGQL(a))
 		}
 	}
 
@@ -125,13 +97,27 @@ func (r *domainResolver) Users(ctx context.Context, obj *model.Domain) ([]*model
 	arr := make([]*model.User, 0)
 	for _, a := range e {
 		if a != nil {
-			aa := *a
-			arr = append(arr, &model.User{
-				ID:           aa.ID.String(),
-				Name:         aa.Name,
-				Username:     aa.Username,
-				LastActivity: aa.LastActivity,
-			})
+			arr = append(arr, commons.UserToGQL(a))
+		}
+	}
+
+	return arr, nil
+}
+
+func (r *domainResolver) Admins(ctx context.Context, obj *model.Domain) ([]*model.User, error) {
+	e, err := r.DB.Ent.Domain.Query().
+		Where(domain.ID(uuid.MustParse(obj.ID))).
+		QueryAdmins().
+		All(ctx)
+
+	if err != nil {
+		return nil, errors.Wrap(err, "error at ent query")
+	}
+
+	arr := make([]*model.User, 0)
+	for _, a := range e {
+		if a != nil {
+			arr = append(arr, commons.UserToGQL(a))
 		}
 	}
 
@@ -151,16 +137,7 @@ func (r *flowResolver) Questions(ctx context.Context, obj *model.Flow) ([]*model
 	arr := make([]*model.Question, 0)
 	for _, a := range e {
 		if a != nil {
-			aa := *a
-			arr = append(arr, &model.Question{
-				ID:          aa.ID.String(),
-				Hash:        aa.Hash,
-				Title:       aa.Title,
-				Description: aa.Description,
-				Anonymous:   aa.Anonymous,
-				// Metadata:    nil,
-
-			})
+			arr = append(arr, commons.QuestionToGQL(a))
 		}
 	}
 
@@ -190,14 +167,7 @@ func (r *inputResolver) Question(ctx context.Context, obj *model.Input) (*model.
 		return nil, errors.Wrap(err, "error at ent query")
 	}
 
-	m := &model.Question{
-		ID:          e.ID.String(),
-		Hash:        e.Hash,
-		Title:       e.Title,
-		Description: e.Description,
-		Anonymous:   e.Anonymous,
-		// Metadata:    nil,
-	}
+	m := commons.QuestionToGQL(e)
 
 	return m, nil
 }
@@ -215,13 +185,7 @@ func (r *questionResolver) Answers(ctx context.Context, obj *model.Question) ([]
 	arr := make([]*model.Answer, 0)
 	for _, a := range e {
 		if a != nil {
-			aa := *a
-			arr = append(arr, &model.Answer{
-				ID:        aa.ID.String(),
-				At:        aa.At,
-				Responses: aa.Responses,
-				Valid:     aa.Valid,
-			})
+			arr = append(arr, commons.AnswerToGQL(a))
 		}
 	}
 
@@ -237,23 +201,7 @@ func (r *questionResolver) Input(ctx context.Context, obj *model.Question) (*mod
 		return nil, errors.Wrap(err, "error at ent query")
 	}
 
-	defs := make([]*string, 0)
-	for _, s := range e.Defaults {
-		defs = append(defs, &s)
-	}
-
-	opts := map[string]interface{}{}
-
-	for k, v := range e.Options {
-		opts[k] = v
-	}
-	m := &model.Input{
-		ID:       e.ID.String(),
-		Kind:     e.Kind.String(),
-		Multiple: e.Multiple,
-		Defaults: defs,
-		Options:  opts,
-	}
+	m := commons.InputToGQL(e)
 
 	return m, nil
 }
@@ -267,12 +215,7 @@ func (r *questionResolver) Flow(ctx context.Context, obj *model.Question) (*mode
 		return nil, errors.Wrap(err, "error at ent query")
 	}
 
-	m := &model.Flow{
-		ID:         e.ID.String(),
-		State:      e.State.String(),
-		StateTable: e.StateTable,
-		Inputs:     e.Inputs,
-	}
+	m := commons.FlowToGQL(e)
 
 	return m, nil
 }
@@ -287,12 +230,7 @@ func (r *surveyResolver) Flow(ctx context.Context, obj *model.Survey) (*model.Fl
 		return nil, errors.Wrap(err, "error at ent query")
 	}
 
-	m := &model.Flow{
-		ID:         e.ID.String(),
-		State:      e.State.String(),
-		StateTable: e.StateTable,
-		Inputs:     e.Inputs,
-	}
+	m := commons.FlowToGQL(e)
 
 	return m, nil
 }
@@ -306,13 +244,7 @@ func (r *surveyResolver) For(ctx context.Context, obj *model.Survey) (*model.Use
 		return nil, errors.Wrap(err, "error at ent query")
 	}
 
-	m := &model.User{
-		ID:           e.ID.String(),
-		Name:         e.Name,
-		Username:     e.Username,
-		LastActivity: e.LastActivity,
-		Picture:      e.Picture,
-	}
+	m := commons.UserToGQL(e)
 
 	return m, nil
 }
@@ -326,14 +258,7 @@ func (r *surveyResolver) Owner(ctx context.Context, obj *model.Survey) (*model.D
 		return nil, errors.Wrap(err, "error at ent query")
 	}
 
-	m := &model.Domain{
-		ID:             e.ID.String(),
-		Tags:           e.Tags,
-		Name:           e.Name,
-		Email:          e.Email,
-		Domain:         e.Domain,
-		CollectaDomain: e.CollectaDomain,
-	}
+	m := commons.DomainToGQL(e)
 
 	return m, nil
 }
@@ -347,12 +272,7 @@ func (r *userResolver) Accounts(ctx context.Context, obj *model.User) (*model.Ac
 		return nil, errors.Wrap(err, "error at ent query")
 	}
 
-	m := &model.Account{
-		ID:       e.ID.String(),
-		Type:     e.Type.String(),
-		Sub:      e.Sub,
-		RemoteID: e.RemoteID,
-	}
+	m := commons.AccountToGQL(e)
 
 	return m, nil
 }
@@ -366,15 +286,7 @@ func (r *userResolver) Contacts(ctx context.Context, obj *model.User) (*model.Co
 		return nil, errors.Wrap(err, "error at ent query")
 	}
 
-	m := &model.Contact{
-		ID:          e.ID.String(),
-		Name:        &e.Name,
-		Value:       e.Value,
-		Kind:        e.Kind.String(),
-		Principal:   e.Principal,
-		Validated:   e.Validated,
-		FromAccount: e.FromAccount,
-	}
+	m := commons.ContactToGQL(e)
 
 	return m, nil
 }
@@ -394,40 +306,31 @@ func (r *userResolver) Surveys(ctx context.Context, obj *model.User) ([]*model.S
 	arr := make([]*model.Survey, 0)
 	for _, a := range e {
 		if a != nil {
-			aa := *a
-			arr = append(arr, &model.Survey{
-				ID:              aa.ID.String(),
-				Tags:            aa.Tags,
-				LastInteraction: aa.LastInteraction,
-				DueDate:         aa.DueDate,
-				Title:           aa.Title,
-				Description:     aa.Description,
-			})
+			arr = append(arr, commons.SurveyToGQL(a))
 		}
 	}
 
 	return arr, nil
 }
 
-func (r *userResolver) Domain(ctx context.Context, obj *model.User) (*model.Domain, error) {
-	e, err := r.DB.Ent.Domain.Query().
-		Where(domain.HasUsersWith(user.ID(uuid.MustParse(obj.ID)))).
-		Only(ctx)
+func (r *userResolver) AdminOf(ctx context.Context, obj *model.User) ([]*model.Domain, error) {
+	e, err := r.DB.Ent.User.Query().
+		Where(user.ID(uuid.MustParse(obj.ID))).
+		QueryAdminOf().
+		All(ctx)
 
 	if err != nil {
 		return nil, errors.Wrap(err, "error at ent query")
 	}
 
-	m := &model.Domain{
-		ID:             e.ID.String(),
-		Tags:           e.Tags,
-		Name:           e.Name,
-		Email:          e.Email,
-		Domain:         e.Domain,
-		CollectaDomain: e.CollectaDomain,
+	arr := make([]*model.Domain, 0)
+	for _, a := range e {
+		if a != nil {
+			arr = append(arr, commons.DomainToGQL(a))
+		}
 	}
 
-	return m, nil
+	return arr, nil
 }
 
 // Account returns generated.AccountResolver implementation.

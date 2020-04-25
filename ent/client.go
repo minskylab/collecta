@@ -19,7 +19,7 @@ import (
 	"github.com/minskylab/collecta/ent/input"
 	"github.com/minskylab/collecta/ent/ip"
 	"github.com/minskylab/collecta/ent/question"
-	"github.com/minskylab/collecta/ent/shorts"
+	"github.com/minskylab/collecta/ent/short"
 	"github.com/minskylab/collecta/ent/survey"
 	"github.com/minskylab/collecta/ent/user"
 
@@ -51,8 +51,8 @@ type Client struct {
 	Input *InputClient
 	// Question is the client for interacting with the Question builders.
 	Question *QuestionClient
-	// Shorts is the client for interacting with the Shorts builders.
-	Shorts *ShortsClient
+	// Short is the client for interacting with the Short builders.
+	Short *ShortClient
 	// Survey is the client for interacting with the Survey builders.
 	Survey *SurveyClient
 	// User is the client for interacting with the User builders.
@@ -75,7 +75,7 @@ func NewClient(opts ...Option) *Client {
 		IP:       NewIPClient(c),
 		Input:    NewInputClient(c),
 		Question: NewQuestionClient(c),
-		Shorts:   NewShortsClient(c),
+		Short:    NewShortClient(c),
 		Survey:   NewSurveyClient(c),
 		User:     NewUserClient(c),
 	}
@@ -118,7 +118,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		IP:       NewIPClient(cfg),
 		Input:    NewInputClient(cfg),
 		Question: NewQuestionClient(cfg),
-		Shorts:   NewShortsClient(cfg),
+		Short:    NewShortClient(cfg),
 		Survey:   NewSurveyClient(cfg),
 		User:     NewUserClient(cfg),
 	}, nil
@@ -148,7 +148,7 @@ func (c *Client) Debug() *Client {
 		IP:       NewIPClient(cfg),
 		Input:    NewInputClient(cfg),
 		Question: NewQuestionClient(cfg),
-		Shorts:   NewShortsClient(cfg),
+		Short:    NewShortClient(cfg),
 		Survey:   NewSurveyClient(cfg),
 		User:     NewUserClient(cfg),
 	}
@@ -889,63 +889,63 @@ func (c *QuestionClient) QueryFlow(q *Question) *FlowQuery {
 	return query
 }
 
-// ShortsClient is a client for the Shorts schema.
-type ShortsClient struct {
+// ShortClient is a client for the Short schema.
+type ShortClient struct {
 	config
 }
 
-// NewShortsClient returns a client for the Shorts from the given config.
-func NewShortsClient(c config) *ShortsClient {
-	return &ShortsClient{config: c}
+// NewShortClient returns a client for the Short from the given config.
+func NewShortClient(c config) *ShortClient {
+	return &ShortClient{config: c}
 }
 
-// Create returns a create builder for Shorts.
-func (c *ShortsClient) Create() *ShortsCreate {
-	return &ShortsCreate{config: c.config}
+// Create returns a create builder for Short.
+func (c *ShortClient) Create() *ShortCreate {
+	return &ShortCreate{config: c.config}
 }
 
-// Update returns an update builder for Shorts.
-func (c *ShortsClient) Update() *ShortsUpdate {
-	return &ShortsUpdate{config: c.config}
+// Update returns an update builder for Short.
+func (c *ShortClient) Update() *ShortUpdate {
+	return &ShortUpdate{config: c.config}
 }
 
 // UpdateOne returns an update builder for the given entity.
-func (c *ShortsClient) UpdateOne(s *Shorts) *ShortsUpdateOne {
+func (c *ShortClient) UpdateOne(s *Short) *ShortUpdateOne {
 	return c.UpdateOneID(s.ID)
 }
 
 // UpdateOneID returns an update builder for the given id.
-func (c *ShortsClient) UpdateOneID(id int) *ShortsUpdateOne {
-	return &ShortsUpdateOne{config: c.config, id: id}
+func (c *ShortClient) UpdateOneID(id int) *ShortUpdateOne {
+	return &ShortUpdateOne{config: c.config, id: id}
 }
 
-// Delete returns a delete builder for Shorts.
-func (c *ShortsClient) Delete() *ShortsDelete {
-	return &ShortsDelete{config: c.config}
+// Delete returns a delete builder for Short.
+func (c *ShortClient) Delete() *ShortDelete {
+	return &ShortDelete{config: c.config}
 }
 
 // DeleteOne returns a delete builder for the given entity.
-func (c *ShortsClient) DeleteOne(s *Shorts) *ShortsDeleteOne {
+func (c *ShortClient) DeleteOne(s *Short) *ShortDeleteOne {
 	return c.DeleteOneID(s.ID)
 }
 
 // DeleteOneID returns a delete builder for the given id.
-func (c *ShortsClient) DeleteOneID(id int) *ShortsDeleteOne {
-	return &ShortsDeleteOne{c.Delete().Where(shorts.ID(id))}
+func (c *ShortClient) DeleteOneID(id int) *ShortDeleteOne {
+	return &ShortDeleteOne{c.Delete().Where(short.ID(id))}
 }
 
-// Create returns a query builder for Shorts.
-func (c *ShortsClient) Query() *ShortsQuery {
-	return &ShortsQuery{config: c.config}
+// Create returns a query builder for Short.
+func (c *ShortClient) Query() *ShortQuery {
+	return &ShortQuery{config: c.config}
 }
 
-// Get returns a Shorts entity by its id.
-func (c *ShortsClient) Get(ctx context.Context, id int) (*Shorts, error) {
-	return c.Query().Where(shorts.ID(id)).Only(ctx)
+// Get returns a Short entity by its id.
+func (c *ShortClient) Get(ctx context.Context, id int) (*Short, error) {
+	return c.Query().Where(short.ID(id)).Only(ctx)
 }
 
 // GetX is like Get, but panics if an error occurs.
-func (c *ShortsClient) GetX(ctx context.Context, id int) *Shorts {
+func (c *ShortClient) GetX(ctx context.Context, id int) *Short {
 	s, err := c.Get(ctx, id)
 	if err != nil {
 		panic(err)

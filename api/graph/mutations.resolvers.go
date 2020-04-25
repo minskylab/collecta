@@ -7,27 +7,26 @@ import (
 	"context"
 	"time"
 
-	"github.com/minskylab/collecta/collecta/answers"
-	"github.com/minskylab/collecta/ent/domain"
-	"github.com/minskylab/collecta/ent/input"
-	"github.com/minskylab/collecta/ent/question"
-	"github.com/pkg/errors"
-
 	"github.com/google/uuid"
 	"github.com/minskylab/collecta/api/graph/generated"
 	"github.com/minskylab/collecta/api/graph/model"
+	"github.com/minskylab/collecta/collecta/answers"
+	"github.com/minskylab/collecta/ent/domain"
 	"github.com/minskylab/collecta/ent/flow"
+	"github.com/minskylab/collecta/ent/input"
+	"github.com/minskylab/collecta/ent/question"
 	"github.com/minskylab/collecta/ent/survey"
+	"github.com/minskylab/collecta/errors"
 	"github.com/minskylab/collecta/flows"
 )
 
-func (r *mutationResolver) AnswerQuestion(ctx context.Context, token string, qID string, ans []string) (*model.Survey, error) {
+func (r *mutationResolver) AnswerQuestion(ctx context.Context, token string, questionID string, answer []string) (*model.Survey, error) {
 	userRequester, err := r.Auth.VerifyJWTToken(ctx, token)
 	if err != nil {
 		return nil, errors.Wrap(err, "invalid token, probably user not registered")
 	}
 
-	questionID, err := uuid.Parse(qID)
+	qID, err := uuid.Parse(questionID)
 	if err != nil {
 		return nil, errors.Wrap(err, "error at try to parse the domain id")
 	}
@@ -37,7 +36,7 @@ func (r *mutationResolver) AnswerQuestion(ctx context.Context, token string, qID
 		Where(
 			domain.HasSurveysWith(
 				survey.HasFlowWith(
-					flow.HasQuestionsWith(question.ID(questionID)),
+					flow.HasQuestionsWith(question.ID(qID)),
 				),
 			),
 		).Exist(ctx)
@@ -46,7 +45,7 @@ func (r *mutationResolver) AnswerQuestion(ctx context.Context, token string, qID
 	}
 
 	if !isOwnerOfQuestionSurveyDomain {
-		isQuestionOwner, err := userRequester.QuerySurveys().QueryFlow().QueryQuestions().Where(question.ID(questionID)).Exist(ctx)
+		isQuestionOwner, err := userRequester.QuerySurveys().QueryFlow().QueryQuestions().Where(question.ID(qID)).Exist(ctx)
 		if err != nil {
 			return nil, errors.Wrap(err, "question cannot be fetch")
 		}
@@ -55,11 +54,10 @@ func (r *mutationResolver) AnswerQuestion(ctx context.Context, token string, qID
 		}
 	}
 
-	q, err := r.DB.Ent.Question.Get(ctx, questionID)
+	q, err := r.DB.Ent.Question.Get(ctx, qID)
 	if err != nil {
 		return nil, errors.Wrap(err, "error at try to fetch question")
 	}
-
 
 	in, err := q.QueryInput().Only(ctx)
 	if err != nil {
@@ -69,25 +67,25 @@ func (r *mutationResolver) AnswerQuestion(ctx context.Context, token string, qID
 	var answerIsOk bool
 	switch in.Kind {
 	case input.KindSatisfaction:
-		answerIsOk, err = answers.AnswerIsSatisfaction(ans, in.Multiple)
+		answerIsOk, err = answers.AnswerIsSatisfaction(answer, in.Multiple)
 		if err != nil {
 			return nil, errors.Wrap(err, "error at validate your answer")
 		}
 
 	case input.KindOptions:
-		answerIsOk, err = answers.AnswerIsOption(ans, in.Options, in.Multiple)
+		answerIsOk, err = answers.AnswerIsOption(answer, in.Options, in.Multiple)
 		if err != nil {
 			return nil, errors.Wrap(err, "error at validate your answer")
 		}
 
 	case input.KindText:
-		answerIsOk, err = answers.AnswerIsText(ans, in.Multiple)
+		answerIsOk, err = answers.AnswerIsText(answer, in.Multiple)
 		if err != nil {
 			return nil, errors.Wrap(err, "error at validate your answer")
 		}
 
 	case input.KindBoolean:
-		answerIsOk, err = answers.AnswerIsBoolean(ans, in.Multiple)
+		answerIsOk, err = answers.AnswerIsBoolean(answer, in.Multiple)
 		if err != nil {
 			return nil, errors.Wrap(err, "error at validate your answer")
 		}
@@ -99,7 +97,6 @@ func (r *mutationResolver) AnswerQuestion(ctx context.Context, token string, qID
 	if !answerIsOk {
 		return nil, errors.New("invalid answer, please choose a correct one")
 	}
-
 
 	f, err := q.QueryFlow().Only(ctx)
 	if err != nil {
@@ -113,7 +110,7 @@ func (r *mutationResolver) AnswerQuestion(ctx context.Context, token string, qID
 	_, err = r.DB.Ent.Answer.Create().
 		SetID(uuid.New()).
 		SetQuestion(q).
-		SetResponses(ans).
+		SetResponses(answer).
 		Save(ctx)
 	if err != nil {
 		return nil, errors.Wrap(err, "error at try to create new answer")
@@ -123,7 +120,6 @@ func (r *mutationResolver) AnswerQuestion(ctx context.Context, token string, qID
 	if err != nil {
 		return nil, errors.Wrap(err, "error at fetch survey")
 	}
-
 
 	nexState, err := flows.NextState(ctx, r.DB, surv.ID)
 	if err != nil {

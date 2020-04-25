@@ -9,29 +9,29 @@ import (
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
 	"github.com/facebookincubator/ent/schema/field"
 	"github.com/minskylab/collecta/ent/predicate"
-	"github.com/minskylab/collecta/ent/shorts"
+	"github.com/minskylab/collecta/ent/short"
 )
 
-// ShortsUpdate is the builder for updating Shorts entities.
-type ShortsUpdate struct {
+// ShortUpdate is the builder for updating Short entities.
+type ShortUpdate struct {
 	config
 
-	predicates []predicate.Shorts
+	predicates []predicate.Short
 }
 
 // Where adds a new predicate for the builder.
-func (su *ShortsUpdate) Where(ps ...predicate.Shorts) *ShortsUpdate {
+func (su *ShortUpdate) Where(ps ...predicate.Short) *ShortUpdate {
 	su.predicates = append(su.predicates, ps...)
 	return su
 }
 
 // Save executes the query and returns the number of rows/vertices matched by this operation.
-func (su *ShortsUpdate) Save(ctx context.Context) (int, error) {
+func (su *ShortUpdate) Save(ctx context.Context) (int, error) {
 	return su.sqlSave(ctx)
 }
 
 // SaveX is like Save, but panics if an error occurs.
-func (su *ShortsUpdate) SaveX(ctx context.Context) int {
+func (su *ShortUpdate) SaveX(ctx context.Context) int {
 	affected, err := su.Save(ctx)
 	if err != nil {
 		panic(err)
@@ -40,26 +40,26 @@ func (su *ShortsUpdate) SaveX(ctx context.Context) int {
 }
 
 // Exec executes the query.
-func (su *ShortsUpdate) Exec(ctx context.Context) error {
+func (su *ShortUpdate) Exec(ctx context.Context) error {
 	_, err := su.Save(ctx)
 	return err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (su *ShortsUpdate) ExecX(ctx context.Context) {
+func (su *ShortUpdate) ExecX(ctx context.Context) {
 	if err := su.Exec(ctx); err != nil {
 		panic(err)
 	}
 }
 
-func (su *ShortsUpdate) sqlSave(ctx context.Context) (n int, err error) {
+func (su *ShortUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	_spec := &sqlgraph.UpdateSpec{
 		Node: &sqlgraph.NodeSpec{
-			Table:   shorts.Table,
-			Columns: shorts.Columns,
+			Table:   short.Table,
+			Columns: short.Columns,
 			ID: &sqlgraph.FieldSpec{
 				Type:   field.TypeInt,
-				Column: shorts.FieldID,
+				Column: short.FieldID,
 			},
 		},
 	}
@@ -72,7 +72,7 @@ func (su *ShortsUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if n, err = sqlgraph.UpdateNodes(ctx, su.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
-			err = &NotFoundError{shorts.Label}
+			err = &NotFoundError{short.Label}
 		} else if cerr, ok := isSQLConstraintError(err); ok {
 			err = cerr
 		}
@@ -81,19 +81,19 @@ func (su *ShortsUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	return n, nil
 }
 
-// ShortsUpdateOne is the builder for updating a single Shorts entity.
-type ShortsUpdateOne struct {
+// ShortUpdateOne is the builder for updating a single Short entity.
+type ShortUpdateOne struct {
 	config
 	id int
 }
 
 // Save executes the query and returns the updated entity.
-func (suo *ShortsUpdateOne) Save(ctx context.Context) (*Shorts, error) {
+func (suo *ShortUpdateOne) Save(ctx context.Context) (*Short, error) {
 	return suo.sqlSave(ctx)
 }
 
 // SaveX is like Save, but panics if an error occurs.
-func (suo *ShortsUpdateOne) SaveX(ctx context.Context) *Shorts {
+func (suo *ShortUpdateOne) SaveX(ctx context.Context) *Short {
 	s, err := suo.Save(ctx)
 	if err != nil {
 		panic(err)
@@ -102,36 +102,36 @@ func (suo *ShortsUpdateOne) SaveX(ctx context.Context) *Shorts {
 }
 
 // Exec executes the query on the entity.
-func (suo *ShortsUpdateOne) Exec(ctx context.Context) error {
+func (suo *ShortUpdateOne) Exec(ctx context.Context) error {
 	_, err := suo.Save(ctx)
 	return err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (suo *ShortsUpdateOne) ExecX(ctx context.Context) {
+func (suo *ShortUpdateOne) ExecX(ctx context.Context) {
 	if err := suo.Exec(ctx); err != nil {
 		panic(err)
 	}
 }
 
-func (suo *ShortsUpdateOne) sqlSave(ctx context.Context) (s *Shorts, err error) {
+func (suo *ShortUpdateOne) sqlSave(ctx context.Context) (s *Short, err error) {
 	_spec := &sqlgraph.UpdateSpec{
 		Node: &sqlgraph.NodeSpec{
-			Table:   shorts.Table,
-			Columns: shorts.Columns,
+			Table:   short.Table,
+			Columns: short.Columns,
 			ID: &sqlgraph.FieldSpec{
 				Value:  suo.id,
 				Type:   field.TypeInt,
-				Column: shorts.FieldID,
+				Column: short.FieldID,
 			},
 		},
 	}
-	s = &Shorts{config: suo.config}
+	s = &Short{config: suo.config}
 	_spec.Assign = s.assignValues
 	_spec.ScanValues = s.scanValues()
 	if err = sqlgraph.UpdateNode(ctx, suo.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
-			err = &NotFoundError{shorts.Label}
+			err = &NotFoundError{short.Label}
 		} else if cerr, ok := isSQLConstraintError(err); ok {
 			err = cerr
 		}

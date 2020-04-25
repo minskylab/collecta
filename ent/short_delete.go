@@ -9,28 +9,28 @@ import (
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
 	"github.com/facebookincubator/ent/schema/field"
 	"github.com/minskylab/collecta/ent/predicate"
-	"github.com/minskylab/collecta/ent/shorts"
+	"github.com/minskylab/collecta/ent/short"
 )
 
-// ShortsDelete is the builder for deleting a Shorts entity.
-type ShortsDelete struct {
+// ShortDelete is the builder for deleting a Short entity.
+type ShortDelete struct {
 	config
-	predicates []predicate.Shorts
+	predicates []predicate.Short
 }
 
 // Where adds a new predicate to the delete builder.
-func (sd *ShortsDelete) Where(ps ...predicate.Shorts) *ShortsDelete {
+func (sd *ShortDelete) Where(ps ...predicate.Short) *ShortDelete {
 	sd.predicates = append(sd.predicates, ps...)
 	return sd
 }
 
 // Exec executes the deletion query and returns how many vertices were deleted.
-func (sd *ShortsDelete) Exec(ctx context.Context) (int, error) {
+func (sd *ShortDelete) Exec(ctx context.Context) (int, error) {
 	return sd.sqlExec(ctx)
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (sd *ShortsDelete) ExecX(ctx context.Context) int {
+func (sd *ShortDelete) ExecX(ctx context.Context) int {
 	n, err := sd.Exec(ctx)
 	if err != nil {
 		panic(err)
@@ -38,13 +38,13 @@ func (sd *ShortsDelete) ExecX(ctx context.Context) int {
 	return n
 }
 
-func (sd *ShortsDelete) sqlExec(ctx context.Context) (int, error) {
+func (sd *ShortDelete) sqlExec(ctx context.Context) (int, error) {
 	_spec := &sqlgraph.DeleteSpec{
 		Node: &sqlgraph.NodeSpec{
-			Table: shorts.Table,
+			Table: short.Table,
 			ID: &sqlgraph.FieldSpec{
 				Type:   field.TypeInt,
-				Column: shorts.FieldID,
+				Column: short.FieldID,
 			},
 		},
 	}
@@ -58,25 +58,25 @@ func (sd *ShortsDelete) sqlExec(ctx context.Context) (int, error) {
 	return sqlgraph.DeleteNodes(ctx, sd.driver, _spec)
 }
 
-// ShortsDeleteOne is the builder for deleting a single Shorts entity.
-type ShortsDeleteOne struct {
-	sd *ShortsDelete
+// ShortDeleteOne is the builder for deleting a single Short entity.
+type ShortDeleteOne struct {
+	sd *ShortDelete
 }
 
 // Exec executes the deletion query.
-func (sdo *ShortsDeleteOne) Exec(ctx context.Context) error {
+func (sdo *ShortDeleteOne) Exec(ctx context.Context) error {
 	n, err := sdo.sd.Exec(ctx)
 	switch {
 	case err != nil:
 		return err
 	case n == 0:
-		return &NotFoundError{shorts.Label}
+		return &NotFoundError{short.Label}
 	default:
 		return nil
 	}
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (sdo *ShortsDeleteOne) ExecX(ctx context.Context) {
+func (sdo *ShortDeleteOne) ExecX(ctx context.Context) {
 	sdo.sd.ExecX(ctx)
 }

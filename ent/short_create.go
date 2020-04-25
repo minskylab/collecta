@@ -10,34 +10,34 @@ import (
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
 	"github.com/facebookincubator/ent/schema/field"
 	"github.com/google/uuid"
-	"github.com/minskylab/collecta/ent/shorts"
+	"github.com/minskylab/collecta/ent/short"
 )
 
-// ShortsCreate is the builder for creating a Shorts entity.
-type ShortsCreate struct {
+// ShortCreate is the builder for creating a Short entity.
+type ShortCreate struct {
 	config
 	key   *string
 	value *uuid.UUID
 }
 
 // SetKey sets the key field.
-func (sc *ShortsCreate) SetKey(s string) *ShortsCreate {
+func (sc *ShortCreate) SetKey(s string) *ShortCreate {
 	sc.key = &s
 	return sc
 }
 
 // SetValue sets the value field.
-func (sc *ShortsCreate) SetValue(u uuid.UUID) *ShortsCreate {
+func (sc *ShortCreate) SetValue(u uuid.UUID) *ShortCreate {
 	sc.value = &u
 	return sc
 }
 
-// Save creates the Shorts in the database.
-func (sc *ShortsCreate) Save(ctx context.Context) (*Shorts, error) {
+// Save creates the Short in the database.
+func (sc *ShortCreate) Save(ctx context.Context) (*Short, error) {
 	if sc.key == nil {
 		return nil, errors.New("ent: missing required field \"key\"")
 	}
-	if err := shorts.KeyValidator(*sc.key); err != nil {
+	if err := short.KeyValidator(*sc.key); err != nil {
 		return nil, fmt.Errorf("ent: validator failed for field \"key\": %v", err)
 	}
 	if sc.value == nil {
@@ -47,7 +47,7 @@ func (sc *ShortsCreate) Save(ctx context.Context) (*Shorts, error) {
 }
 
 // SaveX calls Save and panics if Save returns an error.
-func (sc *ShortsCreate) SaveX(ctx context.Context) *Shorts {
+func (sc *ShortCreate) SaveX(ctx context.Context) *Short {
 	v, err := sc.Save(ctx)
 	if err != nil {
 		panic(err)
@@ -55,14 +55,14 @@ func (sc *ShortsCreate) SaveX(ctx context.Context) *Shorts {
 	return v
 }
 
-func (sc *ShortsCreate) sqlSave(ctx context.Context) (*Shorts, error) {
+func (sc *ShortCreate) sqlSave(ctx context.Context) (*Short, error) {
 	var (
-		s     = &Shorts{config: sc.config}
+		s     = &Short{config: sc.config}
 		_spec = &sqlgraph.CreateSpec{
-			Table: shorts.Table,
+			Table: short.Table,
 			ID: &sqlgraph.FieldSpec{
 				Type:   field.TypeInt,
-				Column: shorts.FieldID,
+				Column: short.FieldID,
 			},
 		}
 	)
@@ -70,7 +70,7 @@ func (sc *ShortsCreate) sqlSave(ctx context.Context) (*Shorts, error) {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
-			Column: shorts.FieldKey,
+			Column: short.FieldKey,
 		})
 		s.Key = *value
 	}
@@ -78,7 +78,7 @@ func (sc *ShortsCreate) sqlSave(ctx context.Context) (*Shorts, error) {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeUUID,
 			Value:  *value,
-			Column: shorts.FieldValue,
+			Column: short.FieldValue,
 		})
 		s.Value = *value
 	}

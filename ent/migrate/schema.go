@@ -213,7 +213,8 @@ var (
 		{Name: "title", Type: field.TypeString},
 		{Name: "description", Type: field.TypeString, Nullable: true},
 		{Name: "metadata", Type: field.TypeJSON, Nullable: true},
-		{Name: "done", Type: field.TypeBool, Default: survey.DefaultDone},
+		{Name: "done", Type: field.TypeBool, Nullable: true, Default: survey.DefaultDone},
+		{Name: "is_public", Type: field.TypeBool, Nullable: true, Default: survey.DefaultIsPublic},
 		{Name: "domain_surveys", Type: field.TypeUUID, Nullable: true},
 		{Name: "survey_flow", Type: field.TypeUUID, Nullable: true},
 		{Name: "user_surveys", Type: field.TypeUUID, Nullable: true},
@@ -226,21 +227,21 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:  "surveys_domains_surveys",
-				Columns: []*schema.Column{SurveysColumns[8]},
+				Columns: []*schema.Column{SurveysColumns[9]},
 
 				RefColumns: []*schema.Column{DomainsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:  "surveys_flows_flow",
-				Columns: []*schema.Column{SurveysColumns[9]},
+				Columns: []*schema.Column{SurveysColumns[10]},
 
 				RefColumns: []*schema.Column{FlowsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:  "surveys_users_surveys",
-				Columns: []*schema.Column{SurveysColumns[10]},
+				Columns: []*schema.Column{SurveysColumns[11]},
 
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,

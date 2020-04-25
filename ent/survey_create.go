@@ -28,6 +28,7 @@ type SurveyCreate struct {
 	description     *string
 	metadata        *map[string]string
 	done            *bool
+	isPublic        *bool
 	flow            map[uuid.UUID]struct{}
 	_for            map[uuid.UUID]struct{}
 	owner           map[uuid.UUID]struct{}
@@ -95,6 +96,20 @@ func (sc *SurveyCreate) SetDone(b bool) *SurveyCreate {
 func (sc *SurveyCreate) SetNillableDone(b *bool) *SurveyCreate {
 	if b != nil {
 		sc.SetDone(*b)
+	}
+	return sc
+}
+
+// SetIsPublic sets the isPublic field.
+func (sc *SurveyCreate) SetIsPublic(b bool) *SurveyCreate {
+	sc.isPublic = &b
+	return sc
+}
+
+// SetNillableIsPublic sets the isPublic field if the given value is not nil.
+func (sc *SurveyCreate) SetNillableIsPublic(b *bool) *SurveyCreate {
+	if b != nil {
+		sc.SetIsPublic(*b)
 	}
 	return sc
 }
@@ -176,6 +191,10 @@ func (sc *SurveyCreate) Save(ctx context.Context) (*Survey, error) {
 	if sc.done == nil {
 		v := survey.DefaultDone
 		sc.done = &v
+	}
+	if sc.isPublic == nil {
+		v := survey.DefaultIsPublic
+		sc.isPublic = &v
 	}
 	if len(sc.flow) > 1 {
 		return nil, errors.New("ent: multiple assignments on a unique edge \"flow\"")
@@ -274,6 +293,14 @@ func (sc *SurveyCreate) sqlSave(ctx context.Context) (*Survey, error) {
 			Column: survey.FieldDone,
 		})
 		s.Done = *value
+	}
+	if value := sc.isPublic; value != nil {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeBool,
+			Value:  *value,
+			Column: survey.FieldIsPublic,
+		})
+		s.IsPublic = *value
 	}
 	if nodes := sc.flow; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

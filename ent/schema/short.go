@@ -6,20 +6,20 @@ import (
 	"github.com/google/uuid"
 )
 
-// Shorts holds the schema definition for the Shorts entity.
-type Shorts struct {
+// Short holds the schema definition for the Short entity.
+type Short struct {
 	ent.Schema
 }
 
-// Fields of the Shorts.
-func (Shorts) Fields() []ent.Field {
+// Fields of the Short.
+func (Short) Fields() []ent.Field {
 	return []ent.Field{
 		field.String("key").NotEmpty().Unique().Immutable(),
 		field.UUID("value", uuid.UUID{}).Immutable(),
 	}
 }
 
-// Edges of the Shorts.
-func (Shorts) Edges() []ent.Edge {
+// Edges of the Short.
+func (Short) Edges() []ent.Edge {
 	return nil
 }

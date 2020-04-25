@@ -31,6 +31,9 @@ type SurveyUpdate struct {
 	metadata         *map[string]string
 	clearmetadata    bool
 	done             *bool
+	cleardone        bool
+	isPublic         *bool
+	clearisPublic    bool
 	flow             map[uuid.UUID]struct{}
 	_for             map[uuid.UUID]struct{}
 	owner            map[uuid.UUID]struct{}
@@ -109,6 +112,34 @@ func (su *SurveyUpdate) SetNillableDone(b *bool) *SurveyUpdate {
 	if b != nil {
 		su.SetDone(*b)
 	}
+	return su
+}
+
+// ClearDone clears the value of done.
+func (su *SurveyUpdate) ClearDone() *SurveyUpdate {
+	su.done = nil
+	su.cleardone = true
+	return su
+}
+
+// SetIsPublic sets the isPublic field.
+func (su *SurveyUpdate) SetIsPublic(b bool) *SurveyUpdate {
+	su.isPublic = &b
+	return su
+}
+
+// SetNillableIsPublic sets the isPublic field if the given value is not nil.
+func (su *SurveyUpdate) SetNillableIsPublic(b *bool) *SurveyUpdate {
+	if b != nil {
+		su.SetIsPublic(*b)
+	}
+	return su
+}
+
+// ClearIsPublic clears the value of isPublic.
+func (su *SurveyUpdate) ClearIsPublic() *SurveyUpdate {
+	su.isPublic = nil
+	su.clearisPublic = true
 	return su
 }
 
@@ -299,6 +330,25 @@ func (su *SurveyUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Column: survey.FieldDone,
 		})
 	}
+	if su.cleardone {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeBool,
+			Column: survey.FieldDone,
+		})
+	}
+	if value := su.isPublic; value != nil {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeBool,
+			Value:  *value,
+			Column: survey.FieldIsPublic,
+		})
+	}
+	if su.clearisPublic {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeBool,
+			Column: survey.FieldIsPublic,
+		})
+	}
 	if su.clearedFlow {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -428,6 +478,9 @@ type SurveyUpdateOne struct {
 	metadata         *map[string]string
 	clearmetadata    bool
 	done             *bool
+	cleardone        bool
+	isPublic         *bool
+	clearisPublic    bool
 	flow             map[uuid.UUID]struct{}
 	_for             map[uuid.UUID]struct{}
 	owner            map[uuid.UUID]struct{}
@@ -499,6 +552,34 @@ func (suo *SurveyUpdateOne) SetNillableDone(b *bool) *SurveyUpdateOne {
 	if b != nil {
 		suo.SetDone(*b)
 	}
+	return suo
+}
+
+// ClearDone clears the value of done.
+func (suo *SurveyUpdateOne) ClearDone() *SurveyUpdateOne {
+	suo.done = nil
+	suo.cleardone = true
+	return suo
+}
+
+// SetIsPublic sets the isPublic field.
+func (suo *SurveyUpdateOne) SetIsPublic(b bool) *SurveyUpdateOne {
+	suo.isPublic = &b
+	return suo
+}
+
+// SetNillableIsPublic sets the isPublic field if the given value is not nil.
+func (suo *SurveyUpdateOne) SetNillableIsPublic(b *bool) *SurveyUpdateOne {
+	if b != nil {
+		suo.SetIsPublic(*b)
+	}
+	return suo
+}
+
+// ClearIsPublic clears the value of isPublic.
+func (suo *SurveyUpdateOne) ClearIsPublic() *SurveyUpdateOne {
+	suo.isPublic = nil
+	suo.clearisPublic = true
 	return suo
 }
 
@@ -681,6 +762,25 @@ func (suo *SurveyUpdateOne) sqlSave(ctx context.Context) (s *Survey, err error) 
 			Type:   field.TypeBool,
 			Value:  *value,
 			Column: survey.FieldDone,
+		})
+	}
+	if suo.cleardone {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeBool,
+			Column: survey.FieldDone,
+		})
+	}
+	if value := suo.isPublic; value != nil {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeBool,
+			Value:  *value,
+			Column: survey.FieldIsPublic,
+		})
+	}
+	if suo.clearisPublic {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeBool,
+			Column: survey.FieldIsPublic,
 		})
 	}
 	if suo.clearedFlow {
