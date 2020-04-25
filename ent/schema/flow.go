@@ -18,6 +18,8 @@ func (Flow) Fields() []ent.Field {
 		field.UUID("id", uuid.UUID{}),
 		field.UUID("state", uuid.UUID{}),
 		field.String("stateTable").NotEmpty(),
+		field.UUID("initialState", uuid.UUID{}),
+		field.UUID("terminationState", uuid.UUID{}),
 		field.UUID("pastState", uuid.UUID{}).Optional(),
 		field.Strings("inputs").Immutable().Optional(),
 	}

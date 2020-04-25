@@ -102,6 +102,8 @@ func generateUTECDemoSurvey(ctx context.Context, db *db.DB, domainID uuid.UUID, 
 		SetID(uuid.New()).
 		SetInputs([]string{}).
 		SetState(q1.ID). // first question
+		SetInitialState(q1.ID).
+		SetTerminationState(q4.ID).
 		SetStateTable(flowProgram).
 		AddQuestions(
 			q1, q2, q3, q4,
@@ -121,7 +123,7 @@ func generateUTECDemoSurvey(ctx context.Context, db *db.DB, domainID uuid.UUID, 
 		SetOwnerID(domainID).
 		SetDone(false).
 		SetTitle("Feedback por Sesión | Estudiantes").
-		SetDescription("<br>{{.Name}}</br>, responde esta pequeña encuesta sobre tu clase de Teoría de Decisiones del día martes 10 de Marzo.").
+		SetDescription("<br>{{Name}}</br>, responde esta pequeña encuesta sobre tu clase de Teoría de Decisiones del día martes 10 de Marzo.").
 		SetLastInteraction(time.Now()).
 		SetTags([]string{"Teoría de Decisiones", "UTEC"}).
 		SetFlow(qFlow).

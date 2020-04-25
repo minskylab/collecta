@@ -21,6 +21,10 @@ type Flow struct {
 	State uuid.UUID `json:"state,omitempty"`
 	// StateTable holds the value of the "stateTable" field.
 	StateTable string `json:"stateTable,omitempty"`
+	// InitialState holds the value of the "initialState" field.
+	InitialState uuid.UUID `json:"initialState,omitempty"`
+	// TerminationState holds the value of the "terminationState" field.
+	TerminationState uuid.UUID `json:"terminationState,omitempty"`
 	// PastState holds the value of the "pastState" field.
 	PastState uuid.UUID `json:"pastState,omitempty"`
 	// Inputs holds the value of the "inputs" field.
@@ -54,6 +58,8 @@ func (*Flow) scanValues() []interface{} {
 		&uuid.UUID{},      // id
 		&uuid.UUID{},      // state
 		&sql.NullString{}, // stateTable
+		&uuid.UUID{},      // initialState
+		&uuid.UUID{},      // terminationState
 		&uuid.UUID{},      // pastState
 		&[]byte{},         // inputs
 	}
@@ -82,13 +88,23 @@ func (f *Flow) assignValues(values ...interface{}) error {
 		f.StateTable = value.String
 	}
 	if value, ok := values[2].(*uuid.UUID); !ok {
-		return fmt.Errorf("unexpected type %T for field pastState", values[2])
+		return fmt.Errorf("unexpected type %T for field initialState", values[2])
+	} else if value != nil {
+		f.InitialState = *value
+	}
+	if value, ok := values[3].(*uuid.UUID); !ok {
+		return fmt.Errorf("unexpected type %T for field terminationState", values[3])
+	} else if value != nil {
+		f.TerminationState = *value
+	}
+	if value, ok := values[4].(*uuid.UUID); !ok {
+		return fmt.Errorf("unexpected type %T for field pastState", values[4])
 	} else if value != nil {
 		f.PastState = *value
 	}
 
-	if value, ok := values[3].(*[]byte); !ok {
-		return fmt.Errorf("unexpected type %T for field inputs", values[3])
+	if value, ok := values[5].(*[]byte); !ok {
+		return fmt.Errorf("unexpected type %T for field inputs", values[5])
 	} else if value != nil && len(*value) > 0 {
 		if err := json.Unmarshal(*value, &f.Inputs); err != nil {
 			return fmt.Errorf("unmarshal field inputs: %v", err)
@@ -129,6 +145,10 @@ func (f *Flow) String() string {
 	builder.WriteString(fmt.Sprintf("%v", f.State))
 	builder.WriteString(", stateTable=")
 	builder.WriteString(f.StateTable)
+	builder.WriteString(", initialState=")
+	builder.WriteString(fmt.Sprintf("%v", f.InitialState))
+	builder.WriteString(", terminationState=")
+	builder.WriteString(fmt.Sprintf("%v", f.TerminationState))
 	builder.WriteString(", pastState=")
 	builder.WriteString(fmt.Sprintf("%v", f.PastState))
 	builder.WriteString(", inputs=")

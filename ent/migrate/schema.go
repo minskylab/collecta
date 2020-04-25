@@ -118,6 +118,8 @@ var (
 		{Name: "id", Type: field.TypeUUID},
 		{Name: "state", Type: field.TypeUUID},
 		{Name: "state_table", Type: field.TypeString},
+		{Name: "initial_state", Type: field.TypeUUID},
+		{Name: "termination_state", Type: field.TypeUUID},
 		{Name: "past_state", Type: field.TypeUUID, Nullable: true},
 		{Name: "inputs", Type: field.TypeJSON, Nullable: true},
 	}

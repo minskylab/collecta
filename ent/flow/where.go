@@ -106,6 +106,20 @@ func StateTable(v string) predicate.Flow {
 	})
 }
 
+// InitialState applies equality check predicate on the "initialState" field. It's identical to InitialStateEQ.
+func InitialState(v uuid.UUID) predicate.Flow {
+	return predicate.Flow(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldInitialState), v))
+	})
+}
+
+// TerminationState applies equality check predicate on the "terminationState" field. It's identical to TerminationStateEQ.
+func TerminationState(v uuid.UUID) predicate.Flow {
+	return predicate.Flow(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldTerminationState), v))
+	})
+}
+
 // PastState applies equality check predicate on the "pastState" field. It's identical to PastStateEQ.
 func PastState(v uuid.UUID) predicate.Flow {
 	return predicate.Flow(func(s *sql.Selector) {
@@ -297,6 +311,158 @@ func StateTableEqualFold(v string) predicate.Flow {
 func StateTableContainsFold(v string) predicate.Flow {
 	return predicate.Flow(func(s *sql.Selector) {
 		s.Where(sql.ContainsFold(s.C(FieldStateTable), v))
+	})
+}
+
+// InitialStateEQ applies the EQ predicate on the "initialState" field.
+func InitialStateEQ(v uuid.UUID) predicate.Flow {
+	return predicate.Flow(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldInitialState), v))
+	})
+}
+
+// InitialStateNEQ applies the NEQ predicate on the "initialState" field.
+func InitialStateNEQ(v uuid.UUID) predicate.Flow {
+	return predicate.Flow(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldInitialState), v))
+	})
+}
+
+// InitialStateIn applies the In predicate on the "initialState" field.
+func InitialStateIn(vs ...uuid.UUID) predicate.Flow {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Flow(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(vs) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.In(s.C(FieldInitialState), v...))
+	})
+}
+
+// InitialStateNotIn applies the NotIn predicate on the "initialState" field.
+func InitialStateNotIn(vs ...uuid.UUID) predicate.Flow {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Flow(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(vs) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.NotIn(s.C(FieldInitialState), v...))
+	})
+}
+
+// InitialStateGT applies the GT predicate on the "initialState" field.
+func InitialStateGT(v uuid.UUID) predicate.Flow {
+	return predicate.Flow(func(s *sql.Selector) {
+		s.Where(sql.GT(s.C(FieldInitialState), v))
+	})
+}
+
+// InitialStateGTE applies the GTE predicate on the "initialState" field.
+func InitialStateGTE(v uuid.UUID) predicate.Flow {
+	return predicate.Flow(func(s *sql.Selector) {
+		s.Where(sql.GTE(s.C(FieldInitialState), v))
+	})
+}
+
+// InitialStateLT applies the LT predicate on the "initialState" field.
+func InitialStateLT(v uuid.UUID) predicate.Flow {
+	return predicate.Flow(func(s *sql.Selector) {
+		s.Where(sql.LT(s.C(FieldInitialState), v))
+	})
+}
+
+// InitialStateLTE applies the LTE predicate on the "initialState" field.
+func InitialStateLTE(v uuid.UUID) predicate.Flow {
+	return predicate.Flow(func(s *sql.Selector) {
+		s.Where(sql.LTE(s.C(FieldInitialState), v))
+	})
+}
+
+// TerminationStateEQ applies the EQ predicate on the "terminationState" field.
+func TerminationStateEQ(v uuid.UUID) predicate.Flow {
+	return predicate.Flow(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldTerminationState), v))
+	})
+}
+
+// TerminationStateNEQ applies the NEQ predicate on the "terminationState" field.
+func TerminationStateNEQ(v uuid.UUID) predicate.Flow {
+	return predicate.Flow(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldTerminationState), v))
+	})
+}
+
+// TerminationStateIn applies the In predicate on the "terminationState" field.
+func TerminationStateIn(vs ...uuid.UUID) predicate.Flow {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Flow(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(vs) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.In(s.C(FieldTerminationState), v...))
+	})
+}
+
+// TerminationStateNotIn applies the NotIn predicate on the "terminationState" field.
+func TerminationStateNotIn(vs ...uuid.UUID) predicate.Flow {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Flow(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(vs) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.NotIn(s.C(FieldTerminationState), v...))
+	})
+}
+
+// TerminationStateGT applies the GT predicate on the "terminationState" field.
+func TerminationStateGT(v uuid.UUID) predicate.Flow {
+	return predicate.Flow(func(s *sql.Selector) {
+		s.Where(sql.GT(s.C(FieldTerminationState), v))
+	})
+}
+
+// TerminationStateGTE applies the GTE predicate on the "terminationState" field.
+func TerminationStateGTE(v uuid.UUID) predicate.Flow {
+	return predicate.Flow(func(s *sql.Selector) {
+		s.Where(sql.GTE(s.C(FieldTerminationState), v))
+	})
+}
+
+// TerminationStateLT applies the LT predicate on the "terminationState" field.
+func TerminationStateLT(v uuid.UUID) predicate.Flow {
+	return predicate.Flow(func(s *sql.Selector) {
+		s.Where(sql.LT(s.C(FieldTerminationState), v))
+	})
+}
+
+// TerminationStateLTE applies the LTE predicate on the "terminationState" field.
+func TerminationStateLTE(v uuid.UUID) predicate.Flow {
+	return predicate.Flow(func(s *sql.Selector) {
+		s.Where(sql.LTE(s.C(FieldTerminationState), v))
 	})
 }
 

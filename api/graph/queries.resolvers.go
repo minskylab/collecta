@@ -5,8 +5,8 @@ package graph
 
 import (
 	"context"
-	"fmt"
 
+	"github.com/minskylab/collecta/ent/user"
 	"github.com/pkg/errors"
 
 	"github.com/google/uuid"
@@ -156,7 +156,13 @@ func (r *queryResolver) User(ctx context.Context, token string, id string) (*mod
 	}
 
 	if userRequester.ID != userID {
-		return nil, errors.New("you don't allowed to consume this resource")
+		requesterIsOwnerOfUser, err := userRequester.QueryAdminOf().Where(domain.HasUsersWith(user.ID(userID))).Exist(ctx)
+		if err != nil {
+			return nil, errors.Wrap(err, "error at request resource to verify credentials")
+		}
+		if !requesterIsOwnerOfUser {
+			return nil, errors.New("you don't allowed to consume this resource")
+		}
 	}
 
 	e, err := r.DB.Ent.User.Get(ctx, userID)
@@ -188,12 +194,98 @@ func (r *queryResolver) UserByToken(ctx context.Context, token string) (*model.U
 	}, nil
 }
 
-func (r *queryResolver) IsFirstQuestion(ctx context.Context, token string, questionID string) (bool, error) {
-	panic(fmt.Errorf("not implemented"))
+func (r *queryResolver) IsFirstQuestion(ctx context.Context, token string, qID string) (bool, error) {
+	userRequester, err := r.Auth.VerifyJWTToken(ctx, token)
+	if err != nil {
+		return false, errors.Wrap(err, "invalid token, probably user not registered")
+	}
+
+	questionID, err := uuid.Parse(qID)
+	if err != nil {
+		return false, errors.Wrap(err, "error at try to parse the domain id")
+	}
+
+	isOwnerOfQuestionSurveyDomain, err := userRequester.
+		QueryAdminOf().
+		Where(
+			domain.HasSurveysWith(
+				survey.HasFlowWith(
+					flow.HasQuestionsWith(question.ID(questionID)),
+				),
+			),
+		).Exist(ctx)
+	if err != nil {
+		return false, errors.Wrap(err, "error at try to search domain related to question")
+	}
+
+	if !isOwnerOfQuestionSurveyDomain {
+		isQuestionOwner, err := userRequester.QuerySurveys().QueryFlow().QueryQuestions().Where(question.ID(questionID)).Exist(ctx)
+		if err != nil {
+			return false, errors.Wrap(err, "question cannot be fetch")
+		}
+		if !isQuestionOwner {
+			return false, errors.New("resource isn't accessible for you")
+		}
+	}
+
+	q, err := r.DB.Ent.Question.Get(ctx, questionID)
+	if err != nil {
+		return false, errors.Wrap(err, "error at try to get from ent")
+	}
+
+	f, err := q.QueryFlow().Only(ctx)
+	if err != nil {
+		return false, errors.Wrap(err, "error at fetch the question flow")
+	}
+
+	return questionID == f.InitialState, nil
 }
 
-func (r *queryResolver) IsFinalQuestion(ctx context.Context, token string, questionID string) (bool, error) {
-	panic(fmt.Errorf("not implemented"))
+func (r *queryResolver) IsFinalQuestion(ctx context.Context, token string, qID string) (bool, error) {
+	userRequester, err := r.Auth.VerifyJWTToken(ctx, token)
+	if err != nil {
+		return false, errors.Wrap(err, "invalid token, probably user not registered")
+	}
+
+	questionID, err := uuid.Parse(qID)
+	if err != nil {
+		return false, errors.Wrap(err, "error at try to parse the domain id")
+	}
+
+	isOwnerOfQuestionSurveyDomain, err := userRequester.
+		QueryAdminOf().
+		Where(
+			domain.HasSurveysWith(
+				survey.HasFlowWith(
+					flow.HasQuestionsWith(question.ID(questionID)),
+				),
+			),
+		).Exist(ctx)
+	if err != nil {
+		return false, errors.Wrap(err, "error at try to search domain related to question")
+	}
+
+	if !isOwnerOfQuestionSurveyDomain {
+		isQuestionOwner, err := userRequester.QuerySurveys().QueryFlow().QueryQuestions().Where(question.ID(questionID)).Exist(ctx)
+		if err != nil {
+			return false, errors.Wrap(err, "question cannot be fetch")
+		}
+		if !isQuestionOwner {
+			return false, errors.New("resource isn't accessible for you")
+		}
+	}
+
+	q, err := r.DB.Ent.Question.Get(ctx, questionID)
+	if err != nil {
+		return false, errors.Wrap(err, "error at try to get from ent")
+	}
+
+	f, err := q.QueryFlow().Only(ctx)
+	if err != nil {
+		return false, errors.Wrap(err, "error at fetch the question flow")
+	}
+
+	return questionID == f.TerminationState, nil
 }
 
 func (r *queryResolver) LastQuestionOfSurvey(ctx context.Context, token string, surveyID string) (*model.Question, error) {

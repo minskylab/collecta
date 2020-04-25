@@ -15,6 +15,10 @@ const (
 	FieldState = "state"
 	// FieldStateTable holds the string denoting the statetable vertex property in the database.
 	FieldStateTable = "state_table"
+	// FieldInitialState holds the string denoting the initialstate vertex property in the database.
+	FieldInitialState = "initial_state"
+	// FieldTerminationState holds the string denoting the terminationstate vertex property in the database.
+	FieldTerminationState = "termination_state"
 	// FieldPastState holds the string denoting the paststate vertex property in the database.
 	FieldPastState = "past_state"
 	// FieldInputs holds the string denoting the inputs vertex property in the database.
@@ -36,6 +40,8 @@ var Columns = []string{
 	FieldID,
 	FieldState,
 	FieldStateTable,
+	FieldInitialState,
+	FieldTerminationState,
 	FieldPastState,
 	FieldInputs,
 }

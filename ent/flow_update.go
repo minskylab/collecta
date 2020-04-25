@@ -18,10 +18,12 @@ import (
 // FlowUpdate is the builder for updating Flow entities.
 type FlowUpdate struct {
 	config
-	state          *uuid.UUID
-	stateTable     *string
-	pastState      *uuid.UUID
-	clearpastState bool
+	state            *uuid.UUID
+	stateTable       *string
+	initialState     *uuid.UUID
+	terminationState *uuid.UUID
+	pastState        *uuid.UUID
+	clearpastState   bool
 
 	clearinputs      bool
 	questions        map[uuid.UUID]struct{}
@@ -44,6 +46,18 @@ func (fu *FlowUpdate) SetState(u uuid.UUID) *FlowUpdate {
 // SetStateTable sets the stateTable field.
 func (fu *FlowUpdate) SetStateTable(s string) *FlowUpdate {
 	fu.stateTable = &s
+	return fu
+}
+
+// SetInitialState sets the initialState field.
+func (fu *FlowUpdate) SetInitialState(u uuid.UUID) *FlowUpdate {
+	fu.initialState = &u
+	return fu
+}
+
+// SetTerminationState sets the terminationState field.
+func (fu *FlowUpdate) SetTerminationState(u uuid.UUID) *FlowUpdate {
+	fu.terminationState = &u
 	return fu
 }
 
@@ -164,6 +178,20 @@ func (fu *FlowUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Column: flow.FieldStateTable,
 		})
 	}
+	if value := fu.initialState; value != nil {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeUUID,
+			Value:  *value,
+			Column: flow.FieldInitialState,
+		})
+	}
+	if value := fu.terminationState; value != nil {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeUUID,
+			Value:  *value,
+			Column: flow.FieldTerminationState,
+		})
+	}
 	if value := fu.pastState; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeUUID,
@@ -235,11 +263,13 @@ func (fu *FlowUpdate) sqlSave(ctx context.Context) (n int, err error) {
 // FlowUpdateOne is the builder for updating a single Flow entity.
 type FlowUpdateOne struct {
 	config
-	id             uuid.UUID
-	state          *uuid.UUID
-	stateTable     *string
-	pastState      *uuid.UUID
-	clearpastState bool
+	id               uuid.UUID
+	state            *uuid.UUID
+	stateTable       *string
+	initialState     *uuid.UUID
+	terminationState *uuid.UUID
+	pastState        *uuid.UUID
+	clearpastState   bool
 
 	clearinputs      bool
 	questions        map[uuid.UUID]struct{}
@@ -255,6 +285,18 @@ func (fuo *FlowUpdateOne) SetState(u uuid.UUID) *FlowUpdateOne {
 // SetStateTable sets the stateTable field.
 func (fuo *FlowUpdateOne) SetStateTable(s string) *FlowUpdateOne {
 	fuo.stateTable = &s
+	return fuo
+}
+
+// SetInitialState sets the initialState field.
+func (fuo *FlowUpdateOne) SetInitialState(u uuid.UUID) *FlowUpdateOne {
+	fuo.initialState = &u
+	return fuo
+}
+
+// SetTerminationState sets the terminationState field.
+func (fuo *FlowUpdateOne) SetTerminationState(u uuid.UUID) *FlowUpdateOne {
+	fuo.terminationState = &u
 	return fuo
 }
 
@@ -367,6 +409,20 @@ func (fuo *FlowUpdateOne) sqlSave(ctx context.Context) (f *Flow, err error) {
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: flow.FieldStateTable,
+		})
+	}
+	if value := fuo.initialState; value != nil {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeUUID,
+			Value:  *value,
+			Column: flow.FieldInitialState,
+		})
+	}
+	if value := fuo.terminationState; value != nil {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeUUID,
+			Value:  *value,
+			Column: flow.FieldTerminationState,
 		})
 	}
 	if value := fuo.pastState; value != nil {

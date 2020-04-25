@@ -1,4 +1,4 @@
-package core
+package answers
 
 import (
 	"strconv"
@@ -15,11 +15,6 @@ const Option AnswerKind = "option"
 const Text AnswerKind = "text"
 const Boolean AnswerKind = "boolean"
 
-// // AnswerValidation only wraps the necessary info to understand an answer
-// type AnswerValidation struct {
-// 	Valid bool
-// 	Multiple bool
-// }
 
 func validate(input []string, kind AnswerKind, options ...map[string]string) (bool, bool, error) {
 	if len(input) == 0 {
@@ -71,36 +66,40 @@ func validate(input []string, kind AnswerKind, options ...map[string]string) (bo
 	}
 
 	m := false
-	if len(input) > 1 {
+	if len(input) > 0 {
 		m = true
 	}
 
 	return true, m, nil
 }
 
-func answerIsSatisfaction(input []string, acceptMultiple ...bool) (bool, error) {
-	valid, multiple, err := validate(input, Satisfaction)
+func answerIsOfKind(kind AnswerKind, input []string, acceptMultiple bool, options ...map[string]string) (bool, error) {
+	valid, multiple, err := validate(input, kind, options...)
 	if err != nil {
 		return false, errors.Wrap(err, "error at validate your input")
 	}
 
-	if len(acceptMultiple) == 0 && multiple {
+	if multiple && !acceptMultiple {
 		return false, nil
 	}
 
-
+	return valid, nil
 }
 
-func answerIsOption(input []string, options map[string]string, acceptMultiple ...bool) (bool, error) {
-
+func AnswerIsSatisfaction(input []string, acceptMultiple bool) (bool, error) {
+	return answerIsOfKind(Satisfaction, input, acceptMultiple)
 }
 
-func answerIsBoolean(input []string, acceptMultiple ...bool) (bool, error) {
-
+func AnswerIsOption(input []string, options map[string]string, acceptMultiple bool) (bool, error) {
+	return answerIsOfKind(Option, input, acceptMultiple, options)
 }
 
-func answerIsText(input []string, acceptMultiple ...bool) (bool, error) {
+func AnswerIsBoolean(input []string, acceptMultiple bool) (bool, error) {
+	return answerIsOfKind(Boolean, input, acceptMultiple)
+}
 
+func AnswerIsText(input []string, acceptMultiple bool) (bool, error) {
+	return answerIsOfKind(Text, input, acceptMultiple)
 }
 
 

@@ -17,12 +17,14 @@ import (
 // FlowCreate is the builder for creating a Flow entity.
 type FlowCreate struct {
 	config
-	id         *uuid.UUID
-	state      *uuid.UUID
-	stateTable *string
-	pastState  *uuid.UUID
-	inputs     *[]string
-	questions  map[uuid.UUID]struct{}
+	id               *uuid.UUID
+	state            *uuid.UUID
+	stateTable       *string
+	initialState     *uuid.UUID
+	terminationState *uuid.UUID
+	pastState        *uuid.UUID
+	inputs           *[]string
+	questions        map[uuid.UUID]struct{}
 }
 
 // SetState sets the state field.
@@ -34,6 +36,18 @@ func (fc *FlowCreate) SetState(u uuid.UUID) *FlowCreate {
 // SetStateTable sets the stateTable field.
 func (fc *FlowCreate) SetStateTable(s string) *FlowCreate {
 	fc.stateTable = &s
+	return fc
+}
+
+// SetInitialState sets the initialState field.
+func (fc *FlowCreate) SetInitialState(u uuid.UUID) *FlowCreate {
+	fc.initialState = &u
+	return fc
+}
+
+// SetTerminationState sets the terminationState field.
+func (fc *FlowCreate) SetTerminationState(u uuid.UUID) *FlowCreate {
+	fc.terminationState = &u
 	return fc
 }
 
@@ -86,6 +100,12 @@ func (fc *FlowCreate) Save(ctx context.Context) (*Flow, error) {
 	if err := flow.StateTableValidator(*fc.stateTable); err != nil {
 		return nil, fmt.Errorf("ent: validator failed for field \"stateTable\": %v", err)
 	}
+	if fc.initialState == nil {
+		return nil, errors.New("ent: missing required field \"initialState\"")
+	}
+	if fc.terminationState == nil {
+		return nil, errors.New("ent: missing required field \"terminationState\"")
+	}
 	if fc.questions == nil {
 		return nil, errors.New("ent: missing required edge \"questions\"")
 	}
@@ -131,6 +151,22 @@ func (fc *FlowCreate) sqlSave(ctx context.Context) (*Flow, error) {
 			Column: flow.FieldStateTable,
 		})
 		f.StateTable = *value
+	}
+	if value := fc.initialState; value != nil {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeUUID,
+			Value:  *value,
+			Column: flow.FieldInitialState,
+		})
+		f.InitialState = *value
+	}
+	if value := fc.terminationState; value != nil {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeUUID,
+			Value:  *value,
+			Column: flow.FieldTerminationState,
+		})
+		f.TerminationState = *value
 	}
 	if value := fc.pastState; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{

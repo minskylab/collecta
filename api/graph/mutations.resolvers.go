@@ -7,6 +7,10 @@ import (
 	"context"
 	"time"
 
+	"github.com/minskylab/collecta/collecta/answers"
+	"github.com/minskylab/collecta/ent/domain"
+	"github.com/minskylab/collecta/ent/input"
+	"github.com/minskylab/collecta/ent/question"
 	"github.com/pkg/errors"
 
 	"github.com/google/uuid"
@@ -17,26 +21,102 @@ import (
 	"github.com/minskylab/collecta/flows"
 )
 
-func (r *mutationResolver) AnswerQuestion(ctx context.Context, token string, questionID string, answer []string) (*model.Survey, error) {
-	q, err := r.DB.Ent.Question.Get(ctx, uuid.MustParse(questionID))
+func (r *mutationResolver) AnswerQuestion(ctx context.Context, token string, qID string, ans []string) (*model.Survey, error) {
+	userRequester, err := r.Auth.VerifyJWTToken(ctx, token)
+	if err != nil {
+		return nil, errors.Wrap(err, "invalid token, probably user not registered")
+	}
+
+	questionID, err := uuid.Parse(qID)
+	if err != nil {
+		return nil, errors.Wrap(err, "error at try to parse the domain id")
+	}
+
+	isOwnerOfQuestionSurveyDomain, err := userRequester.
+		QueryAdminOf().
+		Where(
+			domain.HasSurveysWith(
+				survey.HasFlowWith(
+					flow.HasQuestionsWith(question.ID(questionID)),
+				),
+			),
+		).Exist(ctx)
+	if err != nil {
+		return nil, errors.Wrap(err, "error at try to search domain related to question")
+	}
+
+	if !isOwnerOfQuestionSurveyDomain {
+		isQuestionOwner, err := userRequester.QuerySurveys().QueryFlow().QueryQuestions().Where(question.ID(questionID)).Exist(ctx)
+		if err != nil {
+			return nil, errors.Wrap(err, "question cannot be fetch")
+		}
+		if !isQuestionOwner {
+			return nil, errors.New("resource isn't accessible for you")
+		}
+	}
+
+	q, err := r.DB.Ent.Question.Get(ctx, questionID)
 	if err != nil {
 		return nil, errors.Wrap(err, "error at try to fetch question")
 	}
 
-	// TODO: Validate all
 
-	_, err = r.DB.Ent.Answer.Create().
-		SetID(uuid.New()).
-		SetQuestion(q).
-		SetResponses(answer).
-		Save(ctx)
+	in, err := q.QueryInput().Only(ctx)
 	if err != nil {
-		return nil, errors.Wrap(err, "error at try to create new answer")
+		return nil, errors.Wrap(err, "error at query input from your question")
 	}
+
+	var answerIsOk bool
+	switch in.Kind {
+	case input.KindSatisfaction:
+		answerIsOk, err = answers.AnswerIsSatisfaction(ans, in.Multiple)
+		if err != nil {
+			return nil, errors.Wrap(err, "error at validate your answer")
+		}
+
+	case input.KindOptions:
+		answerIsOk, err = answers.AnswerIsOption(ans, in.Options, in.Multiple)
+		if err != nil {
+			return nil, errors.Wrap(err, "error at validate your answer")
+		}
+
+	case input.KindText:
+		answerIsOk, err = answers.AnswerIsText(ans, in.Multiple)
+		if err != nil {
+			return nil, errors.Wrap(err, "error at validate your answer")
+		}
+
+	case input.KindBoolean:
+		answerIsOk, err = answers.AnswerIsBoolean(ans, in.Multiple)
+		if err != nil {
+			return nil, errors.Wrap(err, "error at validate your answer")
+		}
+
+	default:
+		return nil, errors.New("invalid input kind, that's so rare")
+	}
+
+	if !answerIsOk {
+		return nil, errors.New("invalid answer, please choose a correct one")
+	}
+
 
 	f, err := q.QueryFlow().Only(ctx)
 	if err != nil {
 		return nil, errors.Wrap(err, "error at fetch flow")
+	}
+
+	if q.ID != f.State {
+		return nil, errors.New("you only can answered a current question, as state, in a flow")
+	}
+
+	_, err = r.DB.Ent.Answer.Create().
+		SetID(uuid.New()).
+		SetQuestion(q).
+		SetResponses(ans).
+		Save(ctx)
+	if err != nil {
+		return nil, errors.Wrap(err, "error at try to create new answer")
 	}
 
 	surv, err := r.DB.Ent.Survey.Query().Where(survey.HasFlowWith(flow.ID(f.ID))).Only(ctx)
@@ -44,7 +124,7 @@ func (r *mutationResolver) AnswerQuestion(ctx context.Context, token string, que
 		return nil, errors.Wrap(err, "error at fetch survey")
 	}
 
-	// TODO: That is completely incorrect, please Bregy solve it fast!
+
 	nexState, err := flows.NextState(ctx, r.DB, surv.ID)
 	if err != nil {
 		return nil, errors.Wrap(err, "error at calculate the next state")
