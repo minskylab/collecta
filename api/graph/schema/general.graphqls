@@ -1,0 +1,30 @@
+type LoginResponse {
+    token: String!
+}
+
+enum InputType {
+    OPTION
+    TEXT
+    BOOLEAN
+    SATISFACTION
+}
+
+input QuestionCreator {
+    title: String!
+    description: String!
+    kind: InputType!
+    multiple: Boolean
+    options: Map
+}
+
+input SurveyCreator {
+    whitelist: [ID!]!
+    title: String!
+    description: String!
+    tags: [String!]!
+    question: [QuestionCreator!]!
+    forAllDomainUsers: Boolean
+    metadata: Map
+    logic: String
+    # TODO, describe a correct survey creator, make the best survies API!
+}

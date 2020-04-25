@@ -3,6 +3,9 @@
 package model
 
 import (
+	"fmt"
+	"io"
+	"strconv"
 	"time"
 )
 
@@ -66,6 +69,10 @@ type Input struct {
 	Question *Question              `json:"question"`
 }
 
+type LoginResponse struct {
+	Token string `json:"token"`
+}
+
 type Question struct {
 	ID          string                 `json:"id"`
 	Hash        string                 `json:"hash"`
@@ -77,6 +84,14 @@ type Question struct {
 	Answers     []*Answer              `json:"answers"`
 	Input       *Input                 `json:"input"`
 	Flow        *Flow                  `json:"flow"`
+}
+
+type QuestionCreator struct {
+	Title       string                 `json:"title"`
+	Description string                 `json:"description"`
+	Kind        InputType              `json:"kind"`
+	Multiple    *bool                  `json:"multiple"`
+	Options     map[string]interface{} `json:"options"`
 }
 
 type Short struct {
@@ -99,6 +114,17 @@ type Survey struct {
 	Owner           *Domain                `json:"owner"`
 }
 
+type SurveyCreator struct {
+	Whitelist         []string               `json:"whitelist"`
+	Title             string                 `json:"title"`
+	Description       string                 `json:"description"`
+	Tags              []string               `json:"tags"`
+	Question          []*QuestionCreator     `json:"question"`
+	ForAllDomainUsers *bool                  `json:"forAllDomainUsers"`
+	Metadata          map[string]interface{} `json:"metadata"`
+	Logic             *string                `json:"logic"`
+}
+
 type User struct {
 	ID           string    `json:"id"`
 	Name         string    `json:"name"`
@@ -111,4 +137,49 @@ type User struct {
 	Surveys      []*Survey `json:"surveys"`
 	Domains      []*Domain `json:"domains"`
 	AdminOf      []*Domain `json:"adminOf"`
+}
+
+type InputType string
+
+const (
+	InputTypeOption       InputType = "OPTION"
+	InputTypeText         InputType = "TEXT"
+	InputTypeBoolean      InputType = "BOOLEAN"
+	InputTypeSatisfaction InputType = "SATISFACTION"
+)
+
+var AllInputType = []InputType{
+	InputTypeOption,
+	InputTypeText,
+	InputTypeBoolean,
+	InputTypeSatisfaction,
+}
+
+func (e InputType) IsValid() bool {
+	switch e {
+	case InputTypeOption, InputTypeText, InputTypeBoolean, InputTypeSatisfaction:
+		return true
+	}
+	return false
+}
+
+func (e InputType) String() string {
+	return string(e)
+}
+
+func (e *InputType) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = InputType(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid InputType", str)
+	}
+	return nil
+}
+
+func (e InputType) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
 }

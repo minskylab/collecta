@@ -5,7 +5,8 @@ package graph
 
 import (
 	"context"
-
+	"github.com/minskylab/collecta/errors"
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -18,7 +19,6 @@ import (
 	"github.com/minskylab/collecta/ent/input"
 	"github.com/minskylab/collecta/ent/question"
 	"github.com/minskylab/collecta/ent/survey"
-	"github.com/minskylab/collecta/errors"
 )
 
 func (r *mutationResolver) AnswerQuestion(ctx context.Context, token string, questionID string, answer []string) (*model.Survey, error) {
@@ -144,6 +144,15 @@ func (r *mutationResolver) AnswerQuestion(ctx context.Context, token string, que
 		Title:           surv.Title,
 		Description:     surv.Description,
 	}, nil
+}
+
+func (r *mutationResolver) LoginByPassword(ctx context.Context, username string, password *string) (*model.LoginResponse, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
+func (r *mutationResolver) CreateSurvey(ctx context.Context, token string, draft model.SurveyCreator) (*model.Survey, error) {
+	
+	panic(fmt.Errorf("not implemented"))
 }
 
 // Mutation returns generated.MutationResolver implementation.

@@ -10,7 +10,6 @@ type Query {
 
     # Admin Related
 
-
     # Survey Related
     isFirstQuestion(token: String!, questionID: ID!): Boolean!
     isFinalQuestion(token: String!, questionID: ID!): Boolean!
