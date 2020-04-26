@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"time"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/google/uuid"
 	"github.com/microcosm-cc/bluemonday"
 	"github.com/minskylab/collecta/api/graph/model"
@@ -13,11 +14,12 @@ import (
 	"github.com/minskylab/collecta/ent"
 	"github.com/minskylab/collecta/ent/input"
 	"github.com/minskylab/collecta/errors"
+	log "github.com/sirupsen/logrus"
 	"golang.org/x/net/context"
 )
 
 func createQuestion(ctx context.Context, db *db.DB, q model.QuestionCreator) (*ent.Question, error) {
-	var policy = bluemonday.UGCPolicy()
+	policy := bluemonday.UGCPolicy()
 	policy.AllowElements("h1").AllowElements("h2").AllowElements("h3")
 	policy.AllowAttrs("href").OnElements("a")
 	policy.AllowElements("p")
@@ -88,6 +90,10 @@ func createSurveysFromAPI(ctx context.Context, db *db.DB, domainID uuid.UUID, dr
 	if len(draft.Questions) == 0 {
 		return nil, errors.New("invalid survey, you need specify questions")
 	}
+	log.Info("creating surveys")
+	
+	spew.Dump(draft)
+
 	questions := make([]*ent.Question, 0)
 
 	for _, q := range draft.Questions {
@@ -170,7 +176,7 @@ func createSurveysFromAPI(ctx context.Context, db *db.DB, domainID uuid.UUID, dr
 		return nil, errors.New("invalid target kind for your survey")
 	}
 
-	var policy = bluemonday.UGCPolicy()
+	policy := bluemonday.UGCPolicy()
 	policy.AllowElements("h1").AllowElements("h2").AllowElements("h3")
 	policy.AllowAttrs("href").OnElements("a")
 	policy.AllowElements("p")
