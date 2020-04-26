@@ -2,6 +2,7 @@ package api
 
 import (
 	"github.com/99designs/gqlgen/graphql/handler"
+	"github.com/99designs/gqlgen/graphql/handler/extension"
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/gin-gonic/gin"
 	"github.com/minskylab/collecta/api/graph"
@@ -26,14 +27,13 @@ func New(r *gin.Engine, db *db.DB, auth *auth.Auth) (*API, error) {
 
 // RegisterGraphQLHandlers register the playground and graphql query endpoint to my main gin engine
 func (api *API) RegisterGraphQLHandlers(withPlayground bool) {
-	srv := handler.NewDefaultServer(
-		generated.NewExecutableSchema(
-			generated.Config{Resolvers: &graph.Resolver{
-				DB:   api.db,
-				Auth: api.auth,
-			}},
-		),
-	)
+	config := generated.Config{Resolvers: &graph.Resolver{
+		DB:   api.db,
+		Auth: api.auth,
+	}}
+
+	srv := handler.NewDefaultServer(generated.NewExecutableSchema(config))
+	srv.Use(extension.FixedComplexityLimit(100))
 
 	query := func(c *gin.Context) {
 		srv.ServeHTTP(c.Writer, c.Request)
