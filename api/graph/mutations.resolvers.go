@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/microcosm-cc/bluemonday"
 	"github.com/minskylab/collecta/api/commons"
 	"github.com/minskylab/collecta/api/graph/generated"
 	"github.com/minskylab/collecta/api/graph/model"
@@ -20,7 +21,6 @@ import (
 	"github.com/minskylab/collecta/ent/account"
 	"github.com/minskylab/collecta/ent/domain"
 	"github.com/minskylab/collecta/ent/flow"
-	"github.com/minskylab/collecta/ent/input"
 	"github.com/minskylab/collecta/ent/question"
 	"github.com/minskylab/collecta/ent/survey"
 	"github.com/minskylab/collecta/ent/user"
@@ -72,35 +72,18 @@ func (r *mutationResolver) AnswerQuestion(ctx context.Context, token string, que
 		return nil, errors.Wrap(err, "error at query input from your question")
 	}
 
-	var answerIsOk bool
-	switch in.Kind {
-	case input.KindSatisfaction:
-		answerIsOk, err = answers.AnswerIsSatisfaction(answer, in.Multiple)
-		if err != nil {
-			return nil, errors.Wrap(err, "error at validate your answer")
-		}
 
-	case input.KindOptions:
-		answerIsOk, err = answers.AnswerIsOption(answer, in.Options, in.Multiple)
-		if err != nil {
-			return nil, errors.Wrap(err, "error at validate your answer")
-		}
+	policy := bluemonday.UGCPolicy()
+	policy.AllowElements("h1").AllowElements("h2").AllowElements("h3")
+	policy.AllowAttrs("href").OnElements("a")
+	policy.AllowElements("p")
+	// TODO: Sanitize Policy should be into core struct (Collecta)
 
-	case input.KindText:
-		answerIsOk, err = answers.AnswerIsText(answer, in.Multiple)
-		if err != nil {
-			return nil, errors.Wrap(err, "error at validate your answer")
-		}
-
-	case input.KindBoolean:
-		answerIsOk, err = answers.AnswerIsBoolean(answer, in.Multiple)
-		if err != nil {
-			return nil, errors.Wrap(err, "error at validate your answer")
-		}
-
-	default:
-		return nil, errors.New("invalid input kind, that's so rare")
+	for i, v := range answer {
+		answer[i] = policy.Sanitize(v)
 	}
+	
+	answerIsOk, err := answers.AnswerIsKind(in.Kind, answer, in.Options) // TODO, optimize: only pass a *Input
 
 	if !answerIsOk {
 		return nil, errors.New("invalid answer, please choose a correct one")

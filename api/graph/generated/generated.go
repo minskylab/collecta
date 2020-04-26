@@ -1196,7 +1196,7 @@ input QuestionCreator {
     kind: InputType!
     multiple: Boolean
     anonymous: Boolean
-    options: [Pair!]!
+    options: [Pair!]
 }
 
 input SurveyTargetUsers {
@@ -1221,7 +1221,7 @@ input SurveyGenerator {
     questions: [QuestionCreator!]!
     target: SurveyTargetUsers!
 
-    metadata: [Pair!]!
+    metadata: [Pair!]
     logic: String
 }
 
@@ -6172,7 +6172,7 @@ func (ec *executionContext) unmarshalInputQuestionCreator(ctx context.Context, o
 			}
 		case "options":
 			var err error
-			it.Options, err = ec.unmarshalNPair2ᚕᚖgithubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐPairᚄ(ctx, v)
+			it.Options, err = ec.unmarshalOPair2ᚕᚖgithubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐPairᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -6244,7 +6244,7 @@ func (ec *executionContext) unmarshalInputSurveyGenerator(ctx context.Context, o
 			}
 		case "metadata":
 			var err error
-			it.Metadata, err = ec.unmarshalNPair2ᚕᚖgithubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐPairᚄ(ctx, v)
+			it.Metadata, err = ec.unmarshalOPair2ᚕᚖgithubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐPairᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -7908,26 +7908,6 @@ func (ec *executionContext) unmarshalNPair2githubᚗcomᚋminskylabᚋcollecta�
 	return ec.unmarshalInputPair(ctx, v)
 }
 
-func (ec *executionContext) unmarshalNPair2ᚕᚖgithubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐPairᚄ(ctx context.Context, v interface{}) ([]*model.Pair, error) {
-	var vSlice []interface{}
-	if v != nil {
-		if tmp1, ok := v.([]interface{}); ok {
-			vSlice = tmp1
-		} else {
-			vSlice = []interface{}{v}
-		}
-	}
-	var err error
-	res := make([]*model.Pair, len(vSlice))
-	for i := range vSlice {
-		res[i], err = ec.unmarshalNPair2ᚖgithubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐPair(ctx, vSlice[i])
-		if err != nil {
-			return nil, err
-		}
-	}
-	return res, nil
-}
-
 func (ec *executionContext) unmarshalNPair2ᚖgithubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐPair(ctx context.Context, v interface{}) (*model.Pair, error) {
 	if v == nil {
 		return nil, nil
@@ -8552,6 +8532,26 @@ func (ec *executionContext) marshalOID2ᚖstring(ctx context.Context, sel ast.Se
 		return graphql.Null
 	}
 	return ec.marshalOID2string(ctx, sel, *v)
+}
+
+func (ec *executionContext) unmarshalOPair2ᚕᚖgithubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐPairᚄ(ctx context.Context, v interface{}) ([]*model.Pair, error) {
+	var vSlice []interface{}
+	if v != nil {
+		if tmp1, ok := v.([]interface{}); ok {
+			vSlice = tmp1
+		} else {
+			vSlice = []interface{}{v}
+		}
+	}
+	var err error
+	res := make([]*model.Pair, len(vSlice))
+	for i := range vSlice {
+		res[i], err = ec.unmarshalNPair2ᚖgithubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐPair(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
 }
 
 func (ec *executionContext) unmarshalOString2string(ctx context.Context, v interface{}) (string, error) {

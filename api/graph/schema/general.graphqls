@@ -21,7 +21,7 @@ input QuestionCreator {
     kind: InputType!
     multiple: Boolean
     anonymous: Boolean
-    options: [Pair!]!
+    options: [Pair!]
 }
 
 input SurveyTargetUsers {
@@ -46,7 +46,7 @@ input SurveyGenerator {
     questions: [QuestionCreator!]!
     target: SurveyTargetUsers!
 
-    metadata: [Pair!]!
+    metadata: [Pair!]
     logic: String
 }
 
