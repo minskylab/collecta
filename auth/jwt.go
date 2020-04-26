@@ -4,7 +4,6 @@ import (
 	"context"
 	"time"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/google/uuid"
 	"github.com/minskylab/collecta/ent"
@@ -44,8 +43,6 @@ func (collectaAuth *Auth) verifyJWTToken(ctx context.Context, tokenString string
 	if err != nil {
 		return nil, errors.Wrap(err, "error caused by jwt SignedString method")
 	}
-
-	spew.Dump(token)
 
 	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
 		uID, ok := claims["sub"].(string)

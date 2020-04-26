@@ -216,8 +216,27 @@ func (r *mutationResolver) GenerateSurveys(ctx context.Context, token string, do
 	}
 
 	var targetDomain *ent.Domain
-	if !strings.Contains(strings.Join(userRequester.Roles, " "), "admin") { // if is super admin
-		// or if admin of the related domain
+	if strings.Contains(strings.Join(userRequester.Roles, " "), "admin") { // if is super admin
+		if domainSelector.ByID != nil {
+			dID, err := uuid.Parse(*domainSelector.ByID)
+			if err != nil {
+				return nil, errors.Wrap(err, "error at parse your domain ID")
+			}
+			targetDomain, err = r.DB.Ent.Domain.Get(ctx, dID)
+			if err != nil {
+				return nil, errors.Wrap(err, "error at fetch domain")
+			}
+		} else if domainSelector.ByDomainName != nil {
+			targetDomain, err = r.DB.Ent.Domain.Query().
+				Where(domain.Name(*domainSelector.ByDomainName)).
+				Only(ctx)
+			if err != nil {
+				return nil, errors.Wrap(err, "error at fetch domain, probably you aren't an admin for this domain ")
+			}
+		} else {
+			return nil, errors.New("invalid domain selector, please specify one of between 'by domain' or 'by id'")
+		}
+	} else { // or if admin of the related domain
 		if domainSelector.ByID != nil { // by id
 			dID, err := uuid.Parse(*domainSelector.ByID)
 			if err != nil {
