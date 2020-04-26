@@ -93,7 +93,8 @@ func evalProgram(ctx context.Context, program string, input input) (string, erro
 	}
 
 	if !compiled.IsDefined("res") {
-		return "", errors.New("your script not response with a standard variable: 'res'")
+		return input.state, nil
+		// return "", errors.New("your script not response with a standard variable: 'res'")
 	}
 
 	newState := compiled.Get("res").String()

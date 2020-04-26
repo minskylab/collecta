@@ -82,7 +82,7 @@ func (r *mutationResolver) AnswerQuestion(ctx context.Context, token string, que
 	for i, v := range answer {
 		answer[i] = policy.Sanitize(v)
 	}
-	
+
 	answerIsOk, err := answers.AnswerIsKind(in.Kind, answer, in.Options) // TODO, optimize: only pass a *Input
 
 	if !answerIsOk {
@@ -95,7 +95,7 @@ func (r *mutationResolver) AnswerQuestion(ctx context.Context, token string, que
 	}
 
 	if q.ID != f.State {
-		return nil, errors.New("you only can answered a current question, as state, in a flow")
+		return nil, errors.New("you can only answer the current question in the flow")
 	}
 
 	_, err = r.DB.Ent.Answer.Create().
