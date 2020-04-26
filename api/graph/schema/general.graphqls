@@ -21,7 +21,7 @@ input QuestionCreator {
     kind: InputType!
     multiple: Boolean
     anonymous: Boolean
-    options: Map
+    options: [Pair!]!
 }
 
 input SurveyTargetUsers {
@@ -34,6 +34,11 @@ input SurveyDomain {
     byDomainName: String
 }
 
+input Pair {
+    key: String!
+    value: String!
+}
+
 input SurveyGenerator {
     title: String!
     description: String!
@@ -41,7 +46,7 @@ input SurveyGenerator {
     questions: [QuestionCreator!]!
     target: SurveyTargetUsers!
 
-    metadata: Map
+    metadata: [Pair!]!
     logic: String
 }
 

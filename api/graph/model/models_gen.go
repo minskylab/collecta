@@ -86,6 +86,11 @@ type MetadataPair struct {
 	Value string `json:"value"`
 }
 
+type Pair struct {
+	Key   string `json:"key"`
+	Value string `json:"value"`
+}
+
 type Question struct {
 	ID          string          `json:"id"`
 	Hash        string          `json:"hash"`
@@ -100,12 +105,12 @@ type Question struct {
 }
 
 type QuestionCreator struct {
-	Title       string                 `json:"title"`
-	Description string                 `json:"description"`
-	Kind        InputType              `json:"kind"`
-	Multiple    *bool                  `json:"multiple"`
-	Anonymous   *bool                  `json:"anonymous"`
-	Options     map[string]interface{} `json:"options"`
+	Title       string    `json:"title"`
+	Description string    `json:"description"`
+	Kind        InputType `json:"kind"`
+	Multiple    *bool     `json:"multiple"`
+	Anonymous   *bool     `json:"anonymous"`
+	Options     []*Pair   `json:"options"`
 }
 
 type Short struct {
@@ -134,13 +139,13 @@ type SurveyDomain struct {
 }
 
 type SurveyGenerator struct {
-	Title       string                 `json:"title"`
-	Description string                 `json:"description"`
-	Tags        []string               `json:"tags"`
-	Questions   []*QuestionCreator     `json:"questions"`
-	Target      *SurveyTargetUsers     `json:"target"`
-	Metadata    map[string]interface{} `json:"metadata"`
-	Logic       *string                `json:"logic"`
+	Title       string             `json:"title"`
+	Description string             `json:"description"`
+	Tags        []string           `json:"tags"`
+	Questions   []*QuestionCreator `json:"questions"`
+	Target      *SurveyTargetUsers `json:"target"`
+	Metadata    []*Pair            `json:"metadata"`
+	Logic       *string            `json:"logic"`
 }
 
 type SurveyTargetUsers struct {

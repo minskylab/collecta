@@ -64,12 +64,9 @@ func createQuestion(ctx context.Context, db *db.DB, q model.QuestionCreator) (*e
 	}
 
 	options := map[string]string{}
-	for k, v := range q.Options {
-		opt, ok := v.(string)
-		if !ok {
-			opt = k
-		}
-		options[k] = opt
+
+	for _, pair := range q.Options {
+		options[pair.Key] = policy.Sanitize(pair.Value)
 	}
 
 	_, err = db.Ent.Input.Create().
@@ -189,8 +186,8 @@ func createSurveysFromAPI(ctx context.Context, db *db.DB, domainID uuid.UUID, dr
 	}
 
 	metadata := map[string]string{}
-	for k, v := range draft.Metadata {
-		metadata[k] = v.(string)
+	for _, pair := range draft.Metadata {
+		metadata[pair.Key] = pair.Value
 	}
 
 	generatedSurveys := make([]*ent.Survey, 0)

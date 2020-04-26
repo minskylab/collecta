@@ -1196,7 +1196,7 @@ input QuestionCreator {
     kind: InputType!
     multiple: Boolean
     anonymous: Boolean
-    options: Map
+    options: [Pair!]!
 }
 
 input SurveyTargetUsers {
@@ -1209,6 +1209,11 @@ input SurveyDomain {
     byDomainName: String
 }
 
+input Pair {
+    key: String!
+    value: String!
+}
+
 input SurveyGenerator {
     title: String!
     description: String!
@@ -1216,7 +1221,7 @@ input SurveyGenerator {
     questions: [QuestionCreator!]!
     target: SurveyTargetUsers!
 
-    metadata: Map
+    metadata: [Pair!]!
     logic: String
 }
 
@@ -6105,6 +6110,30 @@ func (ec *executionContext) unmarshalInputDomainCreator(ctx context.Context, obj
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputPair(ctx context.Context, obj interface{}) (model.Pair, error) {
+	var it model.Pair
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "key":
+			var err error
+			it.Key, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "value":
+			var err error
+			it.Value, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputQuestionCreator(ctx context.Context, obj interface{}) (model.QuestionCreator, error) {
 	var it model.QuestionCreator
 	var asMap = obj.(map[string]interface{})
@@ -6143,7 +6172,7 @@ func (ec *executionContext) unmarshalInputQuestionCreator(ctx context.Context, o
 			}
 		case "options":
 			var err error
-			it.Options, err = ec.unmarshalOMap2map(ctx, v)
+			it.Options, err = ec.unmarshalNPair2ᚕᚖgithubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐPairᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -6215,7 +6244,7 @@ func (ec *executionContext) unmarshalInputSurveyGenerator(ctx context.Context, o
 			}
 		case "metadata":
 			var err error
-			it.Metadata, err = ec.unmarshalOMap2map(ctx, v)
+			it.Metadata, err = ec.unmarshalNPair2ᚕᚖgithubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐPairᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -7875,6 +7904,38 @@ func (ec *executionContext) marshalNMetadataPair2ᚖgithubᚗcomᚋminskylabᚋc
 	return ec._MetadataPair(ctx, sel, v)
 }
 
+func (ec *executionContext) unmarshalNPair2githubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐPair(ctx context.Context, v interface{}) (model.Pair, error) {
+	return ec.unmarshalInputPair(ctx, v)
+}
+
+func (ec *executionContext) unmarshalNPair2ᚕᚖgithubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐPairᚄ(ctx context.Context, v interface{}) ([]*model.Pair, error) {
+	var vSlice []interface{}
+	if v != nil {
+		if tmp1, ok := v.([]interface{}); ok {
+			vSlice = tmp1
+		} else {
+			vSlice = []interface{}{v}
+		}
+	}
+	var err error
+	res := make([]*model.Pair, len(vSlice))
+	for i := range vSlice {
+		res[i], err = ec.unmarshalNPair2ᚖgithubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐPair(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) unmarshalNPair2ᚖgithubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐPair(ctx context.Context, v interface{}) (*model.Pair, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalNPair2githubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐPair(ctx, v)
+	return &res, err
+}
+
 func (ec *executionContext) marshalNQuestion2githubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐQuestion(ctx context.Context, sel ast.SelectionSet, v model.Question) graphql.Marshaler {
 	return ec._Question(ctx, sel, &v)
 }
@@ -8491,20 +8552,6 @@ func (ec *executionContext) marshalOID2ᚖstring(ctx context.Context, sel ast.Se
 		return graphql.Null
 	}
 	return ec.marshalOID2string(ctx, sel, *v)
-}
-
-func (ec *executionContext) unmarshalOMap2map(ctx context.Context, v interface{}) (map[string]interface{}, error) {
-	if v == nil {
-		return nil, nil
-	}
-	return graphql.UnmarshalMap(v)
-}
-
-func (ec *executionContext) marshalOMap2map(ctx context.Context, sel ast.SelectionSet, v map[string]interface{}) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return graphql.MarshalMap(v)
 }
 
 func (ec *executionContext) unmarshalOString2string(ctx context.Context, v interface{}) (string, error) {
