@@ -5,7 +5,7 @@ package graph
 
 import (
 	"context"
-	"github.com/minskylab/collecta/errors"
+
 
 	"github.com/google/uuid"
 	"github.com/minskylab/collecta/api/graph/generated"
@@ -15,6 +15,7 @@ import (
 	"github.com/minskylab/collecta/ent/question"
 	"github.com/minskylab/collecta/ent/survey"
 	"github.com/minskylab/collecta/ent/user"
+	"github.com/minskylab/collecta/errors"
 )
 
 func (r *queryResolver) Domain(ctx context.Context, token string, id string) (*model.Domain, error) {

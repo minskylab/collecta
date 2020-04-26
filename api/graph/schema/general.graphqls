@@ -9,22 +9,47 @@ enum InputType {
     SATISFACTION
 }
 
+enum SurveyAudenceKind {
+    PUBLIC # PUBLIC is for all domains and open to any user of collecta
+    DOMAIN # DOMAIN makes available the survey for all users in the current domain
+    CLOSE # CLOSE only open the survey a determinated whitelist passed by the user
+}
+
 input QuestionCreator {
     title: String!
     description: String!
     kind: InputType!
     multiple: Boolean
+    anonymous: Boolean
     options: Map
 }
 
+input SurveyTargetUsers {
+    targetKind: SurveyAudenceKind!
+    whitelist: [ID!]
+}
+
+input SurveyDomain {
+    byID: ID
+    byDomainName: String
+}
+
 input SurveyCreator {
-    whitelist: [ID!]!
     title: String!
     description: String!
     tags: [String!]!
     question: [QuestionCreator!]!
-    forAllDomainUsers: Boolean
+    target: SurveyTargetUsers!
+
     metadata: Map
     logic: String
-    # TODO, describe a correct survey creator, make the best survies API!
+}
+
+
+input DomainCreator {
+    name: String!
+    email: String!
+    domain: String!
+    collectaDomain: String!
+    tags: [String!]
 }

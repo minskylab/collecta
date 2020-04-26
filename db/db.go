@@ -22,11 +22,24 @@ func NewDB(ctx context.Context) (*DB, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "error at open db connection")
 	}
-	return &DB{Ent: client}, nil
+	db := &DB{Ent: client}
+
+	isFirstTime, err := db.isFirstTimeCollectaInstance(ctx)
+	if err != nil {
+		return nil, errors.Wrap(err, "error at try to determinate the state of the collecta instance")
+	}
+
+	if isFirstTime {
+		if _, err := db.generateFirstAdminUser(ctx); err != nil {
+			return nil, errors.Wrap(err, "error at create the main admin user")
+		}
+	}
+
+	return db, nil
 }
 
 func openDBConnection(ctx context.Context) (*ent.Client, error) {
-	// TODO: Update this later
+	// TODO: Update this later...
 	databaseDSN := os.Getenv("DATABASE_URL")
 
 	if databaseDSN == "" {

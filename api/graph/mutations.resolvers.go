@@ -5,20 +5,26 @@ package graph
 
 import (
 	"context"
-	"github.com/minskylab/collecta/errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/minskylab/collecta/api/commons"
 	"github.com/minskylab/collecta/api/graph/generated"
 	"github.com/minskylab/collecta/api/graph/model"
 	"github.com/minskylab/collecta/collecta/answers"
 	"github.com/minskylab/collecta/collecta/flows"
+	"github.com/minskylab/collecta/ent"
+	"github.com/minskylab/collecta/ent/account"
 	"github.com/minskylab/collecta/ent/domain"
 	"github.com/minskylab/collecta/ent/flow"
 	"github.com/minskylab/collecta/ent/input"
 	"github.com/minskylab/collecta/ent/question"
 	"github.com/minskylab/collecta/ent/survey"
+	"github.com/minskylab/collecta/ent/user"
+	"github.com/minskylab/collecta/errors"
+	"golang.org/x/crypto/bcrypt"
 )
 
 func (r *mutationResolver) AnswerQuestion(ctx context.Context, token string, questionID string, answer []string) (*model.Survey, error) {
@@ -146,13 +152,105 @@ func (r *mutationResolver) AnswerQuestion(ctx context.Context, token string, que
 	}, nil
 }
 
-func (r *mutationResolver) LoginByPassword(ctx context.Context, username string, password *string) (*model.LoginResponse, error) {
-	panic(fmt.Errorf("not implemented"))
+func (r *mutationResolver) LoginByPassword(ctx context.Context, username string, password string) (*model.LoginResponse, error) {
+	loginAccount, err := r.DB.Ent.Account.Query().
+		Where(account.And(
+			account.TypeEQ(account.TypeEmail),                             // email type
+			account.Or(account.RemoteID(username), account.Sub(username)), // by username == sub or username == remoteID
+		)).
+		Only(ctx)
+	if err != nil {
+		return nil, errors.Wrap(err, "error at try to get your login account")
+	}
+
+	if err = bcrypt.CompareHashAndPassword([]byte(loginAccount.Secret), []byte(password)); err != nil {
+		return nil, errors.Wrap(err, "invalid password its'nt correct")
+	}
+
+	loginUser, err := loginAccount.QueryOwner().Only(ctx)
+	if err != nil {
+		return nil, errors.Wrap(err, "error at fetch user related to your account")
+	}
+
+	jwtToken, err := r.Auth.GenerateTokenByUser(loginUser)
+	if err != nil {
+		return nil, errors.Wrap(err, "error at create a new jwt token")
+	}
+
+	return &model.LoginResponse{Token: jwtToken}, nil
 }
 
-func (r *mutationResolver) CreateSurvey(ctx context.Context, token string, draft model.SurveyCreator) (*model.Survey, error) {
+func (r *mutationResolver) CreateNewDomain(ctx context.Context, token string, domain model.DomainCreator) (*model.Domain, error) {
+	userRequester, err := r.Auth.VerifyJWTToken(ctx, token)
+	if err != nil {
+		return nil, errors.Wrap(err, "error at verify your token")
+	}
+
+	if !strings.Contains(strings.Join(userRequester.Roles, " "), "admin") {
+		return nil, errors.New("invalid user, you need to be an admin to create new domain")
+	}
+
+	// continue if user is an admin
+
+	newDomain, err := r.DB.Ent.Domain.Create().
+		SetID(uuid.New()).
+		SetName(domain.Name).
+		SetEmail(domain.Email).
+		SetCollectaDomain(domain.CollectaDomain).
+		SetTags(domain.Tags).
+		AddAdmins(userRequester).
+		Save(ctx)
+	if err != nil {
+		return nil, errors.Wrap(err, "error at try to create a new domain")
+	}
+
+	return commons.DomainToGQL(newDomain), nil
+}
+
+func (r *mutationResolver) CreateSurvey(ctx context.Context, token string, domainSelector model.SurveyDomain, draft model.SurveyCreator) (*model.Survey, error) {
+	userRequester, err := r.Auth.VerifyJWTToken(ctx, token)
+	if err != nil {
+		return nil, errors.Wrap(err, "error at verify your token")
+	}
+
+	var targetDomain *ent.Domain
+	if !strings.Contains(strings.Join(userRequester.Roles, " "), "admin") { // if is super admin
+		// or if admin of the related domain
+		if domainSelector.ByID != nil { // by id
+			dID, err := uuid.Parse(*domainSelector.ByID)
+			if err != nil {
+				return nil, errors.Wrap(err, "error at parse your domain ID")
+			}
+
+			targetDomain, err = r.DB.Ent.Domain.Query().
+				Where(domain.And(domain.ID(dID), domain.HasAdminsWith(user.ID(userRequester.ID)))).
+				Only(ctx)
+			if err != nil {
+				return nil, errors.Wrap(err, "error at fetch domain, probably you aren't an admin for this domain ")
+			}
+
+		} else if domainSelector.ByDomainName != nil  {  // by domain name
+			targetDomain, err = r.DB.Ent.Domain.Query().
+				Where(domain.And(
+					domain.Name(*domainSelector.ByDomainName),
+					domain.HasAdminsWith(user.ID(userRequester.ID)),
+				)).
+				Only(ctx)
+			if err != nil {
+				return nil, errors.Wrap(err, "error at fetch domain, probably you aren't an admin for this domain ")
+			}
+		} else { // invalid
+			return nil, errors.New("invalid domain selector, please specify one of between 'by domain' or 'by id'")
+		}
+
+		if targetDomain == nil {
+			return nil, errors.New("invalid user, you need to be an admin to create new domain")
+		}
+	}
+
 	
-	panic(fmt.Errorf("not implemented"))
+
+
 }
 
 // Mutation returns generated.MutationResolver implementation.

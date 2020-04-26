@@ -17,6 +17,7 @@ require (
 	github.com/sirupsen/logrus v1.2.0
 	github.com/spf13/viper v1.6.3
 	github.com/vektah/gqlparser/v2 v2.0.1
+	golang.org/x/crypto v0.0.0-20191011191535-87dc89f01550
 	golang.org/x/net v0.0.0-20190827160401-ba9fcec4b297
 	golang.org/x/xerrors v0.0.0-20191204190536-9bdfabe68543
 	gopkg.in/yaml.v2 v2.2.8

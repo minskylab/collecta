@@ -29,6 +29,11 @@ func (collectaAuth *Auth) createJWTToken(u *ent.User) (string, error) {
 	return t, nil
 }
 
+// GenerateTokenByUser returns a jwt based on collecta claims
+func (collectaAuth *Auth) GenerateTokenByUser(u *ent.User) (string, error) {
+	return collectaAuth.createJWTToken(u)
+}
+
 func (collectaAuth *Auth) verifyJWTToken(ctx context.Context, tokenString string) (*ent.User, error) {
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
@@ -52,6 +57,7 @@ func (collectaAuth *Auth) verifyJWTToken(ctx context.Context, tokenString string
 	return nil, errors.New("invalid token claims")
 }
 
+// VerifyJWTToken is a util function to perform jwt token verification
 func (collectaAuth *Auth) VerifyJWTToken(ctx context.Context, token string) (*ent.User, error) {
 	return collectaAuth.verifyJWTToken(ctx, token)
 }

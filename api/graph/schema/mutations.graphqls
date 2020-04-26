@@ -3,6 +3,7 @@ type Mutation {
     answerQuestion(token: String!, questionID: ID!, answer: [String!]!): Survey!
 
     # Admin Related
-    loginByPassword(username: String!, password: String): LoginResponse!
-    createSurvey(token: String!, draft: SurveyCreator!): Survey!
+    loginByPassword(username: String!, password: String!): LoginResponse!
+    createNewDomain(token: String!, draft: DomainCreator!): Domain!
+    createSurvey(token: String!, domainSelector: SurveyDomain!, draft: SurveyCreator!): Survey!
 }

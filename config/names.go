@@ -26,3 +26,6 @@ const CorsMaxAge = "cors.maxAge" // env: COLLECTA_CORS_MAXAGE
 
 // DomainHost saves the name of the domain for the collecta instance service
 const DomainHost = "domain" // COLLECTA_DOMAIN
+
+// FirstAdminPassword is the first password time for the admin user
+const FirstAdminPassword = "password"

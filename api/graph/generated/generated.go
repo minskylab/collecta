@@ -119,8 +119,9 @@ type ComplexityRoot struct {
 
 	Mutation struct {
 		AnswerQuestion  func(childComplexity int, token string, questionID string, answer []string) int
-		CreateSurvey    func(childComplexity int, token string, draft model.SurveyCreator) int
-		LoginByPassword func(childComplexity int, username string, password *string) int
+		CreateNewDomain func(childComplexity int, token string, domain model.DomainCreator) int
+		CreateSurvey    func(childComplexity int, token string, domain model.SurveyDomain, draft model.SurveyCreator) int
+		LoginByPassword func(childComplexity int, username string, password string) int
 	}
 
 	Query struct {
@@ -205,8 +206,9 @@ type InputResolver interface {
 }
 type MutationResolver interface {
 	AnswerQuestion(ctx context.Context, token string, questionID string, answer []string) (*model.Survey, error)
-	LoginByPassword(ctx context.Context, username string, password *string) (*model.LoginResponse, error)
-	CreateSurvey(ctx context.Context, token string, draft model.SurveyCreator) (*model.Survey, error)
+	LoginByPassword(ctx context.Context, username string, password string) (*model.LoginResponse, error)
+	CreateNewDomain(ctx context.Context, token string, domain model.DomainCreator) (*model.Domain, error)
+	CreateSurvey(ctx context.Context, token string, domain model.SurveyDomain, draft model.SurveyCreator) (*model.Survey, error)
 }
 type QueryResolver interface {
 	Domain(ctx context.Context, token string, id string) (*model.Domain, error)
@@ -564,6 +566,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.AnswerQuestion(childComplexity, args["token"].(string), args["questionID"].(string), args["answer"].([]string)), true
 
+	case "Mutation.createNewDomain":
+		if e.complexity.Mutation.CreateNewDomain == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_createNewDomain_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.CreateNewDomain(childComplexity, args["token"].(string), args["domain"].(model.DomainCreator)), true
+
 	case "Mutation.createSurvey":
 		if e.complexity.Mutation.CreateSurvey == nil {
 			break
@@ -574,7 +588,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.CreateSurvey(childComplexity, args["token"].(string), args["draft"].(model.SurveyCreator)), true
+		return e.complexity.Mutation.CreateSurvey(childComplexity, args["token"].(string), args["domain"].(model.SurveyDomain), args["draft"].(model.SurveyCreator)), true
 
 	case "Mutation.loginByPassword":
 		if e.complexity.Mutation.LoginByPassword == nil {
@@ -586,7 +600,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.LoginByPassword(childComplexity, args["username"].(string), args["password"].(*string)), true
+		return e.complexity.Mutation.LoginByPassword(childComplexity, args["username"].(string), args["password"].(string)), true
 
 	case "Query.domain":
 		if e.complexity.Query.Domain == nil {
@@ -1113,32 +1127,58 @@ enum InputType {
     SATISFACTION
 }
 
+enum SurveyAudenceKind {
+    PUBLIC # PUBLIC is for all domains and open to any user of collecta
+    DOMAIN # DOMAIN makes available the survey for all users in the current domain
+    CLOSE # CLOSE only open the survey a determinated whitelist passed by the user
+}
+
 input QuestionCreator {
     title: String!
     description: String!
     kind: InputType!
     multiple: Boolean
+    anonymous: Boolean
     options: Map
 }
 
+input SurveyTargetUsers {
+    targetKind: SurveyAudenceKind!
+    whitelist: [ID!]
+}
+
+input SurveyDomain {
+    byID: ID
+    byDomainName: String
+}
+
 input SurveyCreator {
-    whitelist: [ID!]!
     title: String!
     description: String!
     tags: [String!]!
     question: [QuestionCreator!]!
-    forAllDomainUsers: Boolean
+    target: SurveyTargetUsers!
+
     metadata: Map
     logic: String
-    # TODO, describe a correct survey creator, make the best survies API!
+}
+
+
+input DomainCreator {
+    name: String!
+    email: String!
+    domain: String!
+    collectaDomain: String!
+    tags: [String!]
 }`, BuiltIn: false},
 	&ast.Source{Name: "graph/schema/mutations.graphqls", Input: `type Mutation {
     # User Related
     answerQuestion(token: String!, questionID: ID!, answer: [String!]!): Survey!
 
     # Admin Related
-    loginByPassword(username: String!, password: String): LoginResponse!
-    createSurvey(token: String!, draft: SurveyCreator!): Survey!
+    loginByPassword(username: String!, password: String!): LoginResponse!
+    createNewDomain(token: String!, domain: DomainCreator!): Domain!
+    createSurvey(token: String!, domain: SurveyDomain!, draft: SurveyCreator!): Survey!
 }
 `, BuiltIn: false},
 	&ast.Source{Name: "graph/schema/queries.graphqls", Input: `type Query {
@@ -1197,6 +1237,28 @@ func (ec *executionContext) field_Mutation_answerQuestion_args(ctx context.Conte
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_createNewDomain_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["token"]; ok {
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["token"] = arg0
+	var arg1 model.DomainCreator
+	if tmp, ok := rawArgs["domain"]; ok {
+		arg1, err = ec.unmarshalNDomainCreator2githubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐDomainCreator(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["domain"] = arg1
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_createSurvey_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -1208,14 +1270,22 @@ func (ec *executionContext) field_Mutation_createSurvey_args(ctx context.Context
 		}
 	}
 	args["token"] = arg0
-	var arg1 model.SurveyCreator
-	if tmp, ok := rawArgs["draft"]; ok {
-		arg1, err = ec.unmarshalNSurveyCreator2githubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐSurveyCreator(ctx, tmp)
+	var arg1 model.SurveyDomain
+	if tmp, ok := rawArgs["domain"]; ok {
+		arg1, err = ec.unmarshalNSurveyDomain2githubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐSurveyDomain(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["draft"] = arg1
+	args["domain"] = arg1
+	var arg2 model.SurveyCreator
+	if tmp, ok := rawArgs["draft"]; ok {
+		arg2, err = ec.unmarshalNSurveyCreator2githubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐSurveyCreator(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["draft"] = arg2
 	return args, nil
 }
 
@@ -1230,9 +1300,9 @@ func (ec *executionContext) field_Mutation_loginByPassword_args(ctx context.Cont
 		}
 	}
 	args["username"] = arg0
-	var arg1 *string
+	var arg1 string
 	if tmp, ok := rawArgs["password"]; ok {
-		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -2983,7 +3053,7 @@ func (ec *executionContext) _Mutation_loginByPassword(ctx context.Context, field
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().LoginByPassword(rctx, args["username"].(string), args["password"].(*string))
+		return ec.resolvers.Mutation().LoginByPassword(rctx, args["username"].(string), args["password"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2998,6 +3068,47 @@ func (ec *executionContext) _Mutation_loginByPassword(ctx context.Context, field
 	res := resTmp.(*model.LoginResponse)
 	fc.Result = res
 	return ec.marshalNLoginResponse2ᚖgithubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐLoginResponse(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_createNewDomain(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_createNewDomain_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().CreateNewDomain(rctx, args["token"].(string), args["domain"].(model.DomainCreator))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.Domain)
+	fc.Result = res
+	return ec.marshalNDomain2ᚖgithubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐDomain(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_createSurvey(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -3024,7 +3135,7 @@ func (ec *executionContext) _Mutation_createSurvey(ctx context.Context, field gr
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateSurvey(rctx, args["token"].(string), args["draft"].(model.SurveyCreator))
+		return ec.resolvers.Mutation().CreateSurvey(rctx, args["token"].(string), args["domain"].(model.SurveyDomain), args["draft"].(model.SurveyCreator))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -5683,6 +5794,48 @@ func (ec *executionContext) ___Type_ofType(ctx context.Context, field graphql.Co
 
 // region    **************************** input.gotpl *****************************
 
+func (ec *executionContext) unmarshalInputDomainCreator(ctx context.Context, obj interface{}) (model.DomainCreator, error) {
+	var it model.DomainCreator
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "name":
+			var err error
+			it.Name, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "email":
+			var err error
+			it.Email, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "domain":
+			var err error
+			it.Domain, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "collectaDomain":
+			var err error
+			it.CollectaDomain, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "tags":
+			var err error
+			it.Tags, err = ec.unmarshalOString2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputQuestionCreator(ctx context.Context, obj interface{}) (model.QuestionCreator, error) {
 	var it model.QuestionCreator
 	var asMap = obj.(map[string]interface{})
@@ -5713,6 +5866,12 @@ func (ec *executionContext) unmarshalInputQuestionCreator(ctx context.Context, o
 			if err != nil {
 				return it, err
 			}
+		case "anonymous":
+			var err error
+			it.Anonymous, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		case "options":
 			var err error
 			it.Options, err = ec.unmarshalOMap2map(ctx, v)
@@ -5731,12 +5890,6 @@ func (ec *executionContext) unmarshalInputSurveyCreator(ctx context.Context, obj
 
 	for k, v := range asMap {
 		switch k {
-		case "whitelist":
-			var err error
-			it.Whitelist, err = ec.unmarshalNID2ᚕstringᚄ(ctx, v)
-			if err != nil {
-				return it, err
-			}
 		case "title":
 			var err error
 			it.Title, err = ec.unmarshalNString2string(ctx, v)
@@ -5761,9 +5914,9 @@ func (ec *executionContext) unmarshalInputSurveyCreator(ctx context.Context, obj
 			if err != nil {
 				return it, err
 			}
-		case "forAllDomainUsers":
+		case "target":
 			var err error
-			it.ForAllDomainUsers, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			it.Target, err = ec.unmarshalNSurveyTargetUsers2ᚖgithubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐSurveyTargetUsers(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -5776,6 +5929,54 @@ func (ec *executionContext) unmarshalInputSurveyCreator(ctx context.Context, obj
 		case "logic":
 			var err error
 			it.Logic, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputSurveyDomain(ctx context.Context, obj interface{}) (model.SurveyDomain, error) {
+	var it model.SurveyDomain
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "byID":
+			var err error
+			it.ByID, err = ec.unmarshalOID2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "byDomainName":
+			var err error
+			it.ByDomainName, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputSurveyTargetUsers(ctx context.Context, obj interface{}) (model.SurveyTargetUsers, error) {
+	var it model.SurveyTargetUsers
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "targetKind":
+			var err error
+			it.TargetKind, err = ec.unmarshalNSurveyAudenceKind2githubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐSurveyAudenceKind(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "whitelist":
+			var err error
+			it.Whitelist, err = ec.unmarshalOID2ᚕstringᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -6262,6 +6463,11 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			}
 		case "loginByPassword":
 			out.Values[i] = ec._Mutation_loginByPassword(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "createNewDomain":
+			out.Values[i] = ec._Mutation_createNewDomain(ctx, field)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -7174,6 +7380,10 @@ func (ec *executionContext) marshalNDomain2ᚖgithubᚗcomᚋminskylabᚋcollect
 	return ec._Domain(ctx, sel, v)
 }
 
+func (ec *executionContext) unmarshalNDomainCreator2githubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐDomainCreator(ctx context.Context, v interface{}) (model.DomainCreator, error) {
+	return ec.unmarshalInputDomainCreator(ctx, v)
+}
+
 func (ec *executionContext) marshalNFlow2githubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐFlow(ctx context.Context, sel ast.SelectionSet, v model.Flow) graphql.Marshaler {
 	return ec._Flow(ctx, sel, &v)
 }
@@ -7200,35 +7410,6 @@ func (ec *executionContext) marshalNID2string(ctx context.Context, sel ast.Selec
 		}
 	}
 	return res
-}
-
-func (ec *executionContext) unmarshalNID2ᚕstringᚄ(ctx context.Context, v interface{}) ([]string, error) {
-	var vSlice []interface{}
-	if v != nil {
-		if tmp1, ok := v.([]interface{}); ok {
-			vSlice = tmp1
-		} else {
-			vSlice = []interface{}{v}
-		}
-	}
-	var err error
-	res := make([]string, len(vSlice))
-	for i := range vSlice {
-		res[i], err = ec.unmarshalNID2string(ctx, vSlice[i])
-		if err != nil {
-			return nil, err
-		}
-	}
-	return res, nil
-}
-
-func (ec *executionContext) marshalNID2ᚕstringᚄ(ctx context.Context, sel ast.SelectionSet, v []string) graphql.Marshaler {
-	ret := make(graphql.Array, len(v))
-	for i := range v {
-		ret[i] = ec.marshalNID2string(ctx, sel, v[i])
-	}
-
-	return ret
 }
 
 func (ec *executionContext) marshalNInput2githubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐInput(ctx context.Context, sel ast.SelectionSet, v model.Input) graphql.Marshaler {
@@ -7497,8 +7678,33 @@ func (ec *executionContext) marshalNSurvey2ᚖgithubᚗcomᚋminskylabᚋcollect
 	return ec._Survey(ctx, sel, v)
 }
 
+func (ec *executionContext) unmarshalNSurveyAudenceKind2githubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐSurveyAudenceKind(ctx context.Context, v interface{}) (model.SurveyAudenceKind, error) {
+	var res model.SurveyAudenceKind
+	return res, res.UnmarshalGQL(v)
+}
+
+func (ec *executionContext) marshalNSurveyAudenceKind2githubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐSurveyAudenceKind(ctx context.Context, sel ast.SelectionSet, v model.SurveyAudenceKind) graphql.Marshaler {
+	return v
+}
+
 func (ec *executionContext) unmarshalNSurveyCreator2githubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐSurveyCreator(ctx context.Context, v interface{}) (model.SurveyCreator, error) {
 	return ec.unmarshalInputSurveyCreator(ctx, v)
+}
+
+func (ec *executionContext) unmarshalNSurveyDomain2githubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐSurveyDomain(ctx context.Context, v interface{}) (model.SurveyDomain, error) {
+	return ec.unmarshalInputSurveyDomain(ctx, v)
+}
+
+func (ec *executionContext) unmarshalNSurveyTargetUsers2githubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐSurveyTargetUsers(ctx context.Context, v interface{}) (model.SurveyTargetUsers, error) {
+	return ec.unmarshalInputSurveyTargetUsers(ctx, v)
+}
+
+func (ec *executionContext) unmarshalNSurveyTargetUsers2ᚖgithubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐSurveyTargetUsers(ctx context.Context, v interface{}) (*model.SurveyTargetUsers, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalNSurveyTargetUsers2githubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐSurveyTargetUsers(ctx, v)
+	return &res, err
 }
 
 func (ec *executionContext) unmarshalNTime2timeᚐTime(ctx context.Context, v interface{}) (time.Time, error) {
@@ -7815,6 +8021,61 @@ func (ec *executionContext) marshalOBoolean2ᚖbool(ctx context.Context, sel ast
 	return ec.marshalOBoolean2bool(ctx, sel, *v)
 }
 
+func (ec *executionContext) unmarshalOID2string(ctx context.Context, v interface{}) (string, error) {
+	return graphql.UnmarshalID(v)
+}
+
+func (ec *executionContext) marshalOID2string(ctx context.Context, sel ast.SelectionSet, v string) graphql.Marshaler {
+	return graphql.MarshalID(v)
+}
+
+func (ec *executionContext) unmarshalOID2ᚕstringᚄ(ctx context.Context, v interface{}) ([]string, error) {
+	var vSlice []interface{}
+	if v != nil {
+		if tmp1, ok := v.([]interface{}); ok {
+			vSlice = tmp1
+		} else {
+			vSlice = []interface{}{v}
+		}
+	}
+	var err error
+	res := make([]string, len(vSlice))
+	for i := range vSlice {
+		res[i], err = ec.unmarshalNID2string(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) marshalOID2ᚕstringᚄ(ctx context.Context, sel ast.SelectionSet, v []string) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	for i := range v {
+		ret[i] = ec.marshalNID2string(ctx, sel, v[i])
+	}
+
+	return ret
+}
+
+func (ec *executionContext) unmarshalOID2ᚖstring(ctx context.Context, v interface{}) (*string, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalOID2string(ctx, v)
+	return &res, err
+}
+
+func (ec *executionContext) marshalOID2ᚖstring(ctx context.Context, sel ast.SelectionSet, v *string) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec.marshalOID2string(ctx, sel, *v)
+}
+
 func (ec *executionContext) unmarshalOMap2map(ctx context.Context, v interface{}) (map[string]interface{}, error) {
 	if v == nil {
 		return nil, nil
@@ -7835,6 +8096,38 @@ func (ec *executionContext) unmarshalOString2string(ctx context.Context, v inter
 
 func (ec *executionContext) marshalOString2string(ctx context.Context, sel ast.SelectionSet, v string) graphql.Marshaler {
 	return graphql.MarshalString(v)
+}
+
+func (ec *executionContext) unmarshalOString2ᚕstringᚄ(ctx context.Context, v interface{}) ([]string, error) {
+	var vSlice []interface{}
+	if v != nil {
+		if tmp1, ok := v.([]interface{}); ok {
+			vSlice = tmp1
+		} else {
+			vSlice = []interface{}{v}
+		}
+	}
+	var err error
+	res := make([]string, len(vSlice))
+	for i := range vSlice {
+		res[i], err = ec.unmarshalNString2string(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) marshalOString2ᚕstringᚄ(ctx context.Context, sel ast.SelectionSet, v []string) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	for i := range v {
+		ret[i] = ec.marshalNString2string(ctx, sel, v[i])
+	}
+
+	return ret
 }
 
 func (ec *executionContext) unmarshalOString2ᚖstring(ctx context.Context, v interface{}) (*string, error) {

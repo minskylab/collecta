@@ -49,6 +49,14 @@ type Domain struct {
 	Admins         []*User   `json:"admins"`
 }
 
+type DomainCreator struct {
+	Name           string   `json:"name"`
+	Email          string   `json:"email"`
+	Domain         string   `json:"domain"`
+	CollectaDomain string   `json:"collectaDomain"`
+	Tags           []string `json:"tags"`
+}
+
 type Flow struct {
 	ID               string      `json:"id"`
 	State            string      `json:"state"`
@@ -91,6 +99,7 @@ type QuestionCreator struct {
 	Description string                 `json:"description"`
 	Kind        InputType              `json:"kind"`
 	Multiple    *bool                  `json:"multiple"`
+	Anonymous   *bool                  `json:"anonymous"`
 	Options     map[string]interface{} `json:"options"`
 }
 
@@ -115,14 +124,23 @@ type Survey struct {
 }
 
 type SurveyCreator struct {
-	Whitelist         []string               `json:"whitelist"`
-	Title             string                 `json:"title"`
-	Description       string                 `json:"description"`
-	Tags              []string               `json:"tags"`
-	Question          []*QuestionCreator     `json:"question"`
-	ForAllDomainUsers *bool                  `json:"forAllDomainUsers"`
-	Metadata          map[string]interface{} `json:"metadata"`
-	Logic             *string                `json:"logic"`
+	Title       string                 `json:"title"`
+	Description string                 `json:"description"`
+	Tags        []string               `json:"tags"`
+	Question    []*QuestionCreator     `json:"question"`
+	Target      *SurveyTargetUsers     `json:"target"`
+	Metadata    map[string]interface{} `json:"metadata"`
+	Logic       *string                `json:"logic"`
+}
+
+type SurveyDomain struct {
+	ByID         *string `json:"byID"`
+	ByDomainName *string `json:"byDomainName"`
+}
+
+type SurveyTargetUsers struct {
+	TargetKind SurveyAudenceKind `json:"targetKind"`
+	Whitelist  []string          `json:"whitelist"`
 }
 
 type User struct {
@@ -181,5 +199,48 @@ func (e *InputType) UnmarshalGQL(v interface{}) error {
 }
 
 func (e InputType) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type SurveyAudenceKind string
+
+const (
+	SurveyAudenceKindPublic SurveyAudenceKind = "PUBLIC"
+	SurveyAudenceKindDomain SurveyAudenceKind = "DOMAIN"
+	SurveyAudenceKindClose  SurveyAudenceKind = "CLOSE"
+)
+
+var AllSurveyAudenceKind = []SurveyAudenceKind{
+	SurveyAudenceKindPublic,
+	SurveyAudenceKindDomain,
+	SurveyAudenceKindClose,
+}
+
+func (e SurveyAudenceKind) IsValid() bool {
+	switch e {
+	case SurveyAudenceKindPublic, SurveyAudenceKindDomain, SurveyAudenceKindClose:
+		return true
+	}
+	return false
+}
+
+func (e SurveyAudenceKind) String() string {
+	return string(e)
+}
+
+func (e *SurveyAudenceKind) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = SurveyAudenceKind(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid SurveyAudenceKind", str)
+	}
+	return nil
+}
+
+func (e SurveyAudenceKind) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }

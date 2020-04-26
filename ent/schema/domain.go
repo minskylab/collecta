@@ -16,11 +16,11 @@ type Domain struct {
 func (Domain) Fields() []ent.Field {
 	return []ent.Field{
 		field.UUID("id", uuid.UUID{}),
-		field.Strings("tags"),
 		field.String("name").NotEmpty(),
 		field.String("email").NotEmpty().Unique(),
 		field.String("domain").Unique(),
 		field.String("collectaDomain").Unique(),
+		field.Strings("tags"),
 	}
 }
 
