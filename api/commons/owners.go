@@ -11,6 +11,7 @@ import (
 	"github.com/minskylab/collecta/ent/survey"
 	"github.com/minskylab/collecta/ent/user"
 	"github.com/minskylab/collecta/errors"
+	log "github.com/sirupsen/logrus"
 	"golang.org/x/net/context"
 )
 
@@ -69,5 +70,6 @@ func OwnerOfInput(ctx context.Context, db *db.DB, obj *model.Input) (uuid.UUID, 
 }
 
 func OwnerOfSurvey(ctx context.Context, db *db.DB, obj *model.Survey) (uuid.UUID, error) {
+	log.Info("extracting owner of survey: ", obj.ID)
 	return db.Ent.User.Query().Where(user.HasSurveysWith(survey.ID(uuid.MustParse(obj.ID)))).OnlyID(ctx)
 }
