@@ -39,11 +39,14 @@ func (api *API) RegisterGraphQLHandlers(withPlayground bool) {
 		srv.ServeHTTP(c.Writer, c.Request)
 	}
 
+	api.engine.Use(api.auth.Middleware())
+
 	if withPlayground {
 		play := func(c *gin.Context) {
 			playground.Handler("GraphQL Playground | Collecta", "/graphql").ServeHTTP(c.Writer, c.Request)
 		}
 		api.engine.GET("/", play)
 	}
+
 	api.engine.POST("/graphql", query)
 }
