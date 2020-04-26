@@ -33,7 +33,7 @@ func (api *API) RegisterGraphQLHandlers(withPlayground bool) {
 	}}
 
 	srv := handler.NewDefaultServer(generated.NewExecutableSchema(config))
-	srv.Use(extension.FixedComplexityLimit(100))
+	srv.Use(extension.FixedComplexityLimit(500))
 
 	query := func(c *gin.Context) {
 		srv.ServeHTTP(c.Writer, c.Request)
