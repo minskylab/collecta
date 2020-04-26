@@ -303,12 +303,12 @@ func (dq *DomainQuery) WithAdmins(opts ...func(*UserQuery)) *DomainQuery {
 // Example:
 //
 //	var v []struct {
-//		Tags []string `json:"tags,omitempty"`
+//		Name string `json:"name,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
 //	client.Domain.Query().
-//		GroupBy(domain.FieldTags).
+//		GroupBy(domain.FieldName).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
 //
@@ -324,11 +324,11 @@ func (dq *DomainQuery) GroupBy(field string, fields ...string) *DomainGroupBy {
 // Example:
 //
 //	var v []struct {
-//		Tags []string `json:"tags,omitempty"`
+//		Name string `json:"name,omitempty"`
 //	}
 //
 //	client.Domain.Query().
-//		Select(domain.FieldTags).
+//		Select(domain.FieldName).
 //		Scan(ctx, &v)
 //
 func (dq *DomainQuery) Select(field string, fields ...string) *DomainSelect {

@@ -17,8 +17,6 @@ type Domain struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID uuid.UUID `json:"id,omitempty"`
-	// Tags holds the value of the "tags" field.
-	Tags []string `json:"tags,omitempty"`
 	// Name holds the value of the "name" field.
 	Name string `json:"name,omitempty"`
 	// Email holds the value of the "email" field.
@@ -27,6 +25,8 @@ type Domain struct {
 	Domain string `json:"domain,omitempty"`
 	// CollectaDomain holds the value of the "collectaDomain" field.
 	CollectaDomain string `json:"collectaDomain,omitempty"`
+	// Tags holds the value of the "tags" field.
+	Tags []string `json:"tags,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the DomainQuery when eager-loading is set.
 	Edges DomainEdges `json:"edges"`
@@ -76,11 +76,11 @@ func (e DomainEdges) AdminsOrErr() ([]*User, error) {
 func (*Domain) scanValues() []interface{} {
 	return []interface{}{
 		&uuid.UUID{},      // id
-		&[]byte{},         // tags
 		&sql.NullString{}, // name
 		&sql.NullString{}, // email
 		&sql.NullString{}, // domain
 		&sql.NullString{}, // collectaDomain
+		&[]byte{},         // tags
 	}
 }
 
@@ -96,33 +96,33 @@ func (d *Domain) assignValues(values ...interface{}) error {
 		d.ID = *value
 	}
 	values = values[1:]
+	if value, ok := values[0].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field name", values[0])
+	} else if value.Valid {
+		d.Name = value.String
+	}
+	if value, ok := values[1].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field email", values[1])
+	} else if value.Valid {
+		d.Email = value.String
+	}
+	if value, ok := values[2].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field domain", values[2])
+	} else if value.Valid {
+		d.Domain = value.String
+	}
+	if value, ok := values[3].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field collectaDomain", values[3])
+	} else if value.Valid {
+		d.CollectaDomain = value.String
+	}
 
-	if value, ok := values[0].(*[]byte); !ok {
-		return fmt.Errorf("unexpected type %T for field tags", values[0])
+	if value, ok := values[4].(*[]byte); !ok {
+		return fmt.Errorf("unexpected type %T for field tags", values[4])
 	} else if value != nil && len(*value) > 0 {
 		if err := json.Unmarshal(*value, &d.Tags); err != nil {
 			return fmt.Errorf("unmarshal field tags: %v", err)
 		}
-	}
-	if value, ok := values[1].(*sql.NullString); !ok {
-		return fmt.Errorf("unexpected type %T for field name", values[1])
-	} else if value.Valid {
-		d.Name = value.String
-	}
-	if value, ok := values[2].(*sql.NullString); !ok {
-		return fmt.Errorf("unexpected type %T for field email", values[2])
-	} else if value.Valid {
-		d.Email = value.String
-	}
-	if value, ok := values[3].(*sql.NullString); !ok {
-		return fmt.Errorf("unexpected type %T for field domain", values[3])
-	} else if value.Valid {
-		d.Domain = value.String
-	}
-	if value, ok := values[4].(*sql.NullString); !ok {
-		return fmt.Errorf("unexpected type %T for field collectaDomain", values[4])
-	} else if value.Valid {
-		d.CollectaDomain = value.String
 	}
 	return nil
 }
@@ -165,8 +165,6 @@ func (d *Domain) String() string {
 	var builder strings.Builder
 	builder.WriteString("Domain(")
 	builder.WriteString(fmt.Sprintf("id=%v", d.ID))
-	builder.WriteString(", tags=")
-	builder.WriteString(fmt.Sprintf("%v", d.Tags))
 	builder.WriteString(", name=")
 	builder.WriteString(d.Name)
 	builder.WriteString(", email=")
@@ -175,6 +173,8 @@ func (d *Domain) String() string {
 	builder.WriteString(d.Domain)
 	builder.WriteString(", collectaDomain=")
 	builder.WriteString(d.CollectaDomain)
+	builder.WriteString(", tags=")
+	builder.WriteString(fmt.Sprintf("%v", d.Tags))
 	builder.WriteByte(')')
 	return builder.String()
 }

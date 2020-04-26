@@ -19,20 +19,14 @@ import (
 type DomainCreate struct {
 	config
 	id             *uuid.UUID
-	tags           *[]string
 	name           *string
 	email          *string
 	domain         *string
 	collectaDomain *string
+	tags           *[]string
 	surveys        map[uuid.UUID]struct{}
 	users          map[uuid.UUID]struct{}
 	admins         map[uuid.UUID]struct{}
-}
-
-// SetTags sets the tags field.
-func (dc *DomainCreate) SetTags(s []string) *DomainCreate {
-	dc.tags = &s
-	return dc
 }
 
 // SetName sets the name field.
@@ -56,6 +50,12 @@ func (dc *DomainCreate) SetDomain(s string) *DomainCreate {
 // SetCollectaDomain sets the collectaDomain field.
 func (dc *DomainCreate) SetCollectaDomain(s string) *DomainCreate {
 	dc.collectaDomain = &s
+	return dc
+}
+
+// SetTags sets the tags field.
+func (dc *DomainCreate) SetTags(s []string) *DomainCreate {
+	dc.tags = &s
 	return dc
 }
 
@@ -127,9 +127,6 @@ func (dc *DomainCreate) AddAdmins(u ...*User) *DomainCreate {
 
 // Save creates the Domain in the database.
 func (dc *DomainCreate) Save(ctx context.Context) (*Domain, error) {
-	if dc.tags == nil {
-		return nil, errors.New("ent: missing required field \"tags\"")
-	}
 	if dc.name == nil {
 		return nil, errors.New("ent: missing required field \"name\"")
 	}
@@ -147,6 +144,9 @@ func (dc *DomainCreate) Save(ctx context.Context) (*Domain, error) {
 	}
 	if dc.collectaDomain == nil {
 		return nil, errors.New("ent: missing required field \"collectaDomain\"")
+	}
+	if dc.tags == nil {
+		return nil, errors.New("ent: missing required field \"tags\"")
 	}
 	return dc.sqlSave(ctx)
 }
@@ -174,14 +174,6 @@ func (dc *DomainCreate) sqlSave(ctx context.Context) (*Domain, error) {
 	if value := dc.id; value != nil {
 		d.ID = *value
 		_spec.ID.Value = *value
-	}
-	if value := dc.tags; value != nil {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeJSON,
-			Value:  *value,
-			Column: domain.FieldTags,
-		})
-		d.Tags = *value
 	}
 	if value := dc.name; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
@@ -214,6 +206,14 @@ func (dc *DomainCreate) sqlSave(ctx context.Context) (*Domain, error) {
 			Column: domain.FieldCollectaDomain,
 		})
 		d.CollectaDomain = *value
+	}
+	if value := dc.tags; value != nil {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeJSON,
+			Value:  *value,
+			Column: domain.FieldTags,
+		})
+		d.Tags = *value
 	}
 	if nodes := dc.surveys; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

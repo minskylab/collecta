@@ -100,11 +100,11 @@ var (
 	// DomainsColumns holds the columns for the "domains" table.
 	DomainsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
-		{Name: "tags", Type: field.TypeJSON},
 		{Name: "name", Type: field.TypeString},
 		{Name: "email", Type: field.TypeString, Unique: true},
 		{Name: "domain", Type: field.TypeString, Unique: true},
 		{Name: "collecta_domain", Type: field.TypeString, Unique: true},
+		{Name: "tags", Type: field.TypeJSON},
 	}
 	// DomainsTable holds the schema information for the "domains" table.
 	DomainsTable = &schema.Table{

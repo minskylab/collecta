@@ -11,8 +11,6 @@ const (
 	Label = "domain"
 	// FieldID holds the string denoting the id field in the database.
 	FieldID = "id"
-	// FieldTags holds the string denoting the tags vertex property in the database.
-	FieldTags = "tags"
 	// FieldName holds the string denoting the name vertex property in the database.
 	FieldName = "name"
 	// FieldEmail holds the string denoting the email vertex property in the database.
@@ -21,6 +19,8 @@ const (
 	FieldDomain = "domain"
 	// FieldCollectaDomain holds the string denoting the collectadomain vertex property in the database.
 	FieldCollectaDomain = "collecta_domain"
+	// FieldTags holds the string denoting the tags vertex property in the database.
+	FieldTags = "tags"
 
 	// Table holds the table name of the domain in the database.
 	Table = "domains"
@@ -46,11 +46,11 @@ const (
 // Columns holds all SQL columns for domain fields.
 var Columns = []string{
 	FieldID,
-	FieldTags,
 	FieldName,
 	FieldEmail,
 	FieldDomain,
 	FieldCollectaDomain,
+	FieldTags,
 }
 
 var (
@@ -66,12 +66,12 @@ var (
 	fields = schema.Domain{}.Fields()
 
 	// descName is the schema descriptor for name field.
-	descName = fields[2].Descriptor()
+	descName = fields[1].Descriptor()
 	// NameValidator is a validator for the "name" field. It is called by the builders before save.
 	NameValidator = descName.Validators[0].(func(string) error)
 
 	// descEmail is the schema descriptor for email field.
-	descEmail = fields[3].Descriptor()
+	descEmail = fields[2].Descriptor()
 	// EmailValidator is a validator for the "email" field. It is called by the builders before save.
 	EmailValidator = descEmail.Validators[0].(func(string) error)
 )

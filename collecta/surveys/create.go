@@ -16,7 +16,6 @@ import (
 	"golang.org/x/net/context"
 )
 
-
 func createQuestion(ctx context.Context, db *db.DB, q model.QuestionCreator) (*ent.Question, error) {
 	var policy = bluemonday.UGCPolicy()
 	policy.AllowElements("h1").AllowElements("h2").AllowElements("h3")
@@ -122,8 +121,8 @@ func createSurveysFromAPI(ctx context.Context, db *db.DB, domainID uuid.UUID, dr
 	basicFlow, err := db.Ent.Flow.Create().
 		SetID(uuid.New()).
 		SetInputs([]string{}).
-		SetState(questions[0].ID). // first question
-		SetInitialState(questions[0].ID). // first question, TODO
+		SetState(questions[0].ID).                           // first question
+		SetInitialState(questions[0].ID).                    // first question, TODO
 		SetTerminationState(questions[len(questions)-1].ID). // last question, TODO
 		SetStateTable(flowProgram).
 		AddQuestions(questions...).

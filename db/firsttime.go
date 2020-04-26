@@ -66,4 +66,3 @@ func (db *DB) isFirstTimeCollectaInstance(ctx context.Context) (bool, error) {
 	}
 	return !adminUserExist, nil
 }
-

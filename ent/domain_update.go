@@ -19,11 +19,11 @@ import (
 // DomainUpdate is the builder for updating Domain entities.
 type DomainUpdate struct {
 	config
-	tags           *[]string
 	name           *string
 	email          *string
 	domain         *string
 	collectaDomain *string
+	tags           *[]string
 	surveys        map[uuid.UUID]struct{}
 	users          map[uuid.UUID]struct{}
 	admins         map[uuid.UUID]struct{}
@@ -36,12 +36,6 @@ type DomainUpdate struct {
 // Where adds a new predicate for the builder.
 func (du *DomainUpdate) Where(ps ...predicate.Domain) *DomainUpdate {
 	du.predicates = append(du.predicates, ps...)
-	return du
-}
-
-// SetTags sets the tags field.
-func (du *DomainUpdate) SetTags(s []string) *DomainUpdate {
-	du.tags = &s
 	return du
 }
 
@@ -66,6 +60,12 @@ func (du *DomainUpdate) SetDomain(s string) *DomainUpdate {
 // SetCollectaDomain sets the collectaDomain field.
 func (du *DomainUpdate) SetCollectaDomain(s string) *DomainUpdate {
 	du.collectaDomain = &s
+	return du
+}
+
+// SetTags sets the tags field.
+func (du *DomainUpdate) SetTags(s []string) *DomainUpdate {
+	du.tags = &s
 	return du
 }
 
@@ -244,13 +244,6 @@ func (du *DomainUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 		}
 	}
-	if value := du.tags; value != nil {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeJSON,
-			Value:  *value,
-			Column: domain.FieldTags,
-		})
-	}
 	if value := du.name; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
@@ -277,6 +270,13 @@ func (du *DomainUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: domain.FieldCollectaDomain,
+		})
+	}
+	if value := du.tags; value != nil {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeJSON,
+			Value:  *value,
+			Column: domain.FieldTags,
 		})
 	}
 	if nodes := du.removedSurveys; len(nodes) > 0 {
@@ -408,23 +408,17 @@ func (du *DomainUpdate) sqlSave(ctx context.Context) (n int, err error) {
 type DomainUpdateOne struct {
 	config
 	id             uuid.UUID
-	tags           *[]string
 	name           *string
 	email          *string
 	domain         *string
 	collectaDomain *string
+	tags           *[]string
 	surveys        map[uuid.UUID]struct{}
 	users          map[uuid.UUID]struct{}
 	admins         map[uuid.UUID]struct{}
 	removedSurveys map[uuid.UUID]struct{}
 	removedUsers   map[uuid.UUID]struct{}
 	removedAdmins  map[uuid.UUID]struct{}
-}
-
-// SetTags sets the tags field.
-func (duo *DomainUpdateOne) SetTags(s []string) *DomainUpdateOne {
-	duo.tags = &s
-	return duo
 }
 
 // SetName sets the name field.
@@ -448,6 +442,12 @@ func (duo *DomainUpdateOne) SetDomain(s string) *DomainUpdateOne {
 // SetCollectaDomain sets the collectaDomain field.
 func (duo *DomainUpdateOne) SetCollectaDomain(s string) *DomainUpdateOne {
 	duo.collectaDomain = &s
+	return duo
+}
+
+// SetTags sets the tags field.
+func (duo *DomainUpdateOne) SetTags(s []string) *DomainUpdateOne {
+	duo.tags = &s
 	return duo
 }
 
@@ -620,13 +620,6 @@ func (duo *DomainUpdateOne) sqlSave(ctx context.Context) (d *Domain, err error) 
 			},
 		},
 	}
-	if value := duo.tags; value != nil {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeJSON,
-			Value:  *value,
-			Column: domain.FieldTags,
-		})
-	}
 	if value := duo.name; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
@@ -653,6 +646,13 @@ func (duo *DomainUpdateOne) sqlSave(ctx context.Context) (d *Domain, err error) 
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: domain.FieldCollectaDomain,
+		})
+	}
+	if value := duo.tags; value != nil {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeJSON,
+			Value:  *value,
+			Column: domain.FieldTags,
 		})
 	}
 	if nodes := duo.removedSurveys; len(nodes) > 0 {
