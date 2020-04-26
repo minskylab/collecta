@@ -20,7 +20,17 @@ func OwnerOfDomain(ctx context.Context, db *db.DB, obj *model.Domain) ([]uuid.UU
 		return nil, errors.Wrap(err, "error at fetch domain")
 	}
 
-	return d.QueryAdmins().IDs(ctx)
+	admins, err := d.QueryAdmins().All(ctx)
+	if err != nil {
+		return nil, errors.Wrap(err, "error at fetch your users")
+	}
+
+	ids := make([]uuid.UUID, 0)
+	for _, u := range admins {
+		ids = append(ids, u.ID)
+	}
+
+	return ids, nil
 }
 
 func OwnerOfUser(ctx context.Context, db *db.DB, obj *model.User) (uuid.UUID, error) {
@@ -33,7 +43,11 @@ func OwnerOfAccount(ctx context.Context, db *db.DB, obj *model.Account) (uuid.UU
 		return uuid.Nil, errors.Wrap(err, "error at fetch domain")
 	}
 
-	return a.QueryOwner().OnlyID(ctx)
+	u, err := a.QueryOwner().Only(ctx)
+	if err != nil {
+		return uuid.Nil, errors.Wrap(err, "error at fetch your user")
+	}
+	return u.ID, nil
 }
 
 func OwnerOfContact(ctx context.Context, db *db.DB, obj *model.Contact) (uuid.UUID, error) {
@@ -42,30 +56,50 @@ func OwnerOfContact(ctx context.Context, db *db.DB, obj *model.Contact) (uuid.UU
 		return uuid.Nil, errors.Wrap(err, "error at fetch domain")
 	}
 
-	return c.QueryOwner().OnlyID(ctx)
+	u, err := c.QueryOwner().Only(ctx)
+	if err != nil {
+		return uuid.Nil, errors.Wrap(err, "error at fetch your user")
+	}
+	return u.ID, nil
 }
 
 func OwnerOfFlow(ctx context.Context, db *db.DB, obj *model.Flow) (uuid.UUID, error) {
-	return db.Ent.Survey.Query().Where(survey.HasFlowWith(flow.ID(uuid.MustParse(obj.ID)))).QueryFor().OnlyID(ctx)
+	u, err := db.Ent.Survey.Query().Where(survey.HasFlowWith(flow.ID(uuid.MustParse(obj.ID)))).QueryFor().Only(ctx)
+	if err != nil {
+		return uuid.Nil, errors.Wrap(err, "error at fetch your user")
+	}
+	return u.ID, nil
 }
 
 func OwnerOfQuestion(ctx context.Context, db *db.DB, obj *model.Question) (uuid.UUID, error) {
-	return db.Ent.Survey.Query().
+	u, err := db.Ent.Survey.Query().
 		Where(survey.HasFlowWith(flow.HasQuestionsWith(question.ID(uuid.MustParse(obj.ID))))).
-		QueryFor().OnlyID(ctx)
+		QueryFor().Only(ctx)
+	if err != nil {
+		return uuid.Nil, errors.Wrap(err, "error at fetch your user")
+	}
+	return u.ID, nil
 }
 
 func OwnerOfAnswer(ctx context.Context, db *db.DB, obj *model.Answer) (uuid.UUID, error) {
-	return db.Ent.Survey.Query().
+	u, err := db.Ent.Survey.Query().
 		Where(survey.HasFlowWith(flow.HasQuestionsWith(question.HasAnswersWith(answer.ID(uuid.MustParse(obj.ID)))))).
-		QueryFor().OnlyID(ctx)
+		QueryFor().Only(ctx)
+	if err != nil {
+		return uuid.Nil, errors.Wrap(err, "error at fetch your user")
+	}
+	return u.ID, nil
 }
 
 func OwnerOfInput(ctx context.Context, db *db.DB, obj *model.Input) (uuid.UUID, error) {
-	return db.Ent.Survey.Query().
+	u, err := db.Ent.Survey.Query().
 		Where(
 			survey.HasFlowWith(flow.HasQuestionsWith(question.HasInputWith(input.ID(uuid.MustParse(obj.ID)))))).
-		QueryFor().OnlyID(ctx)
+		QueryFor().Only(ctx)
+	if err != nil {
+		return uuid.Nil, errors.Wrap(err, "error at fetch your user")
+	}
+	return u.ID, nil
 }
 
 func OwnerOfSurvey(ctx context.Context, db *db.DB, obj *model.Survey) (uuid.UUID, error) {
