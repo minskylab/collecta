@@ -6,6 +6,7 @@ import (
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/minskylab/collecta/config"
+	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 )
 
@@ -31,6 +32,11 @@ func getHTTPEngine() (*gin.Engine, error) {
 	if maxAge == 0 {
 		maxAge = 12 * time.Hour
 	}
+
+	log.Info("origins: ", origins)
+	log.Info("methods: ", methods)
+	log.Info("headers: ", headers)
+	log.Info("maxAge: ", maxAge)
 
 	engine.Use(cors.New(cors.Config{
 		AllowOrigins:     origins,
