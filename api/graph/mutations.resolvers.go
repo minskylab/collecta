@@ -197,6 +197,7 @@ func (r *mutationResolver) CreateNewDomain(ctx context.Context, token string, dr
 		SetID(uuid.New()).
 		SetName(draft.Name).
 		SetEmail(draft.Email).
+		SetDomain(draft.Domain).
 		SetCollectaDomain(draft.CollectaDomain).
 		SetTags(draft.Tags).
 		AddAdmins(userRequester).

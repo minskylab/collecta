@@ -29,7 +29,7 @@ func (db *DB) generateFirstAdminUser(ctx context.Context) (*ent.User, error) {
 	}
 
 	newAdmin, err := db.Ent.User.Create().
-		SetID(uuid.UUID{}).
+		SetID(uuid.New()).
 		SetName("Admin").
 		SetUsername("admin").
 		SetLastActivity(time.Now()).
