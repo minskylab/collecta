@@ -11,7 +11,7 @@ RUN go mod download
 
 COPY . .
 
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o collectabin cmd/*
 
 EXPOSE 8080
-ENTRYPOINT ["/app/cmd"]
+ENTRYPOINT ["/app/collectabin"]

@@ -91,7 +91,7 @@ func createSurveysFromAPI(ctx context.Context, db *db.DB, domainID uuid.UUID, dr
 		return nil, errors.New("invalid survey, you need specify questions")
 	}
 	log.Info("creating surveys")
-	
+
 	spew.Dump(draft)
 
 	questions := make([]*ent.Question, 0)
