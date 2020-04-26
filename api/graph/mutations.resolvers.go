@@ -6,6 +6,7 @@ package graph
 import (
 	"context"
 
+	"fmt"
 	"strings"
 	"time"
 
@@ -179,6 +180,10 @@ func (r *mutationResolver) LoginByPassword(ctx context.Context, username string,
 	}
 
 	return &model.LoginResponse{Token: jwtToken}, nil
+}
+
+func (r *mutationResolver) UpdatePassword(ctx context.Context, token string, oldPassword string, newPassword string) (bool, error) {
+	panic(fmt.Errorf("not implemented"))
 }
 
 func (r *mutationResolver) CreateNewDomain(ctx context.Context, token string, draft model.DomainCreator) (*model.Domain, error) {

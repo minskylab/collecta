@@ -81,17 +81,22 @@ type LoginResponse struct {
 	Token string `json:"token"`
 }
 
+type MetadataPair struct {
+	Key   string `json:"key"`
+	Value string `json:"value"`
+}
+
 type Question struct {
-	ID          string                 `json:"id"`
-	Hash        string                 `json:"hash"`
-	Title       string                 `json:"title"`
-	Description string                 `json:"description"`
-	Anonymous   bool                   `json:"anonymous"`
-	Metadata    map[string]interface{} `json:"metadata"`
-	Validator   string                 `json:"validator"`
-	Answers     []*Answer              `json:"answers"`
-	Input       *Input                 `json:"input"`
-	Flow        *Flow                  `json:"flow"`
+	ID          string          `json:"id"`
+	Hash        string          `json:"hash"`
+	Title       string          `json:"title"`
+	Description string          `json:"description"`
+	Anonymous   bool            `json:"anonymous"`
+	Metadata    []*MetadataPair `json:"metadata"`
+	Validator   string          `json:"validator"`
+	Answers     []*Answer       `json:"answers"`
+	Input       *Input          `json:"input"`
+	Flow        *Flow           `json:"flow"`
 }
 
 type QuestionCreator struct {
@@ -109,18 +114,18 @@ type Short struct {
 }
 
 type Survey struct {
-	ID              string                 `json:"id"`
-	Tags            []string               `json:"tags"`
-	LastInteraction time.Time              `json:"lastInteraction"`
-	DueDate         time.Time              `json:"dueDate"`
-	Title           string                 `json:"title"`
-	Description     string                 `json:"description"`
-	Metadata        map[string]interface{} `json:"metadata"`
-	Done            bool                   `json:"done"`
-	IsPublic        bool                   `json:"isPublic"`
-	Flow            *Flow                  `json:"flow"`
-	For             *User                  `json:"for"`
-	Owner           *Domain                `json:"owner"`
+	ID              string          `json:"id"`
+	Tags            []string        `json:"tags"`
+	LastInteraction time.Time       `json:"lastInteraction"`
+	DueDate         time.Time       `json:"dueDate"`
+	Title           string          `json:"title"`
+	Description     string          `json:"description"`
+	Metadata        []*MetadataPair `json:"metadata"`
+	Done            bool            `json:"done"`
+	IsPublic        bool            `json:"isPublic"`
+	Flow            *Flow           `json:"flow"`
+	For             *User           `json:"for"`
+	Owner           *Domain         `json:"owner"`
 }
 
 type SurveyDomain struct {

@@ -117,11 +117,17 @@ type ComplexityRoot struct {
 		Token func(childComplexity int) int
 	}
 
+	MetadataPair struct {
+		Key   func(childComplexity int) int
+		Value func(childComplexity int) int
+	}
+
 	Mutation struct {
 		AnswerQuestion  func(childComplexity int, token string, questionID string, answer []string) int
 		CreateNewDomain func(childComplexity int, token string, draft model.DomainCreator) int
 		GenerateSurveys func(childComplexity int, token string, domainSelector model.SurveyDomain, draft model.SurveyGenerator) int
 		LoginByPassword func(childComplexity int, username string, password string) int
+		UpdatePassword  func(childComplexity int, token string, oldPassword string, newPassword string) int
 	}
 
 	Query struct {
@@ -212,6 +218,7 @@ type InputResolver interface {
 type MutationResolver interface {
 	AnswerQuestion(ctx context.Context, token string, questionID string, answer []string) (*model.Survey, error)
 	LoginByPassword(ctx context.Context, username string, password string) (*model.LoginResponse, error)
+	UpdatePassword(ctx context.Context, token string, oldPassword string, newPassword string) (bool, error)
 	CreateNewDomain(ctx context.Context, token string, draft model.DomainCreator) (*model.Domain, error)
 	GenerateSurveys(ctx context.Context, token string, domainSelector model.SurveyDomain, draft model.SurveyGenerator) (*model.SuveyGenerationResult, error)
 }
@@ -559,6 +566,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.LoginResponse.Token(childComplexity), true
 
+	case "MetadataPair.key":
+		if e.complexity.MetadataPair.Key == nil {
+			break
+		}
+
+		return e.complexity.MetadataPair.Key(childComplexity), true
+
+	case "MetadataPair.value":
+		if e.complexity.MetadataPair.Value == nil {
+			break
+		}
+
+		return e.complexity.MetadataPair.Value(childComplexity), true
+
 	case "Mutation.answerQuestion":
 		if e.complexity.Mutation.AnswerQuestion == nil {
 			break
@@ -606,6 +627,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.LoginByPassword(childComplexity, args["username"].(string), args["password"].(string)), true
+
+	case "Mutation.updatePassword":
+		if e.complexity.Mutation.UpdatePassword == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_updatePassword_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UpdatePassword(childComplexity, args["token"].(string), args["oldPassword"].(string), args["newPassword"].(string)), true
 
 	case "Query.domain":
 		if e.complexity.Query.Domain == nil {
@@ -1029,6 +1062,11 @@ var sources = []*ast.Source{
 	&ast.Source{Name: "graph/schema/base.graphqls", Input: `scalar Time
 scalar Map
 
+type MetadataPair {
+    key: String!
+    value: String!
+}
+
 type User {
     id: ID!
     name: String!
@@ -1050,7 +1088,7 @@ type Survey {
     dueDate: Time!
     title: String!
     description: String!
-    metadata: Map!
+    metadata: [MetadataPair!]!
     done: Boolean!
     isPublic: Boolean!
     flow: Flow!
@@ -1096,7 +1134,7 @@ type Question {
     title: String!
     description: String!
     anonymous: Boolean!
-    metadata: Map!
+    metadata: [MetadataPair!]!
     validator: String!
     answers: [Answer!]!
     input: Input!
@@ -1200,6 +1238,7 @@ input DomainCreator {
 
     # Admin Related
     loginByPassword(username: String!, password: String!): LoginResponse!
+    updatePassword(token: String!, oldPassword: String!, newPassword: String!): Boolean!
     createNewDomain(token: String!, draft: DomainCreator!): Domain!
     generateSurveys(token: String!, domainSelector: SurveyDomain!, draft: SurveyGenerator!): SuveyGenerationResult!
 }
@@ -1331,6 +1370,36 @@ func (ec *executionContext) field_Mutation_loginByPassword_args(ctx context.Cont
 		}
 	}
 	args["password"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_updatePassword_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["token"]; ok {
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["token"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["oldPassword"]; ok {
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["oldPassword"] = arg1
+	var arg2 string
+	if tmp, ok := rawArgs["newPassword"]; ok {
+		arg2, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["newPassword"] = arg2
 	return args, nil
 }
 
@@ -3011,6 +3080,74 @@ func (ec *executionContext) _LoginResponse_token(ctx context.Context, field grap
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _MetadataPair_key(ctx context.Context, field graphql.CollectedField, obj *model.MetadataPair) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "MetadataPair",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Key, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _MetadataPair_value(ctx context.Context, field graphql.CollectedField, obj *model.MetadataPair) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "MetadataPair",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Value, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Mutation_answerQuestion(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -3091,6 +3228,47 @@ func (ec *executionContext) _Mutation_loginByPassword(ctx context.Context, field
 	res := resTmp.(*model.LoginResponse)
 	fc.Result = res
 	return ec.marshalNLoginResponse2ᚖgithubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐLoginResponse(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_updatePassword(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_updatePassword_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().UpdatePassword(rctx, args["token"].(string), args["oldPassword"].(string), args["newPassword"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_createNewDomain(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -3771,9 +3949,9 @@ func (ec *executionContext) _Question_metadata(ctx context.Context, field graphq
 		}
 		return graphql.Null
 	}
-	res := resTmp.(map[string]interface{})
+	res := resTmp.([]*model.MetadataPair)
 	fc.Result = res
-	return ec.marshalNMap2map(ctx, field.Selections, res)
+	return ec.marshalNMetadataPair2ᚕᚖgithubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐMetadataPairᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Question_validator(ctx context.Context, field graphql.CollectedField, obj *model.Question) (ret graphql.Marshaler) {
@@ -4213,9 +4391,9 @@ func (ec *executionContext) _Survey_metadata(ctx context.Context, field graphql.
 		}
 		return graphql.Null
 	}
-	res := resTmp.(map[string]interface{})
+	res := resTmp.([]*model.MetadataPair)
 	fc.Result = res
-	return ec.marshalNMap2map(ctx, field.Selections, res)
+	return ec.marshalNMetadataPair2ᚕᚖgithubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐMetadataPairᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Survey_done(ctx context.Context, field graphql.CollectedField, obj *model.Survey) (ret graphql.Marshaler) {
@@ -6532,6 +6710,38 @@ func (ec *executionContext) _LoginResponse(ctx context.Context, sel ast.Selectio
 	return out
 }
 
+var metadataPairImplementors = []string{"MetadataPair"}
+
+func (ec *executionContext) _MetadataPair(ctx context.Context, sel ast.SelectionSet, obj *model.MetadataPair) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, metadataPairImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("MetadataPair")
+		case "key":
+			out.Values[i] = ec._MetadataPair_key(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "value":
+			out.Values[i] = ec._MetadataPair_value(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var mutationImplementors = []string{"Mutation"}
 
 func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet) graphql.Marshaler {
@@ -6554,6 +6764,11 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			}
 		case "loginByPassword":
 			out.Values[i] = ec._Mutation_loginByPassword(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "updatePassword":
+			out.Values[i] = ec._Mutation_updatePassword(ctx, field)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -7607,6 +7822,57 @@ func (ec *executionContext) marshalNMap2map(ctx context.Context, sel ast.Selecti
 		}
 	}
 	return res
+}
+
+func (ec *executionContext) marshalNMetadataPair2githubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐMetadataPair(ctx context.Context, sel ast.SelectionSet, v model.MetadataPair) graphql.Marshaler {
+	return ec._MetadataPair(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNMetadataPair2ᚕᚖgithubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐMetadataPairᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.MetadataPair) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNMetadataPair2ᚖgithubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐMetadataPair(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
+func (ec *executionContext) marshalNMetadataPair2ᚖgithubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐMetadataPair(ctx context.Context, sel ast.SelectionSet, v *model.MetadataPair) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._MetadataPair(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNQuestion2githubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐQuestion(ctx context.Context, sel ast.SelectionSet, v model.Question) graphql.Marshaler {

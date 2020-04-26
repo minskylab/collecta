@@ -1,6 +1,11 @@
 scalar Time
 scalar Map
 
+type MetadataPair {
+    key: String!
+    value: String!
+}
+
 type User {
     id: ID!
     name: String!
@@ -22,7 +27,7 @@ type Survey {
     dueDate: Time!
     title: String!
     description: String!
-    metadata: Map!
+    metadata: [MetadataPair!]!
     done: Boolean!
     isPublic: Boolean!
     flow: Flow!
@@ -68,7 +73,7 @@ type Question {
     title: String!
     description: String!
     anonymous: Boolean!
-    metadata: Map!
+    metadata: [MetadataPair!]!
     validator: String!
     answers: [Answer!]!
     input: Input!

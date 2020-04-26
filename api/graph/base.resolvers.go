@@ -31,9 +31,7 @@ func (r *accountResolver) Owner(ctx context.Context, obj *model.Account) (*model
 		return nil, errors.Wrap(err, "error at ent query")
 	}
 
-	m := commons.UserToGQL(e)
-
-	return m, nil
+	return commons.UserToGQL(e), nil
 }
 
 func (r *answerResolver) Question(ctx context.Context, obj *model.Answer) (*model.Question, error) {
@@ -45,9 +43,7 @@ func (r *answerResolver) Question(ctx context.Context, obj *model.Answer) (*mode
 		return nil, errors.Wrap(err, "error at ent query")
 	}
 
-	m := commons.QuestionToGQL(e)
-
-	return m, nil
+	return commons.QuestionToGQL(e), nil
 }
 
 func (r *contactResolver) Owner(ctx context.Context, obj *model.Contact) (*model.User, error) {
@@ -59,9 +55,7 @@ func (r *contactResolver) Owner(ctx context.Context, obj *model.Contact) (*model
 		return nil, errors.Wrap(err, "error at ent query")
 	}
 
-	m := commons.UserToGQL(e)
-
-	return m, nil
+	return commons.UserToGQL(e), nil
 }
 
 func (r *domainResolver) Surveys(ctx context.Context, obj *model.Domain) ([]*model.Survey, error) {
@@ -160,16 +154,14 @@ func (r *inputResolver) Options(ctx context.Context, obj *model.Input) (map[stri
 
 func (r *inputResolver) Question(ctx context.Context, obj *model.Input) (*model.Question, error) {
 	e, err := r.DB.Ent.Question.Query().
-		Where(question.ID(uuid.MustParse(obj.ID))).
+		Where(question.HasInputWith(input.ID(uuid.MustParse(obj.ID)))).
 		Only(ctx)
 
 	if err != nil {
 		return nil, errors.Wrap(err, "error at ent query")
 	}
 
-	m := commons.QuestionToGQL(e)
-
-	return m, nil
+	return commons.QuestionToGQL(e), nil
 }
 
 func (r *questionResolver) Answers(ctx context.Context, obj *model.Question) ([]*model.Answer, error) {
@@ -201,9 +193,7 @@ func (r *questionResolver) Input(ctx context.Context, obj *model.Question) (*mod
 		return nil, errors.Wrap(err, "error at ent query")
 	}
 
-	m := commons.InputToGQL(e)
-
-	return m, nil
+	return commons.InputToGQL(e), nil
 }
 
 func (r *questionResolver) Flow(ctx context.Context, obj *model.Question) (*model.Flow, error) {
@@ -215,9 +205,7 @@ func (r *questionResolver) Flow(ctx context.Context, obj *model.Question) (*mode
 		return nil, errors.Wrap(err, "error at ent query")
 	}
 
-	m := commons.FlowToGQL(e)
-
-	return m, nil
+	return commons.FlowToGQL(e), nil
 }
 
 func (r *surveyResolver) Flow(ctx context.Context, obj *model.Survey) (*model.Flow, error) {
@@ -230,9 +218,7 @@ func (r *surveyResolver) Flow(ctx context.Context, obj *model.Survey) (*model.Fl
 		return nil, errors.Wrap(err, "error at ent query")
 	}
 
-	m := commons.FlowToGQL(e)
-
-	return m, nil
+	return commons.FlowToGQL(e), nil
 }
 
 func (r *surveyResolver) For(ctx context.Context, obj *model.Survey) (*model.User, error) {
@@ -244,9 +230,7 @@ func (r *surveyResolver) For(ctx context.Context, obj *model.Survey) (*model.Use
 		return nil, errors.Wrap(err, "error at ent query")
 	}
 
-	m := commons.UserToGQL(e)
-
-	return m, nil
+	return commons.UserToGQL(e), nil
 }
 
 func (r *surveyResolver) Owner(ctx context.Context, obj *model.Survey) (*model.Domain, error) {
@@ -258,9 +242,7 @@ func (r *surveyResolver) Owner(ctx context.Context, obj *model.Survey) (*model.D
 		return nil, errors.Wrap(err, "error at ent query")
 	}
 
-	m := commons.DomainToGQL(e)
-
-	return m, nil
+	return commons.DomainToGQL(e), nil
 }
 
 func (r *userResolver) Accounts(ctx context.Context, obj *model.User) (*model.Account, error) {
@@ -272,9 +254,7 @@ func (r *userResolver) Accounts(ctx context.Context, obj *model.User) (*model.Ac
 		return nil, errors.Wrap(err, "error at ent query")
 	}
 
-	m := commons.AccountToGQL(e)
-
-	return m, nil
+	return commons.AccountToGQL(e), nil
 }
 
 func (r *userResolver) Contacts(ctx context.Context, obj *model.User) (*model.Contact, error) {
@@ -286,9 +266,7 @@ func (r *userResolver) Contacts(ctx context.Context, obj *model.User) (*model.Co
 		return nil, errors.Wrap(err, "error at ent query")
 	}
 
-	m := commons.ContactToGQL(e)
-
-	return m, nil
+	return commons.ContactToGQL(e), nil
 }
 
 func (r *userResolver) Surveys(ctx context.Context, obj *model.User) ([]*model.Survey, error) {

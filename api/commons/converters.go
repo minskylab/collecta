@@ -62,9 +62,12 @@ func FlowToGQL(e *ent.Flow) *model.Flow {
 }
 
 func QuestionToGQL(e *ent.Question) *model.Question {
-	meta := map[string]interface{}{}
+	meta := make([]*model.MetadataPair, 0)
 	for k, v := range e.Metadata {
-		meta[k] = v
+		meta = append(meta, &model.MetadataPair{
+			Key:   k,
+			Value: v,
+		})
 	}
 	return &model.Question{
 		ID:          e.ID.String(),
@@ -108,9 +111,12 @@ func InputToGQL(e *ent.Input) *model.Input {
 }
 
 func SurveyToGQL(e *ent.Survey) *model.Survey {
-	meta := map[string]interface{}{}
+	meta := make([]*model.MetadataPair, 0)
 	for k, v := range e.Metadata {
-		meta[k] = v
+		meta = append(meta, &model.MetadataPair{
+			Key:   k,
+			Value: v,
+		})
 	}
 	return &model.Survey{
 		ID:              e.ID.String(),
