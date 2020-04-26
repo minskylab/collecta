@@ -5,7 +5,7 @@ package graph
 
 import (
 	"context"
-	"fmt"
+
 	"strings"
 	"time"
 
@@ -15,6 +15,7 @@ import (
 	"github.com/minskylab/collecta/api/graph/model"
 	"github.com/minskylab/collecta/collecta/answers"
 	"github.com/minskylab/collecta/collecta/flows"
+	"github.com/minskylab/collecta/collecta/surveys"
 	"github.com/minskylab/collecta/ent"
 	"github.com/minskylab/collecta/ent/account"
 	"github.com/minskylab/collecta/ent/domain"
@@ -180,7 +181,7 @@ func (r *mutationResolver) LoginByPassword(ctx context.Context, username string,
 	return &model.LoginResponse{Token: jwtToken}, nil
 }
 
-func (r *mutationResolver) CreateNewDomain(ctx context.Context, token string, domain model.DomainCreator) (*model.Domain, error) {
+func (r *mutationResolver) CreateNewDomain(ctx context.Context, token string, draft model.DomainCreator) (*model.Domain, error) {
 	userRequester, err := r.Auth.VerifyJWTToken(ctx, token)
 	if err != nil {
 		return nil, errors.Wrap(err, "error at verify your token")
@@ -194,10 +195,10 @@ func (r *mutationResolver) CreateNewDomain(ctx context.Context, token string, do
 
 	newDomain, err := r.DB.Ent.Domain.Create().
 		SetID(uuid.New()).
-		SetName(domain.Name).
-		SetEmail(domain.Email).
-		SetCollectaDomain(domain.CollectaDomain).
-		SetTags(domain.Tags).
+		SetName(draft.Name).
+		SetEmail(draft.Email).
+		SetCollectaDomain(draft.CollectaDomain).
+		SetTags(draft.Tags).
 		AddAdmins(userRequester).
 		Save(ctx)
 	if err != nil {
@@ -207,7 +208,7 @@ func (r *mutationResolver) CreateNewDomain(ctx context.Context, token string, do
 	return commons.DomainToGQL(newDomain), nil
 }
 
-func (r *mutationResolver) CreateSurvey(ctx context.Context, token string, domainSelector model.SurveyDomain, draft model.SurveyCreator) (*model.Survey, error) {
+func (r *mutationResolver) GenerateSurveys(ctx context.Context, token string, domainSelector model.SurveyDomain, draft model.SurveyGenerator) (*model.SuveyGenerationResult, error) {
 	userRequester, err := r.Auth.VerifyJWTToken(ctx, token)
 	if err != nil {
 		return nil, errors.Wrap(err, "error at verify your token")
@@ -229,7 +230,7 @@ func (r *mutationResolver) CreateSurvey(ctx context.Context, token string, domai
 				return nil, errors.Wrap(err, "error at fetch domain, probably you aren't an admin for this domain ")
 			}
 
-		} else if domainSelector.ByDomainName != nil  {  // by domain name
+		} else if domainSelector.ByDomainName != nil { // by domain name
 			targetDomain, err = r.DB.Ent.Domain.Query().
 				Where(domain.And(
 					domain.Name(*domainSelector.ByDomainName),
@@ -248,9 +249,20 @@ func (r *mutationResolver) CreateSurvey(ctx context.Context, token string, domai
 		}
 	}
 
-	
+	generatedSurveys, err := surveys.GenerateSurveys(ctx, r.DB, targetDomain.ID, draft)
+	if err != nil {
+		return nil, errors.Wrap(err, "error at try to generate your surveys")
+	}
 
+	convertedSurveys := make([]*model.Survey, 0)
+	for _, s := range generatedSurveys {
+		convertedSurveys = append(convertedSurveys, commons.SurveyToGQL(s))
+	}
 
+	return &model.SuveyGenerationResult{
+		How:     len(generatedSurveys),
+		Surveys: convertedSurveys,
+	}, nil
 }
 
 // Mutation returns generated.MutationResolver implementation.

@@ -119,8 +119,8 @@ type ComplexityRoot struct {
 
 	Mutation struct {
 		AnswerQuestion  func(childComplexity int, token string, questionID string, answer []string) int
-		CreateNewDomain func(childComplexity int, token string, domain model.DomainCreator) int
-		CreateSurvey    func(childComplexity int, token string, domain model.SurveyDomain, draft model.SurveyCreator) int
+		CreateNewDomain func(childComplexity int, token string, draft model.DomainCreator) int
+		GenerateSurveys func(childComplexity int, token string, domainSelector model.SurveyDomain, draft model.SurveyGenerator) int
 		LoginByPassword func(childComplexity int, username string, password string) int
 	}
 
@@ -168,6 +168,11 @@ type ComplexityRoot struct {
 		Title           func(childComplexity int) int
 	}
 
+	SuveyGenerationResult struct {
+		How     func(childComplexity int) int
+		Surveys func(childComplexity int) int
+	}
+
 	User struct {
 		Accounts     func(childComplexity int) int
 		AdminOf      func(childComplexity int) int
@@ -207,8 +212,8 @@ type InputResolver interface {
 type MutationResolver interface {
 	AnswerQuestion(ctx context.Context, token string, questionID string, answer []string) (*model.Survey, error)
 	LoginByPassword(ctx context.Context, username string, password string) (*model.LoginResponse, error)
-	CreateNewDomain(ctx context.Context, token string, domain model.DomainCreator) (*model.Domain, error)
-	CreateSurvey(ctx context.Context, token string, domain model.SurveyDomain, draft model.SurveyCreator) (*model.Survey, error)
+	CreateNewDomain(ctx context.Context, token string, draft model.DomainCreator) (*model.Domain, error)
+	GenerateSurveys(ctx context.Context, token string, domainSelector model.SurveyDomain, draft model.SurveyGenerator) (*model.SuveyGenerationResult, error)
 }
 type QueryResolver interface {
 	Domain(ctx context.Context, token string, id string) (*model.Domain, error)
@@ -576,19 +581,19 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.CreateNewDomain(childComplexity, args["token"].(string), args["domain"].(model.DomainCreator)), true
+		return e.complexity.Mutation.CreateNewDomain(childComplexity, args["token"].(string), args["draft"].(model.DomainCreator)), true
 
-	case "Mutation.createSurvey":
-		if e.complexity.Mutation.CreateSurvey == nil {
+	case "Mutation.generateSurveys":
+		if e.complexity.Mutation.GenerateSurveys == nil {
 			break
 		}
 
-		args, err := ec.field_Mutation_createSurvey_args(context.TODO(), rawArgs)
+		args, err := ec.field_Mutation_generateSurveys_args(context.TODO(), rawArgs)
 		if err != nil {
 			return 0, false
 		}
 
-		return e.complexity.Mutation.CreateSurvey(childComplexity, args["token"].(string), args["domain"].(model.SurveyDomain), args["draft"].(model.SurveyCreator)), true
+		return e.complexity.Mutation.GenerateSurveys(childComplexity, args["token"].(string), args["domainSelector"].(model.SurveyDomain), args["draft"].(model.SurveyGenerator)), true
 
 	case "Mutation.loginByPassword":
 		if e.complexity.Mutation.LoginByPassword == nil {
@@ -865,6 +870,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Survey.Title(childComplexity), true
+
+	case "SuveyGenerationResult.how":
+		if e.complexity.SuveyGenerationResult.How == nil {
+			break
+		}
+
+		return e.complexity.SuveyGenerationResult.How(childComplexity), true
+
+	case "SuveyGenerationResult.surveys":
+		if e.complexity.SuveyGenerationResult.Surveys == nil {
+			break
+		}
+
+		return e.complexity.SuveyGenerationResult.Surveys(childComplexity), true
 
 	case "User.accounts":
 		if e.complexity.User.Accounts == nil {
@@ -1152,17 +1171,21 @@ input SurveyDomain {
     byDomainName: String
 }
 
-input SurveyCreator {
+input SurveyGenerator {
     title: String!
     description: String!
     tags: [String!]!
-    question: [QuestionCreator!]!
+    questions: [QuestionCreator!]!
     target: SurveyTargetUsers!
 
     metadata: Map
     logic: String
 }
 
+type SuveyGenerationResult {
+    how: Int!
+    surveys: [Survey!]!
+}
 
 input DomainCreator {
     name: String!
@@ -1177,8 +1200,8 @@ input DomainCreator {
 
     # Admin Related
     loginByPassword(username: String!, password: String!): LoginResponse!
-    createNewDomain(token: String!, domain: DomainCreator!): Domain!
-    createSurvey(token: String!, domain: SurveyDomain!, draft: SurveyCreator!): Survey!
+    createNewDomain(token: String!, draft: DomainCreator!): Domain!
+    generateSurveys(token: String!, domainSelector: SurveyDomain!, draft: SurveyGenerator!): SuveyGenerationResult!
 }
 `, BuiltIn: false},
 	&ast.Source{Name: "graph/schema/queries.graphqls", Input: `type Query {
@@ -1249,17 +1272,17 @@ func (ec *executionContext) field_Mutation_createNewDomain_args(ctx context.Cont
 	}
 	args["token"] = arg0
 	var arg1 model.DomainCreator
-	if tmp, ok := rawArgs["domain"]; ok {
+	if tmp, ok := rawArgs["draft"]; ok {
 		arg1, err = ec.unmarshalNDomainCreator2githubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐDomainCreator(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["domain"] = arg1
+	args["draft"] = arg1
 	return args, nil
 }
 
-func (ec *executionContext) field_Mutation_createSurvey_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_Mutation_generateSurveys_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 string
@@ -1271,16 +1294,16 @@ func (ec *executionContext) field_Mutation_createSurvey_args(ctx context.Context
 	}
 	args["token"] = arg0
 	var arg1 model.SurveyDomain
-	if tmp, ok := rawArgs["domain"]; ok {
+	if tmp, ok := rawArgs["domainSelector"]; ok {
 		arg1, err = ec.unmarshalNSurveyDomain2githubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐSurveyDomain(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["domain"] = arg1
-	var arg2 model.SurveyCreator
+	args["domainSelector"] = arg1
+	var arg2 model.SurveyGenerator
 	if tmp, ok := rawArgs["draft"]; ok {
-		arg2, err = ec.unmarshalNSurveyCreator2githubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐSurveyCreator(ctx, tmp)
+		arg2, err = ec.unmarshalNSurveyGenerator2githubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐSurveyGenerator(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -3094,7 +3117,7 @@ func (ec *executionContext) _Mutation_createNewDomain(ctx context.Context, field
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateNewDomain(rctx, args["token"].(string), args["domain"].(model.DomainCreator))
+		return ec.resolvers.Mutation().CreateNewDomain(rctx, args["token"].(string), args["draft"].(model.DomainCreator))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -3111,7 +3134,7 @@ func (ec *executionContext) _Mutation_createNewDomain(ctx context.Context, field
 	return ec.marshalNDomain2ᚖgithubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐDomain(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Mutation_createSurvey(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+func (ec *executionContext) _Mutation_generateSurveys(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -3127,7 +3150,7 @@ func (ec *executionContext) _Mutation_createSurvey(ctx context.Context, field gr
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Mutation_createSurvey_args(ctx, rawArgs)
+	args, err := ec.field_Mutation_generateSurveys_args(ctx, rawArgs)
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
@@ -3135,7 +3158,7 @@ func (ec *executionContext) _Mutation_createSurvey(ctx context.Context, field gr
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateSurvey(rctx, args["token"].(string), args["domain"].(model.SurveyDomain), args["draft"].(model.SurveyCreator))
+		return ec.resolvers.Mutation().GenerateSurveys(rctx, args["token"].(string), args["domainSelector"].(model.SurveyDomain), args["draft"].(model.SurveyGenerator))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -3147,9 +3170,9 @@ func (ec *executionContext) _Mutation_createSurvey(ctx context.Context, field gr
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*model.Survey)
+	res := resTmp.(*model.SuveyGenerationResult)
 	fc.Result = res
-	return ec.marshalNSurvey2ᚖgithubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐSurvey(ctx, field.Selections, res)
+	return ec.marshalNSuveyGenerationResult2ᚖgithubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐSuveyGenerationResult(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_domain(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -4363,6 +4386,74 @@ func (ec *executionContext) _Survey_owner(ctx context.Context, field graphql.Col
 	res := resTmp.(*model.Domain)
 	fc.Result = res
 	return ec.marshalNDomain2ᚖgithubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐDomain(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _SuveyGenerationResult_how(ctx context.Context, field graphql.CollectedField, obj *model.SuveyGenerationResult) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "SuveyGenerationResult",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.How, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _SuveyGenerationResult_surveys(ctx context.Context, field graphql.CollectedField, obj *model.SuveyGenerationResult) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "SuveyGenerationResult",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Surveys, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.Survey)
+	fc.Result = res
+	return ec.marshalNSurvey2ᚕᚖgithubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐSurveyᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _User_id(ctx context.Context, field graphql.CollectedField, obj *model.User) (ret graphql.Marshaler) {
@@ -5884,8 +5975,32 @@ func (ec *executionContext) unmarshalInputQuestionCreator(ctx context.Context, o
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputSurveyCreator(ctx context.Context, obj interface{}) (model.SurveyCreator, error) {
-	var it model.SurveyCreator
+func (ec *executionContext) unmarshalInputSurveyDomain(ctx context.Context, obj interface{}) (model.SurveyDomain, error) {
+	var it model.SurveyDomain
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "byID":
+			var err error
+			it.ByID, err = ec.unmarshalOID2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "byDomainName":
+			var err error
+			it.ByDomainName, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputSurveyGenerator(ctx context.Context, obj interface{}) (model.SurveyGenerator, error) {
+	var it model.SurveyGenerator
 	var asMap = obj.(map[string]interface{})
 
 	for k, v := range asMap {
@@ -5908,9 +6023,9 @@ func (ec *executionContext) unmarshalInputSurveyCreator(ctx context.Context, obj
 			if err != nil {
 				return it, err
 			}
-		case "question":
+		case "questions":
 			var err error
-			it.Question, err = ec.unmarshalNQuestionCreator2ᚕᚖgithubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐQuestionCreatorᚄ(ctx, v)
+			it.Questions, err = ec.unmarshalNQuestionCreator2ᚕᚖgithubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐQuestionCreatorᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -5929,30 +6044,6 @@ func (ec *executionContext) unmarshalInputSurveyCreator(ctx context.Context, obj
 		case "logic":
 			var err error
 			it.Logic, err = ec.unmarshalOString2ᚖstring(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		}
-	}
-
-	return it, nil
-}
-
-func (ec *executionContext) unmarshalInputSurveyDomain(ctx context.Context, obj interface{}) (model.SurveyDomain, error) {
-	var it model.SurveyDomain
-	var asMap = obj.(map[string]interface{})
-
-	for k, v := range asMap {
-		switch k {
-		case "byID":
-			var err error
-			it.ByID, err = ec.unmarshalOID2ᚖstring(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "byDomainName":
-			var err error
-			it.ByDomainName, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -6471,8 +6562,8 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "createSurvey":
-			out.Values[i] = ec._Mutation_createSurvey(ctx, field)
+		case "generateSurveys":
+			out.Values[i] = ec._Mutation_generateSurveys(ctx, field)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -6858,6 +6949,38 @@ func (ec *executionContext) _Survey(ctx context.Context, sel ast.SelectionSet, o
 				}
 				return res
 			})
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var suveyGenerationResultImplementors = []string{"SuveyGenerationResult"}
+
+func (ec *executionContext) _SuveyGenerationResult(ctx context.Context, sel ast.SelectionSet, obj *model.SuveyGenerationResult) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, suveyGenerationResultImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("SuveyGenerationResult")
+		case "how":
+			out.Values[i] = ec._SuveyGenerationResult_how(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "surveys":
+			out.Values[i] = ec._SuveyGenerationResult_surveys(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -7435,6 +7558,20 @@ func (ec *executionContext) marshalNInputType2githubᚗcomᚋminskylabᚋcollect
 	return v
 }
 
+func (ec *executionContext) unmarshalNInt2int(ctx context.Context, v interface{}) (int, error) {
+	return graphql.UnmarshalInt(v)
+}
+
+func (ec *executionContext) marshalNInt2int(ctx context.Context, sel ast.SelectionSet, v int) graphql.Marshaler {
+	res := graphql.MarshalInt(v)
+	if res == graphql.Null {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+	}
+	return res
+}
+
 func (ec *executionContext) marshalNLoginResponse2githubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐLoginResponse(ctx context.Context, sel ast.SelectionSet, v model.LoginResponse) graphql.Marshaler {
 	return ec._LoginResponse(ctx, sel, &v)
 }
@@ -7687,12 +7824,12 @@ func (ec *executionContext) marshalNSurveyAudenceKind2githubᚗcomᚋminskylab�
 	return v
 }
 
-func (ec *executionContext) unmarshalNSurveyCreator2githubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐSurveyCreator(ctx context.Context, v interface{}) (model.SurveyCreator, error) {
-	return ec.unmarshalInputSurveyCreator(ctx, v)
-}
-
 func (ec *executionContext) unmarshalNSurveyDomain2githubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐSurveyDomain(ctx context.Context, v interface{}) (model.SurveyDomain, error) {
 	return ec.unmarshalInputSurveyDomain(ctx, v)
+}
+
+func (ec *executionContext) unmarshalNSurveyGenerator2githubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐSurveyGenerator(ctx context.Context, v interface{}) (model.SurveyGenerator, error) {
+	return ec.unmarshalInputSurveyGenerator(ctx, v)
 }
 
 func (ec *executionContext) unmarshalNSurveyTargetUsers2githubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐSurveyTargetUsers(ctx context.Context, v interface{}) (model.SurveyTargetUsers, error) {
@@ -7705,6 +7842,20 @@ func (ec *executionContext) unmarshalNSurveyTargetUsers2ᚖgithubᚗcomᚋminsky
 	}
 	res, err := ec.unmarshalNSurveyTargetUsers2githubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐSurveyTargetUsers(ctx, v)
 	return &res, err
+}
+
+func (ec *executionContext) marshalNSuveyGenerationResult2githubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐSuveyGenerationResult(ctx context.Context, sel ast.SelectionSet, v model.SuveyGenerationResult) graphql.Marshaler {
+	return ec._SuveyGenerationResult(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNSuveyGenerationResult2ᚖgithubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐSuveyGenerationResult(ctx context.Context, sel ast.SelectionSet, v *model.SuveyGenerationResult) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._SuveyGenerationResult(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNTime2timeᚐTime(ctx context.Context, v interface{}) (time.Time, error) {

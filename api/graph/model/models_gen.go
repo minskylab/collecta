@@ -123,24 +123,29 @@ type Survey struct {
 	Owner           *Domain                `json:"owner"`
 }
 
-type SurveyCreator struct {
-	Title       string                 `json:"title"`
-	Description string                 `json:"description"`
-	Tags        []string               `json:"tags"`
-	Question    []*QuestionCreator     `json:"question"`
-	Target      *SurveyTargetUsers     `json:"target"`
-	Metadata    map[string]interface{} `json:"metadata"`
-	Logic       *string                `json:"logic"`
-}
-
 type SurveyDomain struct {
 	ByID         *string `json:"byID"`
 	ByDomainName *string `json:"byDomainName"`
 }
 
+type SurveyGenerator struct {
+	Title       string                 `json:"title"`
+	Description string                 `json:"description"`
+	Tags        []string               `json:"tags"`
+	Questions   []*QuestionCreator     `json:"questions"`
+	Target      *SurveyTargetUsers     `json:"target"`
+	Metadata    map[string]interface{} `json:"metadata"`
+	Logic       *string                `json:"logic"`
+}
+
 type SurveyTargetUsers struct {
 	TargetKind SurveyAudenceKind `json:"targetKind"`
 	Whitelist  []string          `json:"whitelist"`
+}
+
+type SuveyGenerationResult struct {
+	How     int       `json:"how"`
+	Surveys []*Survey `json:"surveys"`
 }
 
 type User struct {

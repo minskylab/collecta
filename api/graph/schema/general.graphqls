@@ -34,17 +34,21 @@ input SurveyDomain {
     byDomainName: String
 }
 
-input SurveyCreator {
+input SurveyGenerator {
     title: String!
     description: String!
     tags: [String!]!
-    question: [QuestionCreator!]!
+    questions: [QuestionCreator!]!
     target: SurveyTargetUsers!
 
     metadata: Map
     logic: String
 }
 
+type SuveyGenerationResult {
+    how: Int!
+    surveys: [Survey!]!
+}
 
 input DomainCreator {
     name: String!

@@ -5,5 +5,5 @@ type Mutation {
     # Admin Related
     loginByPassword(username: String!, password: String!): LoginResponse!
     createNewDomain(token: String!, draft: DomainCreator!): Domain!
-    createSurvey(token: String!, domainSelector: SurveyDomain!, draft: SurveyCreator!): Survey!
+    generateSurveys(token: String!, domainSelector: SurveyDomain!, draft: SurveyGenerator!): SuveyGenerationResult!
 }
