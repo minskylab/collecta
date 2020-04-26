@@ -123,22 +123,21 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
-		AnswerQuestion  func(childComplexity int, token string, questionID string, answer []string) int
-		CreateNewDomain func(childComplexity int, token string, draft model.DomainCreator) int
-		GenerateSurveys func(childComplexity int, token string, domainSelector model.SurveyDomain, draft model.SurveyGenerator) int
+		AnswerQuestion  func(childComplexity int, questionID string, answer []string) int
+		CreateNewDomain func(childComplexity int, draft model.DomainCreator) int
+		GenerateSurveys func(childComplexity int, domainSelector model.SurveyDomain, draft model.SurveyGenerator) int
 		LoginByPassword func(childComplexity int, username string, password string) int
-		UpdatePassword  func(childComplexity int, token string, oldPassword string, newPassword string) int
+		UpdatePassword  func(childComplexity int, oldPassword string, newPassword string) int
 	}
 
 	Query struct {
-		Domain               func(childComplexity int, token string, id string) int
-		IsFinalQuestion      func(childComplexity int, token string, questionID string) int
-		IsFirstQuestion      func(childComplexity int, token string, questionID string) int
-		LastQuestionOfSurvey func(childComplexity int, token string, surveyID string) int
-		Question             func(childComplexity int, token string, id string) int
-		Survey               func(childComplexity int, token string, id string) int
-		User                 func(childComplexity int, token string, id string) int
-		UserByToken          func(childComplexity int, token string) int
+		Domain               func(childComplexity int, id string) int
+		IsFinalQuestion      func(childComplexity int, questionID string) int
+		IsFirstQuestion      func(childComplexity int, questionID string) int
+		LastQuestionOfSurvey func(childComplexity int, surveyID string) int
+		Profile              func(childComplexity int, id string) int
+		Question             func(childComplexity int, id string) int
+		Survey               func(childComplexity int, id string) int
 	}
 
 	Question struct {
@@ -216,21 +215,20 @@ type InputResolver interface {
 	Question(ctx context.Context, obj *model.Input) (*model.Question, error)
 }
 type MutationResolver interface {
-	AnswerQuestion(ctx context.Context, token string, questionID string, answer []string) (*model.Survey, error)
+	AnswerQuestion(ctx context.Context, questionID string, answer []string) (*model.Survey, error)
 	LoginByPassword(ctx context.Context, username string, password string) (*model.LoginResponse, error)
-	UpdatePassword(ctx context.Context, token string, oldPassword string, newPassword string) (bool, error)
-	CreateNewDomain(ctx context.Context, token string, draft model.DomainCreator) (*model.Domain, error)
-	GenerateSurveys(ctx context.Context, token string, domainSelector model.SurveyDomain, draft model.SurveyGenerator) (*model.SuveyGenerationResult, error)
+	UpdatePassword(ctx context.Context, oldPassword string, newPassword string) (bool, error)
+	CreateNewDomain(ctx context.Context, draft model.DomainCreator) (*model.Domain, error)
+	GenerateSurveys(ctx context.Context, domainSelector model.SurveyDomain, draft model.SurveyGenerator) (*model.SuveyGenerationResult, error)
 }
 type QueryResolver interface {
-	Domain(ctx context.Context, token string, id string) (*model.Domain, error)
-	Survey(ctx context.Context, token string, id string) (*model.Survey, error)
-	Question(ctx context.Context, token string, id string) (*model.Question, error)
-	User(ctx context.Context, token string, id string) (*model.User, error)
-	UserByToken(ctx context.Context, token string) (*model.User, error)
-	IsFirstQuestion(ctx context.Context, token string, questionID string) (bool, error)
-	IsFinalQuestion(ctx context.Context, token string, questionID string) (bool, error)
-	LastQuestionOfSurvey(ctx context.Context, token string, surveyID string) (*model.Question, error)
+	Domain(ctx context.Context, id string) (*model.Domain, error)
+	Survey(ctx context.Context, id string) (*model.Survey, error)
+	Question(ctx context.Context, id string) (*model.Question, error)
+	Profile(ctx context.Context, id string) (*model.User, error)
+	IsFirstQuestion(ctx context.Context, questionID string) (bool, error)
+	IsFinalQuestion(ctx context.Context, questionID string) (bool, error)
+	LastQuestionOfSurvey(ctx context.Context, surveyID string) (*model.Question, error)
 }
 type QuestionResolver interface {
 	Answers(ctx context.Context, obj *model.Question) ([]*model.Answer, error)
@@ -590,7 +588,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.AnswerQuestion(childComplexity, args["token"].(string), args["questionID"].(string), args["answer"].([]string)), true
+		return e.complexity.Mutation.AnswerQuestion(childComplexity, args["questionID"].(string), args["answer"].([]string)), true
 
 	case "Mutation.createNewDomain":
 		if e.complexity.Mutation.CreateNewDomain == nil {
@@ -602,7 +600,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.CreateNewDomain(childComplexity, args["token"].(string), args["draft"].(model.DomainCreator)), true
+		return e.complexity.Mutation.CreateNewDomain(childComplexity, args["draft"].(model.DomainCreator)), true
 
 	case "Mutation.generateSurveys":
 		if e.complexity.Mutation.GenerateSurveys == nil {
@@ -614,7 +612,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.GenerateSurveys(childComplexity, args["token"].(string), args["domainSelector"].(model.SurveyDomain), args["draft"].(model.SurveyGenerator)), true
+		return e.complexity.Mutation.GenerateSurveys(childComplexity, args["domainSelector"].(model.SurveyDomain), args["draft"].(model.SurveyGenerator)), true
 
 	case "Mutation.loginByPassword":
 		if e.complexity.Mutation.LoginByPassword == nil {
@@ -638,7 +636,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.UpdatePassword(childComplexity, args["token"].(string), args["oldPassword"].(string), args["newPassword"].(string)), true
+		return e.complexity.Mutation.UpdatePassword(childComplexity, args["oldPassword"].(string), args["newPassword"].(string)), true
 
 	case "Query.domain":
 		if e.complexity.Query.Domain == nil {
@@ -650,7 +648,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.Domain(childComplexity, args["token"].(string), args["id"].(string)), true
+		return e.complexity.Query.Domain(childComplexity, args["id"].(string)), true
 
 	case "Query.isFinalQuestion":
 		if e.complexity.Query.IsFinalQuestion == nil {
@@ -662,7 +660,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.IsFinalQuestion(childComplexity, args["token"].(string), args["questionID"].(string)), true
+		return e.complexity.Query.IsFinalQuestion(childComplexity, args["questionID"].(string)), true
 
 	case "Query.isFirstQuestion":
 		if e.complexity.Query.IsFirstQuestion == nil {
@@ -674,7 +672,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.IsFirstQuestion(childComplexity, args["token"].(string), args["questionID"].(string)), true
+		return e.complexity.Query.IsFirstQuestion(childComplexity, args["questionID"].(string)), true
 
 	case "Query.lastQuestionOfSurvey":
 		if e.complexity.Query.LastQuestionOfSurvey == nil {
@@ -686,7 +684,19 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.LastQuestionOfSurvey(childComplexity, args["token"].(string), args["surveyID"].(string)), true
+		return e.complexity.Query.LastQuestionOfSurvey(childComplexity, args["surveyID"].(string)), true
+
+	case "Query.profile":
+		if e.complexity.Query.Profile == nil {
+			break
+		}
+
+		args, err := ec.field_Query_profile_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.Profile(childComplexity, args["id"].(string)), true
 
 	case "Query.question":
 		if e.complexity.Query.Question == nil {
@@ -698,7 +708,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.Question(childComplexity, args["token"].(string), args["id"].(string)), true
+		return e.complexity.Query.Question(childComplexity, args["id"].(string)), true
 
 	case "Query.survey":
 		if e.complexity.Query.Survey == nil {
@@ -710,31 +720,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.Survey(childComplexity, args["token"].(string), args["id"].(string)), true
-
-	case "Query.user":
-		if e.complexity.Query.User == nil {
-			break
-		}
-
-		args, err := ec.field_Query_user_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Query.User(childComplexity, args["token"].(string), args["id"].(string)), true
-
-	case "Query.userByToken":
-		if e.complexity.Query.UserByToken == nil {
-			break
-		}
-
-		args, err := ec.field_Query_userByToken_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Query.UserByToken(childComplexity, args["token"].(string)), true
+		return e.complexity.Query.Survey(childComplexity, args["id"].(string)), true
 
 	case "Question.anonymous":
 		if e.complexity.Question.Anonymous == nil {
@@ -1239,31 +1225,29 @@ input DomainCreator {
 }`, BuiltIn: false},
 	&ast.Source{Name: "graph/schema/mutations.graphqls", Input: `type Mutation {
     # User Related
-    answerQuestion(token: String!, questionID: ID!, answer: [String!]!): Survey!
+    answerQuestion(questionID: ID!, answer: [String!]!): Survey!
 
     # Admin Related
     loginByPassword(username: String!, password: String!): LoginResponse!
-    updatePassword(token: String!, oldPassword: String!, newPassword: String!): Boolean!
-    createNewDomain(token: String!, draft: DomainCreator!): Domain!
-    generateSurveys(token: String!, domainSelector: SurveyDomain!, draft: SurveyGenerator!): SuveyGenerationResult!
+    updatePassword(oldPassword: String!, newPassword: String!): Boolean!
+    createNewDomain(draft: DomainCreator!): Domain!
+    generateSurveys(domainSelector: SurveyDomain!, draft: SurveyGenerator!): SuveyGenerationResult!
 }
 `, BuiltIn: false},
 	&ast.Source{Name: "graph/schema/queries.graphqls", Input: `type Query {
     # General API
-    domain(token: String!, id: ID!): Domain!
-    survey(token: String!, id: ID!): Survey!
-    question(token: String!, id: ID!): Question!
-    user(token: String!, id: ID!): User!
+    domain(id: ID!): Domain!
+    survey(id: ID!): Survey!
+    question(id: ID!): Question!
 
-    # User Related
-    userByToken(token: String!): User!
+    profile(id: ID!): User!
 
     # Admin Related
 
     # Survey Related
-    isFirstQuestion(token: String!, questionID: ID!): Boolean!
-    isFinalQuestion(token: String!, questionID: ID!): Boolean!
-    lastQuestionOfSurvey(token: String!, surveyID: ID!): Question!
+    isFirstQuestion(questionID: ID!): Boolean!
+    isFinalQuestion(questionID: ID!): Boolean!
+    lastQuestionOfSurvey(surveyID: ID!): Question!
 }
 `, BuiltIn: false},
 	&ast.Source{Name: "graph/schema/subscriptions.graphqls", Input: ``, BuiltIn: false},
@@ -1278,81 +1262,57 @@ func (ec *executionContext) field_Mutation_answerQuestion_args(ctx context.Conte
 	var err error
 	args := map[string]interface{}{}
 	var arg0 string
-	if tmp, ok := rawArgs["token"]; ok {
-		arg0, err = ec.unmarshalNString2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["token"] = arg0
-	var arg1 string
 	if tmp, ok := rawArgs["questionID"]; ok {
-		arg1, err = ec.unmarshalNID2string(ctx, tmp)
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["questionID"] = arg1
-	var arg2 []string
+	args["questionID"] = arg0
+	var arg1 []string
 	if tmp, ok := rawArgs["answer"]; ok {
-		arg2, err = ec.unmarshalNString2ᚕstringᚄ(ctx, tmp)
+		arg1, err = ec.unmarshalNString2ᚕstringᚄ(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["answer"] = arg2
+	args["answer"] = arg1
 	return args, nil
 }
 
 func (ec *executionContext) field_Mutation_createNewDomain_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 string
-	if tmp, ok := rawArgs["token"]; ok {
-		arg0, err = ec.unmarshalNString2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["token"] = arg0
-	var arg1 model.DomainCreator
+	var arg0 model.DomainCreator
 	if tmp, ok := rawArgs["draft"]; ok {
-		arg1, err = ec.unmarshalNDomainCreator2githubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐDomainCreator(ctx, tmp)
+		arg0, err = ec.unmarshalNDomainCreator2githubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐDomainCreator(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["draft"] = arg1
+	args["draft"] = arg0
 	return args, nil
 }
 
 func (ec *executionContext) field_Mutation_generateSurveys_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 string
-	if tmp, ok := rawArgs["token"]; ok {
-		arg0, err = ec.unmarshalNString2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["token"] = arg0
-	var arg1 model.SurveyDomain
+	var arg0 model.SurveyDomain
 	if tmp, ok := rawArgs["domainSelector"]; ok {
-		arg1, err = ec.unmarshalNSurveyDomain2githubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐSurveyDomain(ctx, tmp)
+		arg0, err = ec.unmarshalNSurveyDomain2githubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐSurveyDomain(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["domainSelector"] = arg1
-	var arg2 model.SurveyGenerator
+	args["domainSelector"] = arg0
+	var arg1 model.SurveyGenerator
 	if tmp, ok := rawArgs["draft"]; ok {
-		arg2, err = ec.unmarshalNSurveyGenerator2githubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐSurveyGenerator(ctx, tmp)
+		arg1, err = ec.unmarshalNSurveyGenerator2githubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐSurveyGenerator(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["draft"] = arg2
+	args["draft"] = arg1
 	return args, nil
 }
 
@@ -1382,29 +1342,21 @@ func (ec *executionContext) field_Mutation_updatePassword_args(ctx context.Conte
 	var err error
 	args := map[string]interface{}{}
 	var arg0 string
-	if tmp, ok := rawArgs["token"]; ok {
+	if tmp, ok := rawArgs["oldPassword"]; ok {
 		arg0, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["token"] = arg0
+	args["oldPassword"] = arg0
 	var arg1 string
-	if tmp, ok := rawArgs["oldPassword"]; ok {
+	if tmp, ok := rawArgs["newPassword"]; ok {
 		arg1, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["oldPassword"] = arg1
-	var arg2 string
-	if tmp, ok := rawArgs["newPassword"]; ok {
-		arg2, err = ec.unmarshalNString2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["newPassword"] = arg2
+	args["newPassword"] = arg1
 	return args, nil
 }
 
@@ -1426,21 +1378,13 @@ func (ec *executionContext) field_Query_domain_args(ctx context.Context, rawArgs
 	var err error
 	args := map[string]interface{}{}
 	var arg0 string
-	if tmp, ok := rawArgs["token"]; ok {
-		arg0, err = ec.unmarshalNString2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["token"] = arg0
-	var arg1 string
 	if tmp, ok := rawArgs["id"]; ok {
-		arg1, err = ec.unmarshalNID2string(ctx, tmp)
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["id"] = arg1
+	args["id"] = arg0
 	return args, nil
 }
 
@@ -1448,21 +1392,13 @@ func (ec *executionContext) field_Query_isFinalQuestion_args(ctx context.Context
 	var err error
 	args := map[string]interface{}{}
 	var arg0 string
-	if tmp, ok := rawArgs["token"]; ok {
-		arg0, err = ec.unmarshalNString2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["token"] = arg0
-	var arg1 string
 	if tmp, ok := rawArgs["questionID"]; ok {
-		arg1, err = ec.unmarshalNID2string(ctx, tmp)
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["questionID"] = arg1
+	args["questionID"] = arg0
 	return args, nil
 }
 
@@ -1470,21 +1406,13 @@ func (ec *executionContext) field_Query_isFirstQuestion_args(ctx context.Context
 	var err error
 	args := map[string]interface{}{}
 	var arg0 string
-	if tmp, ok := rawArgs["token"]; ok {
-		arg0, err = ec.unmarshalNString2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["token"] = arg0
-	var arg1 string
 	if tmp, ok := rawArgs["questionID"]; ok {
-		arg1, err = ec.unmarshalNID2string(ctx, tmp)
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["questionID"] = arg1
+	args["questionID"] = arg0
 	return args, nil
 }
 
@@ -1492,21 +1420,27 @@ func (ec *executionContext) field_Query_lastQuestionOfSurvey_args(ctx context.Co
 	var err error
 	args := map[string]interface{}{}
 	var arg0 string
-	if tmp, ok := rawArgs["token"]; ok {
-		arg0, err = ec.unmarshalNString2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["token"] = arg0
-	var arg1 string
 	if tmp, ok := rawArgs["surveyID"]; ok {
-		arg1, err = ec.unmarshalNID2string(ctx, tmp)
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["surveyID"] = arg1
+	args["surveyID"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_profile_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["id"]; ok {
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
 	return args, nil
 }
 
@@ -1514,21 +1448,13 @@ func (ec *executionContext) field_Query_question_args(ctx context.Context, rawAr
 	var err error
 	args := map[string]interface{}{}
 	var arg0 string
-	if tmp, ok := rawArgs["token"]; ok {
-		arg0, err = ec.unmarshalNString2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["token"] = arg0
-	var arg1 string
 	if tmp, ok := rawArgs["id"]; ok {
-		arg1, err = ec.unmarshalNID2string(ctx, tmp)
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["id"] = arg1
+	args["id"] = arg0
 	return args, nil
 }
 
@@ -1536,57 +1462,13 @@ func (ec *executionContext) field_Query_survey_args(ctx context.Context, rawArgs
 	var err error
 	args := map[string]interface{}{}
 	var arg0 string
-	if tmp, ok := rawArgs["token"]; ok {
-		arg0, err = ec.unmarshalNString2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["token"] = arg0
-	var arg1 string
 	if tmp, ok := rawArgs["id"]; ok {
-		arg1, err = ec.unmarshalNID2string(ctx, tmp)
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["id"] = arg1
-	return args, nil
-}
-
-func (ec *executionContext) field_Query_userByToken_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 string
-	if tmp, ok := rawArgs["token"]; ok {
-		arg0, err = ec.unmarshalNString2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["token"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Query_user_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 string
-	if tmp, ok := rawArgs["token"]; ok {
-		arg0, err = ec.unmarshalNString2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["token"] = arg0
-	var arg1 string
-	if tmp, ok := rawArgs["id"]; ok {
-		arg1, err = ec.unmarshalNID2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["id"] = arg1
+	args["id"] = arg0
 	return args, nil
 }
 
@@ -3177,7 +3059,7 @@ func (ec *executionContext) _Mutation_answerQuestion(ctx context.Context, field 
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().AnswerQuestion(rctx, args["token"].(string), args["questionID"].(string), args["answer"].([]string))
+		return ec.resolvers.Mutation().AnswerQuestion(rctx, args["questionID"].(string), args["answer"].([]string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -3259,7 +3141,7 @@ func (ec *executionContext) _Mutation_updatePassword(ctx context.Context, field 
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UpdatePassword(rctx, args["token"].(string), args["oldPassword"].(string), args["newPassword"].(string))
+		return ec.resolvers.Mutation().UpdatePassword(rctx, args["oldPassword"].(string), args["newPassword"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -3300,7 +3182,7 @@ func (ec *executionContext) _Mutation_createNewDomain(ctx context.Context, field
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateNewDomain(rctx, args["token"].(string), args["draft"].(model.DomainCreator))
+		return ec.resolvers.Mutation().CreateNewDomain(rctx, args["draft"].(model.DomainCreator))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -3341,7 +3223,7 @@ func (ec *executionContext) _Mutation_generateSurveys(ctx context.Context, field
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().GenerateSurveys(rctx, args["token"].(string), args["domainSelector"].(model.SurveyDomain), args["draft"].(model.SurveyGenerator))
+		return ec.resolvers.Mutation().GenerateSurveys(rctx, args["domainSelector"].(model.SurveyDomain), args["draft"].(model.SurveyGenerator))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -3382,7 +3264,7 @@ func (ec *executionContext) _Query_domain(ctx context.Context, field graphql.Col
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Domain(rctx, args["token"].(string), args["id"].(string))
+		return ec.resolvers.Query().Domain(rctx, args["id"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -3423,7 +3305,7 @@ func (ec *executionContext) _Query_survey(ctx context.Context, field graphql.Col
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Survey(rctx, args["token"].(string), args["id"].(string))
+		return ec.resolvers.Query().Survey(rctx, args["id"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -3464,7 +3346,7 @@ func (ec *executionContext) _Query_question(ctx context.Context, field graphql.C
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Question(rctx, args["token"].(string), args["id"].(string))
+		return ec.resolvers.Query().Question(rctx, args["id"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -3481,7 +3363,7 @@ func (ec *executionContext) _Query_question(ctx context.Context, field graphql.C
 	return ec.marshalNQuestion2ᚖgithubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐQuestion(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Query_user(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+func (ec *executionContext) _Query_profile(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -3497,7 +3379,7 @@ func (ec *executionContext) _Query_user(ctx context.Context, field graphql.Colle
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Query_user_args(ctx, rawArgs)
+	args, err := ec.field_Query_profile_args(ctx, rawArgs)
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
@@ -3505,48 +3387,7 @@ func (ec *executionContext) _Query_user(ctx context.Context, field graphql.Colle
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().User(rctx, args["token"].(string), args["id"].(string))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(*model.User)
-	fc.Result = res
-	return ec.marshalNUser2ᚖgithubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐUser(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Query_userByToken(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:   "Query",
-		Field:    field,
-		Args:     nil,
-		IsMethod: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Query_userByToken_args(ctx, rawArgs)
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	fc.Args = args
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().UserByToken(rctx, args["token"].(string))
+		return ec.resolvers.Query().Profile(rctx, args["id"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -3587,7 +3428,7 @@ func (ec *executionContext) _Query_isFirstQuestion(ctx context.Context, field gr
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().IsFirstQuestion(rctx, args["token"].(string), args["questionID"].(string))
+		return ec.resolvers.Query().IsFirstQuestion(rctx, args["questionID"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -3628,7 +3469,7 @@ func (ec *executionContext) _Query_isFinalQuestion(ctx context.Context, field gr
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().IsFinalQuestion(rctx, args["token"].(string), args["questionID"].(string))
+		return ec.resolvers.Query().IsFinalQuestion(rctx, args["questionID"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -3669,7 +3510,7 @@ func (ec *executionContext) _Query_lastQuestionOfSurvey(ctx context.Context, fie
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().LastQuestionOfSurvey(rctx, args["token"].(string), args["surveyID"].(string))
+		return ec.resolvers.Query().LastQuestionOfSurvey(rctx, args["surveyID"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -6879,7 +6720,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 				}
 				return res
 			})
-		case "user":
+		case "profile":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
 				defer func() {
@@ -6887,21 +6728,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._Query_user(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
-				return res
-			})
-		case "userByToken":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Query_userByToken(ctx, field)
+				res = ec._Query_profile(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}

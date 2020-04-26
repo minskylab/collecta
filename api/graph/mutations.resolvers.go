@@ -5,6 +5,7 @@ package graph
 
 import (
 	"context"
+
 	"fmt"
 	"strings"
 	"time"
@@ -28,10 +29,10 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-func (r *mutationResolver) AnswerQuestion(ctx context.Context, token string, questionID string, answer []string) (*model.Survey, error) {
-	userRequester, err := r.Auth.VerifyJWTToken(ctx, token)
-	if err != nil {
-		return nil, errors.Wrap(err, "invalid token, probably user not registered")
+func (r *mutationResolver) AnswerQuestion(ctx context.Context, questionID string, answer []string) (*model.Survey, error) {
+	userRequester := r.Auth.UserOfContext(ctx)
+	if userRequester == nil {
+		return nil, errors.New("unauthorized, please include a valid token in your header")
 	}
 
 	qID, err := uuid.Parse(questionID)
@@ -71,7 +72,6 @@ func (r *mutationResolver) AnswerQuestion(ctx context.Context, token string, que
 	if err != nil {
 		return nil, errors.Wrap(err, "error at query input from your question")
 	}
-
 
 	policy := bluemonday.UGCPolicy()
 	policy.AllowElements("h1").AllowElements("h2").AllowElements("h3")
@@ -164,14 +164,14 @@ func (r *mutationResolver) LoginByPassword(ctx context.Context, username string,
 	return &model.LoginResponse{Token: jwtToken}, nil
 }
 
-func (r *mutationResolver) UpdatePassword(ctx context.Context, token string, oldPassword string, newPassword string) (bool, error) {
+func (r *mutationResolver) UpdatePassword(ctx context.Context, oldPassword string, newPassword string) (bool, error) {
 	panic(fmt.Errorf("not implemented"))
 }
 
-func (r *mutationResolver) CreateNewDomain(ctx context.Context, token string, draft model.DomainCreator) (*model.Domain, error) {
-	userRequester, err := r.Auth.VerifyJWTToken(ctx, token)
-	if err != nil {
-		return nil, errors.Wrap(err, "error at verify your token")
+func (r *mutationResolver) CreateNewDomain(ctx context.Context, draft model.DomainCreator) (*model.Domain, error) {
+	userRequester := r.Auth.UserOfContext(ctx)
+	if userRequester == nil {
+		return nil, errors.New("unauthorized, please include a valid token in your header")
 	}
 
 	if !strings.Contains(strings.Join(userRequester.Roles, " "), "admin") {
@@ -196,13 +196,14 @@ func (r *mutationResolver) CreateNewDomain(ctx context.Context, token string, dr
 	return commons.DomainToGQL(newDomain), nil
 }
 
-func (r *mutationResolver) GenerateSurveys(ctx context.Context, token string, domainSelector model.SurveyDomain, draft model.SurveyGenerator) (*model.SuveyGenerationResult, error) {
-	userRequester, err := r.Auth.VerifyJWTToken(ctx, token)
-	if err != nil {
-		return nil, errors.Wrap(err, "error at verify your token")
+func (r *mutationResolver) GenerateSurveys(ctx context.Context, domainSelector model.SurveyDomain, draft model.SurveyGenerator) (*model.SuveyGenerationResult, error) {
+	userRequester := r.Auth.UserOfContext(ctx)
+	if userRequester == nil {
+		return nil, errors.New("unauthorized, please include a valid token in your header")
 	}
 
 	var targetDomain *ent.Domain
+	var err error
 	if strings.Contains(strings.Join(userRequester.Roles, " "), "admin") { // if is super admin
 		if domainSelector.ByID != nil {
 			dID, err := uuid.Parse(*domainSelector.ByID)

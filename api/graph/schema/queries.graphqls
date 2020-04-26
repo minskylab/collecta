@@ -1,17 +1,15 @@
 type Query {
     # General API
-    domain(token: String!, id: ID!): Domain!
-    survey(token: String!, id: ID!): Survey!
-    question(token: String!, id: ID!): Question!
-    user(token: String!, id: ID!): User!
+    domain(id: ID!): Domain!
+    survey(id: ID!): Survey!
+    question(id: ID!): Question!
 
-    # User Related
-    userByToken(token: String!): User!
+    profile(id: ID!): User!
 
     # Admin Related
 
     # Survey Related
-    isFirstQuestion(token: String!, questionID: ID!): Boolean!
-    isFinalQuestion(token: String!, questionID: ID!): Boolean!
-    lastQuestionOfSurvey(token: String!, surveyID: ID!): Question!
+    isFirstQuestion(questionID: ID!): Boolean!
+    isFinalQuestion(questionID: ID!): Boolean!
+    lastQuestionOfSurvey(surveyID: ID!): Question!
 }

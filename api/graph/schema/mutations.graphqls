@@ -1,10 +1,10 @@
 type Mutation {
     # User Related
-    answerQuestion(token: String!, questionID: ID!, answer: [String!]!): Survey!
+    answerQuestion(questionID: ID!, answer: [String!]!): Survey!
 
     # Admin Related
     loginByPassword(username: String!, password: String!): LoginResponse!
-    updatePassword(token: String!, oldPassword: String!, newPassword: String!): Boolean!
-    createNewDomain(token: String!, draft: DomainCreator!): Domain!
-    generateSurveys(token: String!, domainSelector: SurveyDomain!, draft: SurveyGenerator!): SuveyGenerationResult!
+    updatePassword(oldPassword: String!, newPassword: String!): Boolean!
+    createNewDomain(draft: DomainCreator!): Domain!
+    generateSurveys(domainSelector: SurveyDomain!, draft: SurveyGenerator!): SuveyGenerationResult!
 }

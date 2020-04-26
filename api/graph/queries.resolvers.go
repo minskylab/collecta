@@ -6,6 +6,7 @@ package graph
 import (
 	"context"
 
+
 	"github.com/google/uuid"
 	"github.com/minskylab/collecta/api/graph/generated"
 	"github.com/minskylab/collecta/api/graph/model"
@@ -17,10 +18,10 @@ import (
 	"github.com/minskylab/collecta/errors"
 )
 
-func (r *queryResolver) Domain(ctx context.Context, token string, id string) (*model.Domain, error) {
-	userRequester, err := r.Auth.VerifyJWTToken(ctx, token)
-	if err != nil {
-		return nil, errors.Wrap(err, "invalid token, probably user not registered")
+func (r *queryResolver) Domain(ctx context.Context, id string) (*model.Domain, error) {
+	userRequester := r.Auth.UserOfContext(ctx)
+	if userRequester == nil {
+		return nil, errors.New("unauthorized, please include a valid token in your header")
 	}
 
 	domainID, err := uuid.Parse(id)
@@ -52,10 +53,11 @@ func (r *queryResolver) Domain(ctx context.Context, token string, id string) (*m
 	}, nil
 }
 
-func (r *queryResolver) Survey(ctx context.Context, token string, id string) (*model.Survey, error) {
-	userRequester, err := r.Auth.VerifyJWTToken(ctx, token)
-	if err != nil {
-		return nil, errors.Wrap(err, "invalid token, probably user not registered")
+func (r *queryResolver) Survey(ctx context.Context, id string) (*model.Survey, error) {
+
+	userRequester := r.Auth.UserOfContext(ctx)
+	if userRequester == nil {
+		return nil, errors.New("unauthorized, please include a valid token in your header")
 	}
 
 	surveyID, err := uuid.Parse(id)
@@ -95,10 +97,11 @@ func (r *queryResolver) Survey(ctx context.Context, token string, id string) (*m
 	}, nil
 }
 
-func (r *queryResolver) Question(ctx context.Context, token string, id string) (*model.Question, error) {
-	userRequester, err := r.Auth.VerifyJWTToken(ctx, token)
-	if err != nil {
-		return nil, errors.Wrap(err, "invalid token, probably user not registered")
+func (r *queryResolver) Question(ctx context.Context, id string) (*model.Question, error) {
+
+	userRequester := r.Auth.UserOfContext(ctx)
+	if userRequester == nil {
+		return nil, errors.New("unauthorized, please include a valid token in your header")
 	}
 
 	questionID, err := uuid.Parse(id)
@@ -143,10 +146,10 @@ func (r *queryResolver) Question(ctx context.Context, token string, id string) (
 	}, nil
 }
 
-func (r *queryResolver) User(ctx context.Context, token string, id string) (*model.User, error) {
-	userRequester, err := r.Auth.VerifyJWTToken(ctx, token)
-	if err != nil {
-		return nil, errors.Wrap(err, "invalid token, probably user not registered")
+func (r *queryResolver) Profile(ctx context.Context, id string) (*model.User, error) {
+	userRequester := r.Auth.UserOfContext(ctx)
+	if userRequester == nil {
+		return nil, errors.New("unauthorized, please include a valid token in your header")
 	}
 
 	userID, err := uuid.Parse(id)
@@ -178,25 +181,10 @@ func (r *queryResolver) User(ctx context.Context, token string, id string) (*mod
 	}, nil
 }
 
-func (r *queryResolver) UserByToken(ctx context.Context, token string) (*model.User, error) {
-	e, err := r.Auth.VerifyJWTToken(ctx, token)
-	if err != nil {
-		return nil, errors.Wrap(err, "error at verify jwt")
-	}
-
-	return &model.User{
-		ID:           e.ID.String(),
-		Name:         e.Name,
-		Username:     e.Username,
-		LastActivity: e.LastActivity,
-		Picture:      e.Picture,
-	}, nil
-}
-
-func (r *queryResolver) IsFirstQuestion(ctx context.Context, token string, questionID string) (bool, error) {
-	userRequester, err := r.Auth.VerifyJWTToken(ctx, token)
-	if err != nil {
-		return false, errors.Wrap(err, "invalid token, probably user not registered")
+func (r *queryResolver) IsFirstQuestion(ctx context.Context, questionID string) (bool, error) {
+	userRequester := r.Auth.UserOfContext(ctx)
+	if userRequester == nil {
+		return false, errors.New("unauthorized, please include a valid token in your header")
 	}
 
 	qID, err := uuid.Parse(questionID)
@@ -240,10 +228,10 @@ func (r *queryResolver) IsFirstQuestion(ctx context.Context, token string, quest
 	return qID == f.InitialState, nil
 }
 
-func (r *queryResolver) IsFinalQuestion(ctx context.Context, token string, questionID string) (bool, error) {
-	userRequester, err := r.Auth.VerifyJWTToken(ctx, token)
-	if err != nil {
-		return false, errors.Wrap(err, "invalid token, probably user not registered")
+func (r *queryResolver) IsFinalQuestion(ctx context.Context, questionID string) (bool, error) {
+	userRequester := r.Auth.UserOfContext(ctx)
+	if userRequester == nil {
+		return false, errors.New("unauthorized, please include a valid token in your header")
 	}
 
 	qID, err := uuid.Parse(questionID)
@@ -287,10 +275,10 @@ func (r *queryResolver) IsFinalQuestion(ctx context.Context, token string, quest
 	return qID == f.TerminationState, nil
 }
 
-func (r *queryResolver) LastQuestionOfSurvey(ctx context.Context, token string, surveyID string) (*model.Question, error) {
-	userRequester, err := r.Auth.VerifyJWTToken(ctx, token)
-	if err != nil {
-		return nil, errors.Wrap(err, "invalid token, probably user not registered")
+func (r *queryResolver) LastQuestionOfSurvey(ctx context.Context, surveyID string) (*model.Question, error) {
+	userRequester := r.Auth.UserOfContext(ctx)
+	if userRequester == nil {
+		return nil, errors.New("unauthorized, please include a valid token in your header")
 	}
 
 	sID, err := uuid.Parse(surveyID)
