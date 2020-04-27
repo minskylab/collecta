@@ -22,7 +22,6 @@ func (collectaAuth *Auth) Middleware() gin.HandlerFunc {
 
 		token := strings.TrimSpace(strings.TrimPrefix(authHeader, "Bearer"))
 
-
 		userRequester, err := collectaAuth.verifyJWTToken(c.Request.Context(), token)
 		if err != nil {
 			c.String(http.StatusForbidden, "invalid Token")

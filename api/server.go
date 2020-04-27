@@ -39,7 +39,7 @@ func (api *API) RegisterGraphQLHandlers(withPlayground bool) {
 		srv.ServeHTTP(c.Writer, c.Request)
 	}
 
-	api.engine.Use(api.auth.Middleware())
+
 
 	if withPlayground {
 		play := func(c *gin.Context) {
@@ -48,5 +48,6 @@ func (api *API) RegisterGraphQLHandlers(withPlayground bool) {
 		api.engine.GET("/", play)
 	}
 
+	api.engine.Use(api.auth.Middleware())
 	api.engine.POST("/graphql", query)
 }
