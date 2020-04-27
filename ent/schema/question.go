@@ -30,6 +30,6 @@ func (Question) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.To("answers", Answer.Type),
 		edge.To("input", Input.Type).Unique(),
-		edge.From("flow", Flow.Type).Ref("questions").Unique(),
+		edge.From("flow", Flow.Type).Unique().Ref("questions"),
 	}
 }

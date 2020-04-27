@@ -5,7 +5,6 @@ import (
 	"encoding/hex"
 	"time"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/google/uuid"
 	"github.com/microcosm-cc/bluemonday"
 	"github.com/minskylab/collecta/api/graph/model"
@@ -89,51 +88,6 @@ func createSurveysFromAPI(ctx context.Context, db *db.DB, domainID uuid.UUID, dr
 	}
 	log.Info("creating surveys")
 
-	spew.Dump(draft)
-
-	questions := make([]*ent.Question, 0)
-
-	for _, q := range draft.Questions {
-		if q != nil {
-			newQ, err := createQuestion(ctx, db, *q)
-			if err != nil {
-				for _, rbQuestion := range questions {
-					if err := db.Ent.Question.DeleteOneID(rbQuestion.ID).Exec(ctx); err != nil {
-						return nil, errors.Wrap(err, "error at delete created question")
-					}
-				}
-				return nil, errors.Wrap(err, "error at create one of your question, roll-backing operation")
-			}
-			questions = append(questions, newQ)
-		}
-	}
-
-	// generating the flow program
-	// by default, the logic is a ordered sequential by one by one question
-	questionIDs := make([]uuid.UUID, 0)
-	for _, q := range questions {
-		questionIDs = append(questionIDs, q.ID)
-	}
-
-	flowProgram := flows.DefaultSequentialProgram(questionIDs)
-	if draft.Logic != nil {
-		flowProgram = *draft.Logic
-	}
-
-	// TODO: Improve this part of the Collecta API
-	basicFlow, err := db.Ent.Flow.Create().
-		SetID(uuid.New()).
-		SetInputs([]string{}).
-		SetState(questions[0].ID).                           // first question
-		SetInitialState(questions[0].ID).                    // first question, TODO
-		SetTerminationState(questions[len(questions)-1].ID). // last question, TODO
-		SetStateTable(flowProgram).
-		AddQuestions(questions...).
-		Save(ctx)
-	if err != nil {
-		return nil, errors.Wrap(err, "error at create flow")
-	}
-
 	if draft.Target == nil {
 		return nil, errors.New("users target not specified")
 	}
@@ -179,19 +133,63 @@ func createSurveysFromAPI(ctx context.Context, db *db.DB, domainID uuid.UUID, dr
 	policy.AllowElements("p")
 	// TODO: Sanitize Policy should be into core struct (Collecta)
 
-	tags := make([]string, 0)
-
-	for _, t := range draft.Tags {
-		tags = append(tags, policy.Sanitize(t))
-	}
-
-	metadata := map[string]string{}
-	for _, pair := range draft.Metadata {
-		metadata[pair.Key] = pair.Value
-	}
-
 	generatedSurveys := make([]*ent.Survey, 0)
 	for _, u := range audience {
+
+		tags := make([]string, 0)
+
+		for _, t := range draft.Tags {
+			tags = append(tags, policy.Sanitize(t))
+		}
+
+		metadata := map[string]string{}
+		for _, pair := range draft.Metadata {
+			metadata[pair.Key] = pair.Value
+		}
+
+		questions := make([]*ent.Question, 0)
+
+		for _, q := range draft.Questions {
+			if q != nil {
+				newQ, err := createQuestion(ctx, db, *q)
+				if err != nil {
+					for _, rbQuestion := range questions {
+						if err := db.Ent.Question.DeleteOneID(rbQuestion.ID).Exec(ctx); err != nil {
+							return nil, errors.Wrap(err, "error at delete created question")
+						}
+					}
+					return nil, errors.Wrap(err, "error at create one of your question, roll-backing operation")
+				}
+				questions = append(questions, newQ)
+			}
+		}
+
+		// generating the flow program
+		// by default, the logic is a ordered sequential by one by one question
+		questionIDs := make([]uuid.UUID, 0)
+		for _, q := range questions {
+			questionIDs = append(questionIDs, q.ID)
+		}
+
+		flowProgram := flows.DefaultSequentialProgram(questionIDs)
+		if draft.Logic != nil {
+			flowProgram = *draft.Logic
+		}
+
+		// TODO: Improve this part of the Collecta API
+		basicFlow, err := db.Ent.Flow.Create().
+			SetID(uuid.New()).
+			SetInputs([]string{}).
+			SetState(questions[0].ID).                           // first question
+			SetInitialState(questions[0].ID).                    // first question, TODO
+			SetTerminationState(questions[len(questions)-1].ID). // last question, TODO
+			SetStateTable(flowProgram).
+			AddQuestions(questions...).
+			Save(ctx)
+		if err != nil {
+			return nil, errors.Wrap(err, "error at create flow")
+		}
+
 		newSurvey, err := db.Ent.Survey.Create().
 			SetID(uuid.New()).
 			SetForID(u.ID).
