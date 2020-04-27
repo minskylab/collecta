@@ -3,8 +3,9 @@ type Query {
     domain(id: ID!): Domain!
     survey(id: ID!): Survey!
     question(id: ID!): Question!
+    user(id: ID!): User!
 
-    profile(id: ID!): User!
+    profile: User!
 
     # Admin Related
 

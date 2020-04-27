@@ -5,6 +5,7 @@ package graph
 
 import (
 	"context"
+
 	"strings"
 
 	"github.com/google/uuid"
@@ -24,39 +25,13 @@ import (
 	"github.com/minskylab/collecta/errors"
 )
 
-func validateAuthorization(ctx context.Context, auth *auth.Auth, ownerResources ...uuid.UUID) error {
-	userRequester := auth.UserOfContext(ctx)
-	if userRequester == nil {
-		return errors.New("unauthorized, please include a valid token in your header")
-	}
-
-	isOwner := false
-
-	if strings.Contains(strings.Join(userRequester.Roles, " "), "admin") { // is admin
-		return nil
-	}
-
-	for _, ownerResource := range ownerResources {
-		if ownerResource == userRequester.ID {
-			isOwner = true
-			break
-		}
-	}
-
-	if !isOwner {
-		return errors.New("resource unavailable for you")
-	}
-
-	return nil
-}
-
 func (r *accountResolver) Owner(ctx context.Context, obj *model.Account) (*model.User, error) {
 	ownerResID, err := commons.OwnerOfAccount(ctx, r.DB, obj)
 	if err != nil {
 		return nil, errors.Wrap(err, "error at extract owner of resource")
 	}
 
-	if err := validateAuthorization(ctx, r.Auth, ownerResID); err !=  nil {
+	if err := validateAuthorization(ctx, r.Auth, ownerResID); err != nil {
 		return nil, errors.Wrap(err, "error at validate your credentials")
 	}
 
@@ -77,7 +52,7 @@ func (r *answerResolver) Question(ctx context.Context, obj *model.Answer) (*mode
 		return nil, errors.Wrap(err, "error at extract owner of resource")
 	}
 
-	if err := validateAuthorization(ctx, r.Auth, ownerResID); err !=  nil {
+	if err := validateAuthorization(ctx, r.Auth, ownerResID); err != nil {
 		return nil, errors.Wrap(err, "error at validate your credentials")
 	}
 
@@ -98,7 +73,7 @@ func (r *contactResolver) Owner(ctx context.Context, obj *model.Contact) (*model
 		return nil, errors.Wrap(err, "error at extract owner of resource")
 	}
 
-	if err := validateAuthorization(ctx, r.Auth, ownerResID); err !=  nil {
+	if err := validateAuthorization(ctx, r.Auth, ownerResID); err != nil {
 		return nil, errors.Wrap(err, "error at validate your credentials")
 	}
 
@@ -119,7 +94,7 @@ func (r *domainResolver) Surveys(ctx context.Context, obj *model.Domain) ([]*mod
 		return nil, errors.Wrap(err, "error at extract owner of resource")
 	}
 
-	if err := validateAuthorization(ctx, r.Auth, ownerResID...); err !=  nil {
+	if err := validateAuthorization(ctx, r.Auth, ownerResID...); err != nil {
 		return nil, errors.Wrap(err, "error at validate your credentials")
 	}
 
@@ -148,7 +123,7 @@ func (r *domainResolver) Users(ctx context.Context, obj *model.Domain) ([]*model
 		return nil, errors.Wrap(err, "error at extract owner of resource")
 	}
 
-	if err := validateAuthorization(ctx, r.Auth, ownerResID...); err !=  nil {
+	if err := validateAuthorization(ctx, r.Auth, ownerResID...); err != nil {
 		return nil, errors.Wrap(err, "error at validate your credentials")
 	}
 
@@ -177,7 +152,7 @@ func (r *domainResolver) Admins(ctx context.Context, obj *model.Domain) ([]*mode
 		return nil, errors.Wrap(err, "error at extract owner of resource")
 	}
 
-	if err := validateAuthorization(ctx, r.Auth, ownerResID...); err !=  nil {
+	if err := validateAuthorization(ctx, r.Auth, ownerResID...); err != nil {
 		return nil, errors.Wrap(err, "error at validate your credentials")
 	}
 
@@ -206,7 +181,7 @@ func (r *flowResolver) Questions(ctx context.Context, obj *model.Flow) ([]*model
 		return nil, errors.Wrap(err, "error at extract owner of resource")
 	}
 
-	if err := validateAuthorization(ctx, r.Auth, ownerResID); err !=  nil {
+	if err := validateAuthorization(ctx, r.Auth, ownerResID); err != nil {
 		return nil, errors.Wrap(err, "error at validate your credentials")
 	}
 
@@ -235,7 +210,7 @@ func (r *inputResolver) Options(ctx context.Context, obj *model.Input) (map[stri
 		return nil, errors.Wrap(err, "error at extract owner of resource")
 	}
 
-	if err := validateAuthorization(ctx, r.Auth, ownerResID); err !=  nil {
+	if err := validateAuthorization(ctx, r.Auth, ownerResID); err != nil {
 		return nil, errors.Wrap(err, "error at validate your credentials")
 	}
 
@@ -258,7 +233,7 @@ func (r *inputResolver) Question(ctx context.Context, obj *model.Input) (*model.
 		return nil, errors.Wrap(err, "error at extract owner of resource")
 	}
 
-	if err := validateAuthorization(ctx, r.Auth, ownerResID); err !=  nil {
+	if err := validateAuthorization(ctx, r.Auth, ownerResID); err != nil {
 		return nil, errors.Wrap(err, "error at validate your credentials")
 	}
 
@@ -279,7 +254,7 @@ func (r *questionResolver) Answers(ctx context.Context, obj *model.Question) ([]
 		return nil, errors.Wrap(err, "error at extract owner of resource")
 	}
 
-	if err := validateAuthorization(ctx, r.Auth, ownerResID); err !=  nil {
+	if err := validateAuthorization(ctx, r.Auth, ownerResID); err != nil {
 		return nil, errors.Wrap(err, "error at validate your credentials")
 	}
 
@@ -308,7 +283,7 @@ func (r *questionResolver) Input(ctx context.Context, obj *model.Question) (*mod
 		return nil, errors.Wrap(err, "error at extract owner of resource")
 	}
 
-	if err := validateAuthorization(ctx, r.Auth, ownerResID); err !=  nil {
+	if err := validateAuthorization(ctx, r.Auth, ownerResID); err != nil {
 		return nil, errors.Wrap(err, "error at validate your credentials")
 	}
 
@@ -329,7 +304,7 @@ func (r *questionResolver) Flow(ctx context.Context, obj *model.Question) (*mode
 		return nil, errors.Wrap(err, "error at extract owner of resource")
 	}
 
-	if err := validateAuthorization(ctx, r.Auth, ownerResID); err !=  nil {
+	if err := validateAuthorization(ctx, r.Auth, ownerResID); err != nil {
 		return nil, errors.Wrap(err, "error at validate your credentials")
 	}
 
@@ -350,7 +325,7 @@ func (r *surveyResolver) Flow(ctx context.Context, obj *model.Survey) (*model.Fl
 		return nil, errors.Wrap(err, "error at extract owner of resource")
 	}
 
-	if err := validateAuthorization(ctx, r.Auth, ownerResID); err !=  nil {
+	if err := validateAuthorization(ctx, r.Auth, ownerResID); err != nil {
 		return nil, errors.Wrap(err, "error at validate your credentials")
 	}
 
@@ -372,7 +347,7 @@ func (r *surveyResolver) For(ctx context.Context, obj *model.Survey) (*model.Use
 		return nil, errors.Wrap(err, "error at extract owner of resource")
 	}
 
-	if err := validateAuthorization(ctx, r.Auth, ownerResID); err !=  nil {
+	if err := validateAuthorization(ctx, r.Auth, ownerResID); err != nil {
 		return nil, errors.Wrap(err, "error at validate your credentials")
 	}
 
@@ -393,7 +368,7 @@ func (r *surveyResolver) Owner(ctx context.Context, obj *model.Survey) (*model.D
 		return nil, errors.Wrap(err, "error at extract owner of resource")
 	}
 
-	if err := validateAuthorization(ctx, r.Auth, ownerResID); err !=  nil {
+	if err := validateAuthorization(ctx, r.Auth, ownerResID); err != nil {
 		return nil, errors.Wrap(err, "error at validate your credentials")
 	}
 
@@ -414,7 +389,7 @@ func (r *userResolver) Accounts(ctx context.Context, obj *model.User) (*model.Ac
 		return nil, errors.Wrap(err, "error at extract owner of resource")
 	}
 
-	if err := validateAuthorization(ctx, r.Auth, ownerResID); err !=  nil {
+	if err := validateAuthorization(ctx, r.Auth, ownerResID); err != nil {
 		return nil, errors.Wrap(err, "error at validate your credentials")
 	}
 
@@ -435,7 +410,7 @@ func (r *userResolver) Contacts(ctx context.Context, obj *model.User) (*model.Co
 		return nil, errors.Wrap(err, "error at extract owner of resource")
 	}
 
-	if err := validateAuthorization(ctx, r.Auth, ownerResID); err !=  nil {
+	if err := validateAuthorization(ctx, r.Auth, ownerResID); err != nil {
 		return nil, errors.Wrap(err, "error at validate your credentials")
 	}
 
@@ -456,7 +431,7 @@ func (r *userResolver) Surveys(ctx context.Context, obj *model.User) ([]*model.S
 		return nil, errors.Wrap(err, "error at extract owner of resource")
 	}
 
-	if err := validateAuthorization(ctx, r.Auth, ownerResID); err !=  nil {
+	if err := validateAuthorization(ctx, r.Auth, ownerResID); err != nil {
 		return nil, errors.Wrap(err, "error at validate your credentials")
 	}
 
@@ -487,7 +462,7 @@ func (r *userResolver) Domains(ctx context.Context, obj *model.User) ([]*model.D
 		return nil, errors.Wrap(err, "error at extract owner of resource")
 	}
 
-	if err := validateAuthorization(ctx, r.Auth, ownerResID); err !=  nil {
+	if err := validateAuthorization(ctx, r.Auth, ownerResID); err != nil {
 		return nil, errors.Wrap(err, "error at validate your credentials")
 	}
 
@@ -516,7 +491,7 @@ func (r *userResolver) AdminOf(ctx context.Context, obj *model.User) ([]*model.D
 		return nil, errors.Wrap(err, "error at extract owner of resource")
 	}
 
-	if err := validateAuthorization(ctx, r.Auth, ownerResID); err !=  nil {
+	if err := validateAuthorization(ctx, r.Auth, ownerResID); err != nil {
 		return nil, errors.Wrap(err, "error at validate your credentials")
 	}
 
@@ -575,3 +550,35 @@ type inputResolver struct{ *Resolver }
 type questionResolver struct{ *Resolver }
 type surveyResolver struct{ *Resolver }
 type userResolver struct{ *Resolver }
+
+// !!! WARNING !!!
+// The code below was going to be deleted when updating resolvers. It has been copied here so you have
+// one last chance to move it out of harms way if you want. There are two reasons this happens:
+//  - When renaming or deleting a resolver the old code will be put in here. You can safely delete
+//    it when you're done.
+//  - You have helper methods in this file. Move them out to keep these resolver files clean.
+func validateAuthorization(ctx context.Context, auth *auth.Auth, ownerResources ...uuid.UUID) error {
+	userRequester := auth.UserOfContext(ctx)
+	if userRequester == nil {
+		return errors.New("unauthorized, please include a valid token in your header")
+	}
+
+	isOwner := false
+
+	if strings.Contains(strings.Join(userRequester.Roles, " "), "admin") { // is admin
+		return nil
+	}
+
+	for _, ownerResource := range ownerResources {
+		if ownerResource == userRequester.ID {
+			isOwner = true
+			break
+		}
+	}
+
+	if !isOwner {
+		return errors.New("resource unavailable for you")
+	}
+
+	return nil
+}

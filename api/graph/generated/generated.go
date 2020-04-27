@@ -135,9 +135,10 @@ type ComplexityRoot struct {
 		IsFinalQuestion      func(childComplexity int, questionID string) int
 		IsFirstQuestion      func(childComplexity int, questionID string) int
 		LastQuestionOfSurvey func(childComplexity int, surveyID string) int
-		Profile              func(childComplexity int, id string) int
+		Profile              func(childComplexity int) int
 		Question             func(childComplexity int, id string) int
 		Survey               func(childComplexity int, id string) int
+		User                 func(childComplexity int, id string) int
 	}
 
 	Question struct {
@@ -225,7 +226,8 @@ type QueryResolver interface {
 	Domain(ctx context.Context, id string) (*model.Domain, error)
 	Survey(ctx context.Context, id string) (*model.Survey, error)
 	Question(ctx context.Context, id string) (*model.Question, error)
-	Profile(ctx context.Context, id string) (*model.User, error)
+	User(ctx context.Context, id string) (*model.User, error)
+	Profile(ctx context.Context) (*model.User, error)
 	IsFirstQuestion(ctx context.Context, questionID string) (bool, error)
 	IsFinalQuestion(ctx context.Context, questionID string) (bool, error)
 	LastQuestionOfSurvey(ctx context.Context, surveyID string) (*model.Question, error)
@@ -691,12 +693,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			break
 		}
 
-		args, err := ec.field_Query_profile_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Query.Profile(childComplexity, args["id"].(string)), true
+		return e.complexity.Query.Profile(childComplexity), true
 
 	case "Query.question":
 		if e.complexity.Query.Question == nil {
@@ -721,6 +718,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.Survey(childComplexity, args["id"].(string)), true
+
+	case "Query.user":
+		if e.complexity.Query.User == nil {
+			break
+		}
+
+		args, err := ec.field_Query_user_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.User(childComplexity, args["id"].(string)), true
 
 	case "Question.anonymous":
 		if e.complexity.Question.Anonymous == nil {
@@ -1239,8 +1248,9 @@ input DomainCreator {
     domain(id: ID!): Domain!
     survey(id: ID!): Survey!
     question(id: ID!): Question!
+    user(id: ID!): User!
 
-    profile(id: ID!): User!
+    profile: User!
 
     # Admin Related
 
@@ -1430,20 +1440,6 @@ func (ec *executionContext) field_Query_lastQuestionOfSurvey_args(ctx context.Co
 	return args, nil
 }
 
-func (ec *executionContext) field_Query_profile_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 string
-	if tmp, ok := rawArgs["id"]; ok {
-		arg0, err = ec.unmarshalNID2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["id"] = arg0
-	return args, nil
-}
-
 func (ec *executionContext) field_Query_question_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -1459,6 +1455,20 @@ func (ec *executionContext) field_Query_question_args(ctx context.Context, rawAr
 }
 
 func (ec *executionContext) field_Query_survey_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["id"]; ok {
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_user_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 string
@@ -3363,7 +3373,7 @@ func (ec *executionContext) _Query_question(ctx context.Context, field graphql.C
 	return ec.marshalNQuestion2ᚖgithubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐQuestion(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Query_profile(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+func (ec *executionContext) _Query_user(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -3379,7 +3389,7 @@ func (ec *executionContext) _Query_profile(ctx context.Context, field graphql.Co
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Query_profile_args(ctx, rawArgs)
+	args, err := ec.field_Query_user_args(ctx, rawArgs)
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
@@ -3387,7 +3397,41 @@ func (ec *executionContext) _Query_profile(ctx context.Context, field graphql.Co
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Profile(rctx, args["id"].(string))
+		return ec.resolvers.Query().User(rctx, args["id"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.User)
+	fc.Result = res
+	return ec.marshalNUser2ᚖgithubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐUser(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_profile(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Query",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().Profile(rctx)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -6715,6 +6759,20 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_question(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "user":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_user(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}

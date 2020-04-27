@@ -6,8 +6,8 @@ package graph
 import (
 	"context"
 
-
 	"github.com/google/uuid"
+	"github.com/minskylab/collecta/api/commons"
 	"github.com/minskylab/collecta/api/graph/generated"
 	"github.com/minskylab/collecta/api/graph/model"
 	"github.com/minskylab/collecta/ent/domain"
@@ -43,18 +43,10 @@ func (r *queryResolver) Domain(ctx context.Context, id string) (*model.Domain, e
 		return nil, errors.Wrap(err, "error at try to get from ent")
 	}
 
-	return &model.Domain{
-		ID:             e.ID.String(),
-		Tags:           e.Tags,
-		Name:           e.Name,
-		Email:          e.Email,
-		Domain:         e.Domain,
-		CollectaDomain: e.CollectaDomain,
-	}, nil
+	return commons.DomainToGQL(e), nil
 }
 
 func (r *queryResolver) Survey(ctx context.Context, id string) (*model.Survey, error) {
-
 	userRequester := r.Auth.UserOfContext(ctx)
 	if userRequester == nil {
 		return nil, errors.New("unauthorized, please include a valid token in your header")
@@ -87,18 +79,10 @@ func (r *queryResolver) Survey(ctx context.Context, id string) (*model.Survey, e
 		return nil, errors.Wrap(err, "error at try resource  to get from ent")
 	}
 
-	return &model.Survey{
-		ID:              e.ID.String(),
-		Tags:            e.Tags,
-		LastInteraction: e.LastInteraction,
-		DueDate:         e.DueDate,
-		Title:           e.Title,
-		Description:     e.Description,
-	}, nil
+	return commons.SurveyToGQL(e), nil
 }
 
 func (r *queryResolver) Question(ctx context.Context, id string) (*model.Question, error) {
-
 	userRequester := r.Auth.UserOfContext(ctx)
 	if userRequester == nil {
 		return nil, errors.New("unauthorized, please include a valid token in your header")
@@ -146,7 +130,7 @@ func (r *queryResolver) Question(ctx context.Context, id string) (*model.Questio
 	}, nil
 }
 
-func (r *queryResolver) Profile(ctx context.Context, id string) (*model.User, error) {
+func (r *queryResolver) User(ctx context.Context, id string) (*model.User, error) {
 	userRequester := r.Auth.UserOfContext(ctx)
 	if userRequester == nil {
 		return nil, errors.New("unauthorized, please include a valid token in your header")
@@ -172,13 +156,16 @@ func (r *queryResolver) Profile(ctx context.Context, id string) (*model.User, er
 		return nil, errors.Wrap(err, "error at try to get from ent")
 	}
 
-	return &model.User{
-		ID:           e.ID.String(),
-		Name:         e.Name,
-		Username:     e.Username,
-		LastActivity: e.LastActivity,
-		Picture:      e.Picture,
-	}, nil
+	return commons.UserToGQL(e), nil
+}
+
+func (r *queryResolver) Profile(ctx context.Context) (*model.User, error) {
+	userRequester := r.Auth.UserOfContext(ctx)
+	if userRequester == nil {
+		return nil, errors.New("unauthorized, please include a valid token in your header")
+	}
+
+	return commons.UserToGQL(userRequester), nil
 }
 
 func (r *queryResolver) IsFirstQuestion(ctx context.Context, questionID string) (bool, error) {
