@@ -25,7 +25,7 @@ func getHTTPEngine() (*gin.Engine, error) {
 
 	headers := viper.GetStringSlice(config.CorsHeaders)
 	if len(headers) == 0 {
-		headers = []string{"Origin", "Content-Length", "Content-Type", "Collecta-Token"}
+		headers = []string{"Origin", "Content-Length", "Content-Type", "Authorization"}
 	}
 
 	maxAge := viper.GetDuration(config.CorsMaxAge)
