@@ -16,15 +16,16 @@ func (collectaAuth *Auth) Middleware() gin.HandlerFunc {
 	return func(c  *gin.Context) {
 		authHeader := c.GetHeader("Authorization")
 		if !strings.HasPrefix(authHeader,"Bearer") {
-			c.Next()
+			c.String(http.StatusForbidden, "invalid Token")
 			return
 		}
 
 		token := strings.TrimSpace(strings.TrimPrefix(authHeader, "Bearer"))
 
+
 		userRequester, err := collectaAuth.verifyJWTToken(c.Request.Context(), token)
 		if err != nil {
-			c.String(http.StatusForbidden, "Invalid Token")
+			c.String(http.StatusForbidden, "invalid Token")
 			return
 		}
 

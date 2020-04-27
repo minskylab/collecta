@@ -3,7 +3,6 @@ package main
 import (
 	"time"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/minskylab/collecta/config"
@@ -33,10 +32,6 @@ func getHTTPEngine() (*gin.Engine, error) {
 		maxAge = 12 * time.Hour
 	}
 
-	spew.Dump("origins: ", origins)
-	spew.Dump("methods: ", methods)
-	spew.Dump("headers: ", headers)
-	spew.Dump("maxAge: ", maxAge)
 
 	engine.Use(cors.New(cors.Config{
 		AllowOrigins:     origins,
