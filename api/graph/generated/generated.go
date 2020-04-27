@@ -113,6 +113,11 @@ type ComplexityRoot struct {
 		Question func(childComplexity int) int
 	}
 
+	LastSurveyState struct {
+		LastQuestion func(childComplexity int) int
+		Percent      func(childComplexity int) int
+	}
+
 	LoginResponse struct {
 		Token func(childComplexity int) int
 	}
@@ -138,6 +143,7 @@ type ComplexityRoot struct {
 		Profile              func(childComplexity int) int
 		Question             func(childComplexity int, id string) int
 		Survey               func(childComplexity int, id string) int
+		SurveyPercent        func(childComplexity int, surveyID string) int
 		User                 func(childComplexity int, id string) int
 	}
 
@@ -230,7 +236,8 @@ type QueryResolver interface {
 	Profile(ctx context.Context) (*model.User, error)
 	IsFirstQuestion(ctx context.Context, questionID string) (bool, error)
 	IsFinalQuestion(ctx context.Context, questionID string) (bool, error)
-	LastQuestionOfSurvey(ctx context.Context, surveyID string) (*model.Question, error)
+	SurveyPercent(ctx context.Context, surveyID string) (float64, error)
+	LastQuestionOfSurvey(ctx context.Context, surveyID string) (*model.LastSurveyState, error)
 }
 type QuestionResolver interface {
 	Answers(ctx context.Context, obj *model.Question) ([]*model.Answer, error)
@@ -559,6 +566,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Input.Question(childComplexity), true
 
+	case "LastSurveyState.lastQuestion":
+		if e.complexity.LastSurveyState.LastQuestion == nil {
+			break
+		}
+
+		return e.complexity.LastSurveyState.LastQuestion(childComplexity), true
+
+	case "LastSurveyState.percent":
+		if e.complexity.LastSurveyState.Percent == nil {
+			break
+		}
+
+		return e.complexity.LastSurveyState.Percent(childComplexity), true
+
 	case "LoginResponse.token":
 		if e.complexity.LoginResponse.Token == nil {
 			break
@@ -718,6 +739,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.Survey(childComplexity, args["id"].(string)), true
+
+	case "Query.surveyPercent":
+		if e.complexity.Query.SurveyPercent == nil {
+			break
+		}
+
+		args, err := ec.field_Query_surveyPercent_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.SurveyPercent(childComplexity, args["surveyID"].(string)), true
 
 	case "Query.user":
 		if e.complexity.Query.User == nil {
@@ -1231,6 +1264,11 @@ input DomainCreator {
     domain: String!
     collectaDomain: String!
     tags: [String!]
+}
+
+type LastSurveyState {
+    lastQuestion: Question!
+    percent: Float!
 }`, BuiltIn: false},
 	&ast.Source{Name: "graph/schema/mutations.graphqls", Input: `type Mutation {
     # User Related
@@ -1257,7 +1295,8 @@ input DomainCreator {
     # Survey Related
     isFirstQuestion(questionID: ID!): Boolean!
     isFinalQuestion(questionID: ID!): Boolean!
-    lastQuestionOfSurvey(surveyID: ID!): Question!
+    surveyPercent(surveyID: ID!): Float!
+    lastQuestionOfSurvey(surveyID: ID!): LastSurveyState!
 }
 `, BuiltIn: false},
 	&ast.Source{Name: "graph/schema/subscriptions.graphqls", Input: ``, BuiltIn: false},
@@ -1451,6 +1490,20 @@ func (ec *executionContext) field_Query_question_args(ctx context.Context, rawAr
 		}
 	}
 	args["id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_surveyPercent_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["surveyID"]; ok {
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["surveyID"] = arg0
 	return args, nil
 }
 
@@ -2943,6 +2996,74 @@ func (ec *executionContext) _Input_question(ctx context.Context, field graphql.C
 	return ec.marshalNQuestion2ᚖgithubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐQuestion(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _LastSurveyState_lastQuestion(ctx context.Context, field graphql.CollectedField, obj *model.LastSurveyState) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "LastSurveyState",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.LastQuestion, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.Question)
+	fc.Result = res
+	return ec.marshalNQuestion2ᚖgithubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐQuestion(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _LastSurveyState_percent(ctx context.Context, field graphql.CollectedField, obj *model.LastSurveyState) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "LastSurveyState",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Percent, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(float64)
+	fc.Result = res
+	return ec.marshalNFloat2float64(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _LoginResponse_token(ctx context.Context, field graphql.CollectedField, obj *model.LoginResponse) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -3530,6 +3651,47 @@ func (ec *executionContext) _Query_isFinalQuestion(ctx context.Context, field gr
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Query_surveyPercent(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Query",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_surveyPercent_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().SurveyPercent(rctx, args["surveyID"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(float64)
+	fc.Result = res
+	return ec.marshalNFloat2float64(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Query_lastQuestionOfSurvey(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -3566,9 +3728,9 @@ func (ec *executionContext) _Query_lastQuestionOfSurvey(ctx context.Context, fie
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*model.Question)
+	res := resTmp.(*model.LastSurveyState)
 	fc.Result = res
-	return ec.marshalNQuestion2ᚖgithubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐQuestion(ctx, field.Selections, res)
+	return ec.marshalNLastSurveyState2ᚖgithubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐLastSurveyState(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query___type(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -6597,6 +6759,38 @@ func (ec *executionContext) _Input(ctx context.Context, sel ast.SelectionSet, ob
 	return out
 }
 
+var lastSurveyStateImplementors = []string{"LastSurveyState"}
+
+func (ec *executionContext) _LastSurveyState(ctx context.Context, sel ast.SelectionSet, obj *model.LastSurveyState) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, lastSurveyStateImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("LastSurveyState")
+		case "lastQuestion":
+			out.Values[i] = ec._LastSurveyState_lastQuestion(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "percent":
+			out.Values[i] = ec._LastSurveyState_percent(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var loginResponseImplementors = []string{"LoginResponse"}
 
 func (ec *executionContext) _LoginResponse(ctx context.Context, sel ast.SelectionSet, obj *model.LoginResponse) graphql.Marshaler {
@@ -6815,6 +7009,20 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_isFinalQuestion(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "surveyPercent":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_surveyPercent(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
@@ -7636,6 +7844,20 @@ func (ec *executionContext) unmarshalNDomainCreator2githubᚗcomᚋminskylabᚋc
 	return ec.unmarshalInputDomainCreator(ctx, v)
 }
 
+func (ec *executionContext) unmarshalNFloat2float64(ctx context.Context, v interface{}) (float64, error) {
+	return graphql.UnmarshalFloat(v)
+}
+
+func (ec *executionContext) marshalNFloat2float64(ctx context.Context, sel ast.SelectionSet, v float64) graphql.Marshaler {
+	res := graphql.MarshalFloat(v)
+	if res == graphql.Null {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+	}
+	return res
+}
+
 func (ec *executionContext) marshalNFlow2githubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐFlow(ctx context.Context, sel ast.SelectionSet, v model.Flow) graphql.Marshaler {
 	return ec._Flow(ctx, sel, &v)
 }
@@ -7699,6 +7921,20 @@ func (ec *executionContext) marshalNInt2int(ctx context.Context, sel ast.Selecti
 		}
 	}
 	return res
+}
+
+func (ec *executionContext) marshalNLastSurveyState2githubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐLastSurveyState(ctx context.Context, sel ast.SelectionSet, v model.LastSurveyState) graphql.Marshaler {
+	return ec._LastSurveyState(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNLastSurveyState2ᚖgithubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐLastSurveyState(ctx context.Context, sel ast.SelectionSet, v *model.LastSurveyState) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._LastSurveyState(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNLoginResponse2githubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐLoginResponse(ctx context.Context, sel ast.SelectionSet, v model.LoginResponse) graphql.Marshaler {

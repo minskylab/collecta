@@ -77,6 +77,11 @@ type Input struct {
 	Question *Question              `json:"question"`
 }
 
+type LastSurveyState struct {
+	LastQuestion *Question `json:"lastQuestion"`
+	Percent      float64   `json:"percent"`
+}
+
 type LoginResponse struct {
 	Token string `json:"token"`
 }

@@ -121,13 +121,7 @@ func (r *queryResolver) Question(ctx context.Context, id string) (*model.Questio
 		return nil, errors.Wrap(err, "error at try to get from ent")
 	}
 
-	return &model.Question{
-		ID:          e.ID.String(),
-		Hash:        e.Hash,
-		Title:       e.Title,
-		Description: e.Description,
-		Anonymous:   e.Anonymous,
-	}, nil
+	return commons.QuestionToGQL(e), nil
 }
 
 func (r *queryResolver) User(ctx context.Context, id string) (*model.User, error) {
@@ -262,7 +256,55 @@ func (r *queryResolver) IsFinalQuestion(ctx context.Context, questionID string) 
 	return qID == f.TerminationState, nil
 }
 
-func (r *queryResolver) LastQuestionOfSurvey(ctx context.Context, surveyID string) (*model.Question, error) {
+func (r *queryResolver) SurveyPercent(ctx context.Context, surveyID string) (float64, error) {
+	userRequester := r.Auth.UserOfContext(ctx)
+	if userRequester == nil {
+		return 0.0, errors.New("unauthorized, please include a valid token in your header")
+	}
+
+	sID, err := uuid.Parse(surveyID)
+	if err != nil {
+		return 0.0, errors.Wrap(err, "error at try to parse the domain id")
+	}
+
+	isSurveyOwner, err := userRequester.QuerySurveys().Where(survey.ID(sID)).Exist(ctx)
+	if err != nil {
+		return 0.0, errors.Wrap(err, "error at try to search surveys")
+	}
+
+	if !isSurveyOwner {
+		isOwnerOfSurveyDomain, err := userRequester.QueryAdminOf().Where(domain.HasSurveysWith(survey.ID(sID))).Exist(ctx)
+		if err != nil {
+			return 0.0, errors.Wrap(err, "error at try to search domain related to survey")
+		}
+
+		if !isOwnerOfSurveyDomain {
+			return 0.0, errors.New("resource isn't accessible for you")
+		}
+
+	}
+
+	surv, err := r.DB.Ent.Survey.Get(ctx, sID)
+	if err != nil {
+		return 0.0, errors.Wrap(err, "error at fetch survey")
+	}
+
+	answeredQuestions, err := surv.QueryFlow().QueryQuestions().Where(question.HasAnswers()).All(ctx)
+	if err != nil {
+		return 0.0, errors.Wrap(err, "error at fetch answered questions")
+	}
+
+	totalQuestions, err := surv.QueryFlow().QueryQuestions().All(ctx)
+	if err != nil {
+		return 0.0, errors.Wrap(err, "error at fetch total questions of survey")
+	}
+
+	percent := float64(len(answeredQuestions))/float64(len(totalQuestions))
+
+	return percent, nil
+}
+
+func (r *queryResolver) LastQuestionOfSurvey(ctx context.Context, surveyID string) (*model.LastSurveyState, error) {
 	userRequester := r.Auth.UserOfContext(ctx)
 	if userRequester == nil {
 		return nil, errors.New("unauthorized, please include a valid token in your header")
@@ -305,13 +347,21 @@ func (r *queryResolver) LastQuestionOfSurvey(ctx context.Context, surveyID strin
 		return nil, errors.Wrap(err, "error at fetch last question")
 	}
 
-	return &model.Question{
-		ID:          currentQuestion.ID.String(),
-		Hash:        currentQuestion.Hash,
-		Title:       currentQuestion.Title,
-		Description: currentQuestion.Description,
-		Anonymous:   currentQuestion.Anonymous,
-		// Metadata:    nil,
+	answeredQuestions, err := surv.QueryFlow().QueryQuestions().Where(question.HasAnswers()).All(ctx)
+	if err != nil {
+		return nil, errors.Wrap(err, "error at fetch answered questions")
+	}
+
+	totalQuestions, err := surv.QueryFlow().QueryQuestions().All(ctx)
+	if err != nil {
+		return nil, errors.Wrap(err, "error at fetch total questions of survey")
+	}
+
+	percent := float64(len(answeredQuestions))/float64(len(totalQuestions))
+
+	return &model.LastSurveyState{
+		LastQuestion: commons.QuestionToGQL(currentQuestion),
+		Percent:      percent,
 	}, nil
 }
 

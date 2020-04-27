@@ -62,3 +62,8 @@ input DomainCreator {
     collectaDomain: String!
     tags: [String!]
 }
+
+type LastSurveyState {
+    lastQuestion: Question!
+    percent: Float!
+}

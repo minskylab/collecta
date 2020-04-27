@@ -12,5 +12,6 @@ type Query {
     # Survey Related
     isFirstQuestion(questionID: ID!): Boolean!
     isFinalQuestion(questionID: ID!): Boolean!
-    lastQuestionOfSurvey(surveyID: ID!): Question!
+    surveyPercent(surveyID: ID!): Float!
+    lastQuestionOfSurvey(surveyID: ID!): LastSurveyState!
 }
