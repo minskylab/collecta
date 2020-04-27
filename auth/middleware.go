@@ -16,7 +16,7 @@ func (collectaAuth *Auth) Middleware() gin.HandlerFunc {
 	return func(c  *gin.Context) {
 		authHeader := c.GetHeader("Authorization")
 		if !strings.HasPrefix(authHeader,"Bearer") {
-			c.String(http.StatusForbidden, "invalid Token")
+			c.Next()
 			return
 		}
 
