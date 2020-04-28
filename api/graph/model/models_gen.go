@@ -151,6 +151,7 @@ type SurveyGenerator struct {
 	Target      *SurveyTargetUsers `json:"target"`
 	Metadata    []*Pair            `json:"metadata"`
 	Logic       *string            `json:"logic"`
+	Due         *time.Time         `json:"due"`
 }
 
 type SurveyTargetUsers struct {

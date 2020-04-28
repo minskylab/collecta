@@ -5,7 +5,6 @@ package graph
 
 import (
 	"context"
-
 	"strings"
 
 	"github.com/google/uuid"

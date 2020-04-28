@@ -26,6 +26,13 @@ const (
 
 	// Table holds the table name of the flow in the database.
 	Table = "flows"
+	// SurveyTable is the table the holds the survey relation/edge.
+	SurveyTable = "flows"
+	// SurveyInverseTable is the table name for the Survey entity.
+	// It exists in this package in order to avoid circular dependency with the "survey" package.
+	SurveyInverseTable = "surveys"
+	// SurveyColumn is the table column denoting the survey relation/edge.
+	SurveyColumn = "survey_flow"
 	// QuestionsTable is the table the holds the questions relation/edge.
 	QuestionsTable = "questions"
 	// QuestionsInverseTable is the table name for the Question entity.
@@ -44,6 +51,11 @@ var Columns = []string{
 	FieldTerminationState,
 	FieldPastState,
 	FieldInputs,
+}
+
+// ForeignKeys holds the SQL foreign-keys that are owned by the Flow type.
+var ForeignKeys = []string{
+	"survey_flow",
 }
 
 var (

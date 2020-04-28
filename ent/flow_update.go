@@ -4,6 +4,7 @@ package ent
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/facebookincubator/ent/dialect/sql"
@@ -13,6 +14,7 @@ import (
 	"github.com/minskylab/collecta/ent/flow"
 	"github.com/minskylab/collecta/ent/predicate"
 	"github.com/minskylab/collecta/ent/question"
+	"github.com/minskylab/collecta/ent/survey"
 )
 
 // FlowUpdate is the builder for updating Flow entities.
@@ -26,7 +28,9 @@ type FlowUpdate struct {
 	clearpastState   bool
 
 	clearinputs      bool
+	survey           map[uuid.UUID]struct{}
 	questions        map[uuid.UUID]struct{}
+	clearedSurvey    bool
 	removedQuestions map[uuid.UUID]struct{}
 	predicates       []predicate.Flow
 }
@@ -74,6 +78,28 @@ func (fu *FlowUpdate) ClearPastState() *FlowUpdate {
 	return fu
 }
 
+// SetSurveyID sets the survey edge to Survey by id.
+func (fu *FlowUpdate) SetSurveyID(id uuid.UUID) *FlowUpdate {
+	if fu.survey == nil {
+		fu.survey = make(map[uuid.UUID]struct{})
+	}
+	fu.survey[id] = struct{}{}
+	return fu
+}
+
+// SetNillableSurveyID sets the survey edge to Survey by id if the given value is not nil.
+func (fu *FlowUpdate) SetNillableSurveyID(id *uuid.UUID) *FlowUpdate {
+	if id != nil {
+		fu = fu.SetSurveyID(*id)
+	}
+	return fu
+}
+
+// SetSurvey sets the survey edge to Survey.
+func (fu *FlowUpdate) SetSurvey(s *Survey) *FlowUpdate {
+	return fu.SetSurveyID(s.ID)
+}
+
 // AddQuestionIDs adds the questions edge to Question by ids.
 func (fu *FlowUpdate) AddQuestionIDs(ids ...uuid.UUID) *FlowUpdate {
 	if fu.questions == nil {
@@ -92,6 +118,12 @@ func (fu *FlowUpdate) AddQuestions(q ...*Question) *FlowUpdate {
 		ids[i] = q[i].ID
 	}
 	return fu.AddQuestionIDs(ids...)
+}
+
+// ClearSurvey clears the survey edge to Survey.
+func (fu *FlowUpdate) ClearSurvey() *FlowUpdate {
+	fu.clearedSurvey = true
+	return fu
 }
 
 // RemoveQuestionIDs removes the questions edge to Question by ids.
@@ -120,6 +152,9 @@ func (fu *FlowUpdate) Save(ctx context.Context) (int, error) {
 		if err := flow.StateTableValidator(*fu.stateTable); err != nil {
 			return 0, fmt.Errorf("ent: validator failed for field \"stateTable\": %v", err)
 		}
+	}
+	if len(fu.survey) > 1 {
+		return 0, errors.New("ent: multiple assignments on a unique edge \"survey\"")
 	}
 	return fu.sqlSave(ctx)
 }
@@ -211,6 +246,41 @@ func (fu *FlowUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Column: flow.FieldInputs,
 		})
 	}
+	if fu.clearedSurvey {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: true,
+			Table:   flow.SurveyTable,
+			Columns: []string{flow.SurveyColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: survey.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := fu.survey; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: true,
+			Table:   flow.SurveyTable,
+			Columns: []string{flow.SurveyColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: survey.FieldID,
+				},
+			},
+		}
+		for k, _ := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if nodes := fu.removedQuestions; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -272,7 +342,9 @@ type FlowUpdateOne struct {
 	clearpastState   bool
 
 	clearinputs      bool
+	survey           map[uuid.UUID]struct{}
 	questions        map[uuid.UUID]struct{}
+	clearedSurvey    bool
 	removedQuestions map[uuid.UUID]struct{}
 }
 
@@ -313,6 +385,28 @@ func (fuo *FlowUpdateOne) ClearPastState() *FlowUpdateOne {
 	return fuo
 }
 
+// SetSurveyID sets the survey edge to Survey by id.
+func (fuo *FlowUpdateOne) SetSurveyID(id uuid.UUID) *FlowUpdateOne {
+	if fuo.survey == nil {
+		fuo.survey = make(map[uuid.UUID]struct{})
+	}
+	fuo.survey[id] = struct{}{}
+	return fuo
+}
+
+// SetNillableSurveyID sets the survey edge to Survey by id if the given value is not nil.
+func (fuo *FlowUpdateOne) SetNillableSurveyID(id *uuid.UUID) *FlowUpdateOne {
+	if id != nil {
+		fuo = fuo.SetSurveyID(*id)
+	}
+	return fuo
+}
+
+// SetSurvey sets the survey edge to Survey.
+func (fuo *FlowUpdateOne) SetSurvey(s *Survey) *FlowUpdateOne {
+	return fuo.SetSurveyID(s.ID)
+}
+
 // AddQuestionIDs adds the questions edge to Question by ids.
 func (fuo *FlowUpdateOne) AddQuestionIDs(ids ...uuid.UUID) *FlowUpdateOne {
 	if fuo.questions == nil {
@@ -331,6 +425,12 @@ func (fuo *FlowUpdateOne) AddQuestions(q ...*Question) *FlowUpdateOne {
 		ids[i] = q[i].ID
 	}
 	return fuo.AddQuestionIDs(ids...)
+}
+
+// ClearSurvey clears the survey edge to Survey.
+func (fuo *FlowUpdateOne) ClearSurvey() *FlowUpdateOne {
+	fuo.clearedSurvey = true
+	return fuo
 }
 
 // RemoveQuestionIDs removes the questions edge to Question by ids.
@@ -359,6 +459,9 @@ func (fuo *FlowUpdateOne) Save(ctx context.Context) (*Flow, error) {
 		if err := flow.StateTableValidator(*fuo.stateTable); err != nil {
 			return nil, fmt.Errorf("ent: validator failed for field \"stateTable\": %v", err)
 		}
+	}
+	if len(fuo.survey) > 1 {
+		return nil, errors.New("ent: multiple assignments on a unique edge \"survey\"")
 	}
 	return fuo.sqlSave(ctx)
 }
@@ -443,6 +546,41 @@ func (fuo *FlowUpdateOne) sqlSave(ctx context.Context) (f *Flow, err error) {
 			Type:   field.TypeJSON,
 			Column: flow.FieldInputs,
 		})
+	}
+	if fuo.clearedSurvey {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: true,
+			Table:   flow.SurveyTable,
+			Columns: []string{flow.SurveyColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: survey.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := fuo.survey; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: true,
+			Table:   flow.SurveyTable,
+			Columns: []string{flow.SurveyColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: survey.FieldID,
+				},
+			},
+		}
+		for k, _ := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if nodes := fuo.removedQuestions; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

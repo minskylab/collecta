@@ -28,6 +28,7 @@ func (Flow) Fields() []ent.Field {
 // Edges of the Flow.
 func (Flow) Edges() []ent.Edge {
 	return []ent.Edge{
+		edge.From("survey", Survey.Type).Ref("flow").Unique(),
 		edge.To("questions", Question.Type).Required(),
 	}
 }

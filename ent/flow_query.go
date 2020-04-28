@@ -16,6 +16,7 @@ import (
 	"github.com/minskylab/collecta/ent/flow"
 	"github.com/minskylab/collecta/ent/predicate"
 	"github.com/minskylab/collecta/ent/question"
+	"github.com/minskylab/collecta/ent/survey"
 )
 
 // FlowQuery is the builder for querying Flow entities.
@@ -27,7 +28,9 @@ type FlowQuery struct {
 	unique     []string
 	predicates []predicate.Flow
 	// eager-loading edges.
+	withSurvey    *SurveyQuery
 	withQuestions *QuestionQuery
+	withFKs       bool
 	// intermediate query.
 	sql *sql.Selector
 }
@@ -54,6 +57,18 @@ func (fq *FlowQuery) Offset(offset int) *FlowQuery {
 func (fq *FlowQuery) Order(o ...Order) *FlowQuery {
 	fq.order = append(fq.order, o...)
 	return fq
+}
+
+// QuerySurvey chains the current query on the survey edge.
+func (fq *FlowQuery) QuerySurvey() *SurveyQuery {
+	query := &SurveyQuery{config: fq.config}
+	step := sqlgraph.NewStep(
+		sqlgraph.From(flow.Table, flow.FieldID, fq.sqlQuery()),
+		sqlgraph.To(survey.Table, survey.FieldID),
+		sqlgraph.Edge(sqlgraph.O2O, true, flow.SurveyTable, flow.SurveyColumn),
+	)
+	query.sql = sqlgraph.SetNeighbors(fq.driver.Dialect(), step)
+	return query
 }
 
 // QueryQuestions chains the current query on the questions edge.
@@ -237,6 +252,17 @@ func (fq *FlowQuery) Clone() *FlowQuery {
 	}
 }
 
+//  WithSurvey tells the query-builder to eager-loads the nodes that are connected to
+// the "survey" edge. The optional arguments used to configure the query builder of the edge.
+func (fq *FlowQuery) WithSurvey(opts ...func(*SurveyQuery)) *FlowQuery {
+	query := &SurveyQuery{config: fq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	fq.withSurvey = query
+	return fq
+}
+
 //  WithQuestions tells the query-builder to eager-loads the nodes that are connected to
 // the "questions" edge. The optional arguments used to configure the query builder of the edge.
 func (fq *FlowQuery) WithQuestions(opts ...func(*QuestionQuery)) *FlowQuery {
@@ -292,15 +318,26 @@ func (fq *FlowQuery) Select(field string, fields ...string) *FlowSelect {
 func (fq *FlowQuery) sqlAll(ctx context.Context) ([]*Flow, error) {
 	var (
 		nodes       = []*Flow{}
+		withFKs     = fq.withFKs
 		_spec       = fq.querySpec()
-		loadedTypes = [1]bool{
+		loadedTypes = [2]bool{
+			fq.withSurvey != nil,
 			fq.withQuestions != nil,
 		}
 	)
+	if fq.withSurvey != nil {
+		withFKs = true
+	}
+	if withFKs {
+		_spec.Node.Columns = append(_spec.Node.Columns, flow.ForeignKeys...)
+	}
 	_spec.ScanValues = func() []interface{} {
 		node := &Flow{config: fq.config}
 		nodes = append(nodes, node)
 		values := node.scanValues()
+		if withFKs {
+			values = append(values, node.fkValues()...)
+		}
 		return values
 	}
 	_spec.Assign = func(values ...interface{}) error {
@@ -316,6 +353,31 @@ func (fq *FlowQuery) sqlAll(ctx context.Context) ([]*Flow, error) {
 	}
 	if len(nodes) == 0 {
 		return nodes, nil
+	}
+
+	if query := fq.withSurvey; query != nil {
+		ids := make([]uuid.UUID, 0, len(nodes))
+		nodeids := make(map[uuid.UUID][]*Flow)
+		for i := range nodes {
+			if fk := nodes[i].survey_flow; fk != nil {
+				ids = append(ids, *fk)
+				nodeids[*fk] = append(nodeids[*fk], nodes[i])
+			}
+		}
+		query.Where(survey.IDIn(ids...))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			nodes, ok := nodeids[n.ID]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "survey_flow" returned %v`, n.ID)
+			}
+			for i := range nodes {
+				nodes[i].Edges.Survey = n
+			}
+		}
 	}
 
 	if query := fq.withQuestions; query != nil {

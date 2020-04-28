@@ -135,6 +135,67 @@ func (r *mutationResolver) AnswerQuestion(ctx context.Context, questionID string
 	}, nil
 }
 
+func (r *mutationResolver) BackwardSurvey(ctx context.Context, surveyID string) (*model.Survey, error) {
+	userRequester := r.Auth.UserOfContext(ctx)
+	if userRequester == nil {
+		return nil, errors.New("unauthorized, please include a valid token in your header")
+	}
+
+	sID, err := uuid.Parse(surveyID)
+	if err != nil {
+		return nil, errors.Wrap(err, "error at try to parse the domain id")
+	}
+
+	isOwnerOfSurveyDomain, err := userRequester.
+		QueryAdminOf().
+		Where(
+			domain.HasSurveysWith(
+				survey.ID(sID),
+			),
+		).Exist(ctx)
+	if err != nil {
+		return nil, errors.Wrap(err, "error at try to search domain related to question")
+	}
+
+	if !isOwnerOfSurveyDomain {
+		ownerOfSurvey, err := userRequester.QuerySurveys().Where(survey.ID(sID)).Exist(ctx)
+		if err != nil {
+			return nil, errors.Wrap(err, "error at try to search survey from owns")
+		}
+
+		if !ownerOfSurvey {
+			return nil, errors.Wrap(err, "operation not allowed for you")
+		}
+	}
+
+	lastState, err := flows.LastState(ctx, r.DB, sID)
+	if err != nil {
+		return nil, errors.Wrap(err, "error at calculate the last state")
+	}
+
+	currentFlow, err := r.DB.Ent.Flow.Query().Where(flow.HasSurveyWith(survey.ID(sID))).Only(ctx)
+	if err != nil {
+		return nil, errors.Wrap(err, "error at fetch the flow of your survey")
+	}
+
+	currentFlow, err = r.DB.Ent.Flow.UpdateOneID(currentFlow.ID).
+		SetState(lastState).
+		SetPastState(currentFlow.State).
+		Save(ctx)
+	if err != nil {
+		return nil, errors.Wrap(err, "error at update your survey flow")
+	}
+
+	surv, err := currentFlow.QuerySurvey().Only(ctx)
+	if err != nil {
+		return nil, errors.Wrap(err, "error at fetch your survey")
+	}
+
+	// TODO: Update now or create hook to update the survey last interaction, that is important
+
+	return commons.SurveyToGQL(surv), nil
+}
+
 func (r *mutationResolver) LoginByPassword(ctx context.Context, username string, password string) (*model.LoginResponse, error) {
 	loginAccount, err := r.DB.Ent.Account.Query().
 		Where(account.And(

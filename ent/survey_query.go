@@ -4,6 +4,7 @@ package ent
 
 import (
 	"context"
+	"database/sql/driver"
 	"errors"
 	"fmt"
 	"math"
@@ -66,7 +67,7 @@ func (sq *SurveyQuery) QueryFlow() *FlowQuery {
 	step := sqlgraph.NewStep(
 		sqlgraph.From(survey.Table, survey.FieldID, sq.sqlQuery()),
 		sqlgraph.To(flow.Table, flow.FieldID),
-		sqlgraph.Edge(sqlgraph.M2O, false, survey.FlowTable, survey.FlowColumn),
+		sqlgraph.Edge(sqlgraph.O2O, false, survey.FlowTable, survey.FlowColumn),
 	)
 	query.sql = sqlgraph.SetNeighbors(sq.driver.Dialect(), step)
 	return query
@@ -350,7 +351,7 @@ func (sq *SurveyQuery) sqlAll(ctx context.Context) ([]*Survey, error) {
 			sq.withOwner != nil,
 		}
 	)
-	if sq.withFlow != nil || sq.withFor != nil || sq.withOwner != nil {
+	if sq.withFor != nil || sq.withOwner != nil {
 		withFKs = true
 	}
 	if withFKs {
@@ -381,27 +382,30 @@ func (sq *SurveyQuery) sqlAll(ctx context.Context) ([]*Survey, error) {
 	}
 
 	if query := sq.withFlow; query != nil {
-		ids := make([]uuid.UUID, 0, len(nodes))
-		nodeids := make(map[uuid.UUID][]*Survey)
+		fks := make([]driver.Value, 0, len(nodes))
+		nodeids := make(map[uuid.UUID]*Survey)
 		for i := range nodes {
-			if fk := nodes[i].survey_flow; fk != nil {
-				ids = append(ids, *fk)
-				nodeids[*fk] = append(nodeids[*fk], nodes[i])
-			}
+			fks = append(fks, nodes[i].ID)
+			nodeids[nodes[i].ID] = nodes[i]
 		}
-		query.Where(flow.IDIn(ids...))
+		query.withFKs = true
+		query.Where(predicate.Flow(func(s *sql.Selector) {
+			s.Where(sql.InValues(survey.FlowColumn, fks...))
+		}))
 		neighbors, err := query.All(ctx)
 		if err != nil {
 			return nil, err
 		}
 		for _, n := range neighbors {
-			nodes, ok := nodeids[n.ID]
+			fk := n.survey_flow
+			if fk == nil {
+				return nil, fmt.Errorf(`foreign-key "survey_flow" is nil for node %v`, n.ID)
+			}
+			node, ok := nodeids[*fk]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "survey_flow" returned %v`, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "survey_flow" returned %v for node %v`, *fk, n.ID)
 			}
-			for i := range nodes {
-				nodes[i].Edges.Flow = n
-			}
+			node.Edges.Flow = n
 		}
 	}
 

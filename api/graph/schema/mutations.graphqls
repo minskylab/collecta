@@ -1,6 +1,7 @@
 type Mutation {
     # User Related
     answerQuestion(questionID: ID!, answer: [String!]!): Survey!
+    backwardSurvey(surveyID: ID!): Survey!
 
     # Admin Related
     loginByPassword(username: String!, password: String!): LoginResponse!

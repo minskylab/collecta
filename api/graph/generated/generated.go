@@ -129,6 +129,7 @@ type ComplexityRoot struct {
 
 	Mutation struct {
 		AnswerQuestion  func(childComplexity int, questionID string, answer []string) int
+		BackwardSurvey  func(childComplexity int, surveyID string) int
 		CreateNewDomain func(childComplexity int, draft model.DomainCreator) int
 		GenerateSurveys func(childComplexity int, domainSelector model.SurveyDomain, draft model.SurveyGenerator) int
 		LoginByPassword func(childComplexity int, username string, password string) int
@@ -223,6 +224,7 @@ type InputResolver interface {
 }
 type MutationResolver interface {
 	AnswerQuestion(ctx context.Context, questionID string, answer []string) (*model.Survey, error)
+	BackwardSurvey(ctx context.Context, surveyID string) (*model.Survey, error)
 	LoginByPassword(ctx context.Context, username string, password string) (*model.LoginResponse, error)
 	UpdatePassword(ctx context.Context, oldPassword string, newPassword string) (bool, error)
 	CreateNewDomain(ctx context.Context, draft model.DomainCreator) (*model.Domain, error)
@@ -612,6 +614,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.AnswerQuestion(childComplexity, args["questionID"].(string), args["answer"].([]string)), true
+
+	case "Mutation.backwardSurvey":
+		if e.complexity.Mutation.BackwardSurvey == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_backwardSurvey_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.BackwardSurvey(childComplexity, args["surveyID"].(string)), true
 
 	case "Mutation.createNewDomain":
 		if e.complexity.Mutation.CreateNewDomain == nil {
@@ -1251,6 +1265,7 @@ input SurveyGenerator {
 
     metadata: [Pair!]
     logic: String
+    due: Time
 }
 
 type SuveyGenerationResult {
@@ -1273,7 +1288,8 @@ type LastSurveyState {
 	&ast.Source{Name: "graph/schema/mutations.graphqls", Input: `type Mutation {
     # User Related
     answerQuestion(questionID: ID!, answer: [String!]!): Survey!
-
+    backwardSurvey(surveyID: ID!): Survey!
+    
     # Admin Related
     loginByPassword(username: String!, password: String!): LoginResponse!
     updatePassword(oldPassword: String!, newPassword: String!): Boolean!
@@ -1326,6 +1342,20 @@ func (ec *executionContext) field_Mutation_answerQuestion_args(ctx context.Conte
 		}
 	}
 	args["answer"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_backwardSurvey_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["surveyID"]; ok {
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["surveyID"] = arg0
 	return args, nil
 }
 
@@ -3191,6 +3221,47 @@ func (ec *executionContext) _Mutation_answerQuestion(ctx context.Context, field 
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return ec.resolvers.Mutation().AnswerQuestion(rctx, args["questionID"].(string), args["answer"].([]string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.Survey)
+	fc.Result = res
+	return ec.marshalNSurvey2ᚖgithubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐSurvey(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_backwardSurvey(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_backwardSurvey_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().BackwardSurvey(rctx, args["surveyID"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -6301,6 +6372,12 @@ func (ec *executionContext) unmarshalInputSurveyGenerator(ctx context.Context, o
 			if err != nil {
 				return it, err
 			}
+		case "due":
+			var err error
+			it.Due, err = ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		}
 	}
 
@@ -6867,6 +6944,11 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			out.Values[i] = graphql.MarshalString("Mutation")
 		case "answerQuestion":
 			out.Values[i] = ec._Mutation_answerQuestion(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "backwardSurvey":
+			out.Values[i] = ec._Mutation_backwardSurvey(ctx, field)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -8728,6 +8810,29 @@ func (ec *executionContext) marshalOString2ᚖstring(ctx context.Context, sel as
 		return graphql.Null
 	}
 	return ec.marshalOString2string(ctx, sel, *v)
+}
+
+func (ec *executionContext) unmarshalOTime2timeᚐTime(ctx context.Context, v interface{}) (time.Time, error) {
+	return graphql.UnmarshalTime(v)
+}
+
+func (ec *executionContext) marshalOTime2timeᚐTime(ctx context.Context, sel ast.SelectionSet, v time.Time) graphql.Marshaler {
+	return graphql.MarshalTime(v)
+}
+
+func (ec *executionContext) unmarshalOTime2ᚖtimeᚐTime(ctx context.Context, v interface{}) (*time.Time, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalOTime2timeᚐTime(ctx, v)
+	return &res, err
+}
+
+func (ec *executionContext) marshalOTime2ᚖtimeᚐTime(ctx context.Context, sel ast.SelectionSet, v *time.Time) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec.marshalOTime2timeᚐTime(ctx, sel, *v)
 }
 
 func (ec *executionContext) marshalO__EnumValue2ᚕgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐEnumValueᚄ(ctx context.Context, sel ast.SelectionSet, v []introspection.EnumValue) graphql.Marshaler {

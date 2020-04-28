@@ -41,7 +41,6 @@ type Survey struct {
 	// The values are being populated by the SurveyQuery when eager-loading is set.
 	Edges          SurveyEdges `json:"edges"`
 	domain_surveys *uuid.UUID
-	survey_flow    *uuid.UUID
 	user_surveys   *uuid.UUID
 }
 
@@ -119,7 +118,6 @@ func (*Survey) scanValues() []interface{} {
 func (*Survey) fkValues() []interface{} {
 	return []interface{}{
 		&uuid.UUID{}, // domain_surveys
-		&uuid.UUID{}, // survey_flow
 		&uuid.UUID{}, // user_surveys
 	}
 }
@@ -188,11 +186,6 @@ func (s *Survey) assignValues(values ...interface{}) error {
 			return fmt.Errorf("unexpected type %T for field domain_surveys", values[0])
 		} else if value != nil {
 			s.domain_surveys = value
-		}
-		if value, ok := values[0].(*uuid.UUID); !ok {
-			return fmt.Errorf("unexpected type %T for field survey_flow", values[0])
-		} else if value != nil {
-			s.survey_flow = value
 		}
 		if value, ok := values[0].(*uuid.UUID); !ok {
 			return fmt.Errorf("unexpected type %T for field user_surveys", values[0])

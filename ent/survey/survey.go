@@ -33,7 +33,7 @@ const (
 	// Table holds the table name of the survey in the database.
 	Table = "surveys"
 	// FlowTable is the table the holds the flow relation/edge.
-	FlowTable = "surveys"
+	FlowTable = "flows"
 	// FlowInverseTable is the table name for the Flow entity.
 	// It exists in this package in order to avoid circular dependency with the "flow" package.
 	FlowInverseTable = "flows"
@@ -71,7 +71,6 @@ var Columns = []string{
 // ForeignKeys holds the SQL foreign-keys that are owned by the Survey type.
 var ForeignKeys = []string{
 	"domain_surveys",
-	"survey_flow",
 	"user_surveys",
 }
 

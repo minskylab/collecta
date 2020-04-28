@@ -7,6 +7,7 @@ import (
 	"golang.org/x/net/context"
 )
 
+// NextState run the flow script program and calculates the next question id
 func NextState(ctx context.Context, db *db.DB, surveyID uuid.UUID) (uuid.UUID, error) {
 	surv, err := db.Ent.Survey.Get(ctx, surveyID)
 	if err != nil {
@@ -18,10 +19,30 @@ func NextState(ctx context.Context, db *db.DB, surveyID uuid.UUID) (uuid.UUID, e
 		return uuid.Nil, errors.Wrap(err, "error at fetch query from survey")
 	}
 
-	nextState, err := evalProgram(ctx, f.StateTable, input{state: f.State.String(), externalInputs: f.Inputs})
+	res, err := evalProgram(ctx, f.StateTable, input{state: f.State.String(), externalInputs: f.Inputs})
 	if err != nil {
 		return uuid.Nil, errors.Wrap(err, "error at eval internal program")
 	}
 
-	return uuid.Parse(nextState)
+	return uuid.Parse(res.next)
+}
+
+// LastState run the flow script program and calculates the last question id
+func LastState(ctx context.Context, db *db.DB, surveyID uuid.UUID) (uuid.UUID, error) {
+	surv, err := db.Ent.Survey.Get(ctx, surveyID)
+	if err != nil {
+		return uuid.Nil, errors.Wrap(err, "error at fetch survey")
+	}
+
+	f, err := surv.QueryFlow().Only(ctx)
+	if err != nil {
+		return uuid.Nil, errors.Wrap(err, "error at fetch query from survey")
+	}
+
+	res, err := evalProgram(ctx, f.StateTable, input{state: f.State.String(), externalInputs: f.Inputs})
+	if err != nil {
+		return uuid.Nil, errors.Wrap(err, "error at eval internal program")
+	}
+
+	return uuid.Parse(res.last)
 }

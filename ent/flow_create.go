@@ -12,6 +12,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/minskylab/collecta/ent/flow"
 	"github.com/minskylab/collecta/ent/question"
+	"github.com/minskylab/collecta/ent/survey"
 )
 
 // FlowCreate is the builder for creating a Flow entity.
@@ -24,6 +25,7 @@ type FlowCreate struct {
 	terminationState *uuid.UUID
 	pastState        *uuid.UUID
 	inputs           *[]string
+	survey           map[uuid.UUID]struct{}
 	questions        map[uuid.UUID]struct{}
 }
 
@@ -69,6 +71,28 @@ func (fc *FlowCreate) SetID(u uuid.UUID) *FlowCreate {
 	return fc
 }
 
+// SetSurveyID sets the survey edge to Survey by id.
+func (fc *FlowCreate) SetSurveyID(id uuid.UUID) *FlowCreate {
+	if fc.survey == nil {
+		fc.survey = make(map[uuid.UUID]struct{})
+	}
+	fc.survey[id] = struct{}{}
+	return fc
+}
+
+// SetNillableSurveyID sets the survey edge to Survey by id if the given value is not nil.
+func (fc *FlowCreate) SetNillableSurveyID(id *uuid.UUID) *FlowCreate {
+	if id != nil {
+		fc = fc.SetSurveyID(*id)
+	}
+	return fc
+}
+
+// SetSurvey sets the survey edge to Survey.
+func (fc *FlowCreate) SetSurvey(s *Survey) *FlowCreate {
+	return fc.SetSurveyID(s.ID)
+}
+
 // AddQuestionIDs adds the questions edge to Question by ids.
 func (fc *FlowCreate) AddQuestionIDs(ids ...uuid.UUID) *FlowCreate {
 	if fc.questions == nil {
@@ -105,6 +129,9 @@ func (fc *FlowCreate) Save(ctx context.Context) (*Flow, error) {
 	}
 	if fc.terminationState == nil {
 		return nil, errors.New("ent: missing required field \"terminationState\"")
+	}
+	if len(fc.survey) > 1 {
+		return nil, errors.New("ent: multiple assignments on a unique edge \"survey\"")
 	}
 	if fc.questions == nil {
 		return nil, errors.New("ent: missing required edge \"questions\"")
@@ -183,6 +210,25 @@ func (fc *FlowCreate) sqlSave(ctx context.Context) (*Flow, error) {
 			Column: flow.FieldInputs,
 		})
 		f.Inputs = *value
+	}
+	if nodes := fc.survey; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: true,
+			Table:   flow.SurveyTable,
+			Columns: []string{flow.SurveyColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: survey.FieldID,
+				},
+			},
+		}
+		for k, _ := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := fc.questions; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

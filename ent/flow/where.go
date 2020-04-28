@@ -570,6 +570,34 @@ func InputsNotNil() predicate.Flow {
 	})
 }
 
+// HasSurvey applies the HasEdge predicate on the "survey" edge.
+func HasSurvey() predicate.Flow {
+	return predicate.Flow(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(SurveyTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, true, SurveyTable, SurveyColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasSurveyWith applies the HasEdge predicate on the "survey" edge with a given conditions (other predicates).
+func HasSurveyWith(preds ...predicate.Survey) predicate.Flow {
+	return predicate.Flow(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(SurveyInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, true, SurveyTable, SurveyColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // HasQuestions applies the HasEdge predicate on the "questions" edge.
 func HasQuestions() predicate.Flow {
 	return predicate.Flow(func(s *sql.Selector) {

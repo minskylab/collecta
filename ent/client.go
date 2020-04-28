@@ -627,6 +627,20 @@ func (c *FlowClient) GetX(ctx context.Context, id uuid.UUID) *Flow {
 	return f
 }
 
+// QuerySurvey queries the survey edge of a Flow.
+func (c *FlowClient) QuerySurvey(f *Flow) *SurveyQuery {
+	query := &SurveyQuery{config: c.config}
+	id := f.ID
+	step := sqlgraph.NewStep(
+		sqlgraph.From(flow.Table, flow.FieldID, id),
+		sqlgraph.To(survey.Table, survey.FieldID),
+		sqlgraph.Edge(sqlgraph.O2O, true, flow.SurveyTable, flow.SurveyColumn),
+	)
+	query.sql = sqlgraph.Neighbors(f.driver.Dialect(), step)
+
+	return query
+}
+
 // QueryQuestions queries the questions edge of a Flow.
 func (c *FlowClient) QueryQuestions(f *Flow) *QuestionQuery {
 	query := &QuestionQuery{config: c.config}
@@ -1024,7 +1038,7 @@ func (c *SurveyClient) QueryFlow(s *Survey) *FlowQuery {
 	step := sqlgraph.NewStep(
 		sqlgraph.From(survey.Table, survey.FieldID, id),
 		sqlgraph.To(flow.Table, flow.FieldID),
-		sqlgraph.Edge(sqlgraph.M2O, false, survey.FlowTable, survey.FlowColumn),
+		sqlgraph.Edge(sqlgraph.O2O, false, survey.FlowTable, survey.FlowColumn),
 	)
 	query.sql = sqlgraph.Neighbors(s.driver.Dialect(), step)
 

@@ -122,13 +122,22 @@ var (
 		{Name: "termination_state", Type: field.TypeUUID},
 		{Name: "past_state", Type: field.TypeUUID, Nullable: true},
 		{Name: "inputs", Type: field.TypeJSON, Nullable: true},
+		{Name: "survey_flow", Type: field.TypeUUID, Unique: true, Nullable: true},
 	}
 	// FlowsTable holds the schema information for the "flows" table.
 	FlowsTable = &schema.Table{
-		Name:        "flows",
-		Columns:     FlowsColumns,
-		PrimaryKey:  []*schema.Column{FlowsColumns[0]},
-		ForeignKeys: []*schema.ForeignKey{},
+		Name:       "flows",
+		Columns:    FlowsColumns,
+		PrimaryKey: []*schema.Column{FlowsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:  "flows_surveys_flow",
+				Columns: []*schema.Column{FlowsColumns[7]},
+
+				RefColumns: []*schema.Column{SurveysColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
 	}
 	// IPsColumns holds the columns for the "i_ps" table.
 	IPsColumns = []*schema.Column{
@@ -216,7 +225,6 @@ var (
 		{Name: "done", Type: field.TypeBool, Nullable: true, Default: survey.DefaultDone},
 		{Name: "is_public", Type: field.TypeBool, Nullable: true, Default: survey.DefaultIsPublic},
 		{Name: "domain_surveys", Type: field.TypeUUID, Nullable: true},
-		{Name: "survey_flow", Type: field.TypeUUID, Nullable: true},
 		{Name: "user_surveys", Type: field.TypeUUID, Nullable: true},
 	}
 	// SurveysTable holds the schema information for the "surveys" table.
@@ -233,15 +241,8 @@ var (
 				OnDelete:   schema.SetNull,
 			},
 			{
-				Symbol:  "surveys_flows_flow",
-				Columns: []*schema.Column{SurveysColumns[10]},
-
-				RefColumns: []*schema.Column{FlowsColumns[0]},
-				OnDelete:   schema.SetNull,
-			},
-			{
 				Symbol:  "surveys_users_surveys",
-				Columns: []*schema.Column{SurveysColumns[11]},
+				Columns: []*schema.Column{SurveysColumns[10]},
 
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,
@@ -341,11 +342,11 @@ func init() {
 	AccountsTable.ForeignKeys[0].RefTable = UsersTable
 	AnswersTable.ForeignKeys[0].RefTable = QuestionsTable
 	ContactsTable.ForeignKeys[0].RefTable = UsersTable
+	FlowsTable.ForeignKeys[0].RefTable = SurveysTable
 	InputsTable.ForeignKeys[0].RefTable = QuestionsTable
 	QuestionsTable.ForeignKeys[0].RefTable = FlowsTable
 	SurveysTable.ForeignKeys[0].RefTable = DomainsTable
-	SurveysTable.ForeignKeys[1].RefTable = FlowsTable
-	SurveysTable.ForeignKeys[2].RefTable = UsersTable
+	SurveysTable.ForeignKeys[1].RefTable = UsersTable
 	DomainUsersTable.ForeignKeys[0].RefTable = DomainsTable
 	DomainUsersTable.ForeignKeys[1].RefTable = UsersTable
 	DomainAdminsTable.ForeignKeys[0].RefTable = DomainsTable

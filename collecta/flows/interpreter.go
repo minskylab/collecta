@@ -9,11 +9,16 @@ import (
 	"golang.org/x/net/context"
 )
 
-var memoizedEvaluation map[string]string
+var memoizedEvaluation map[string]flowResponse
 var memoizedCounter map[string]uint64
 
 const thresholdAlloc = 40
 const thresholdUses = 5
+
+type flowResponse struct {
+	next string
+	last string
+}
 
 type input struct {
 	state          string
@@ -37,9 +42,9 @@ func cleanMemoized() {
 	}
 }
 
-func memo(input input) string {
+func memo(input input) flowResponse {
 	if memoizedEvaluation == nil {
-		memoizedEvaluation = map[string]string{}
+		memoizedEvaluation = map[string]flowResponse{}
 	}
 
 	if memoizedCounter == nil {
@@ -53,7 +58,7 @@ func memo(input input) string {
 
 	val, exist := memoizedEvaluation[chain]
 	if !exist {
-		return ""
+		return flowResponse{}
 	}
 
 	if memoizedCounter[chain] += 1; len(memoizedEvaluation) > thresholdAlloc {
@@ -63,18 +68,19 @@ func memo(input input) string {
 	return val
 }
 
-func evalProgram(ctx context.Context, program string, input input) (string, error) {
+
+func evalProgram(ctx context.Context, program string, input input) (flowResponse, error) {
 	sanitizeInput(&input) // TODO: Improve this
 
 	// Memoized
-	if mem := memo(input); mem != "" {
-		return mem, nil
+	if flowResponse := memo(input); flowResponse.last != "" && flowResponse.next != "" {
+		return flowResponse, nil
 	}
 
 	scr := tengo.NewScript([]byte(program))
 
 	if err := scr.Add("state", input.state); err != nil {
-		return "", errors.Wrap(err, "error at add state param to tengo script")
+		return flowResponse{}, errors.Wrap(err, "error at add state param to tengo script")
 	}
 
 	externalInputs := make([]tengo.Object, 0)
@@ -83,24 +89,35 @@ func evalProgram(ctx context.Context, program string, input input) (string, erro
 		externalInputs = append(externalInputs, obj)
 	}
 
-	if err := scr.Add("external", externalInputs); err != nil {
-		return "", errors.Wrap(err, "error at add externals param to tengo script")
+	if err := scr.Add("input", externalInputs); err != nil {
+		return flowResponse{}, errors.Wrap(err, "error at add externals param to tengo script")
 	}
 
 	compiled, err := scr.RunContext(ctx)
 	if err != nil {
-		return "", errors.Wrap(err, "error at compile and run tengo script")
+		return flowResponse{}, errors.Wrap(err, "error at compile and run tengo script")
 	}
 
-	if !compiled.IsDefined("res") {
-		return input.state, nil
-		// return "", errors.New("your script not response with a standard variable: 'res'")
+	if !compiled.IsDefined("next") {
+		return flowResponse{next: input.state, last: input.state}, nil
 	}
 
-	newState := compiled.Get("res").String()
-	if _, err = uuid.Parse(newState); err != nil {
-		return "", errors.Wrap(err, "invalid response, it must be an uuid")
+	if !compiled.IsDefined("last") {
+		return flowResponse{next: input.state, last: input.state}, nil
 	}
 
-	return newState, nil
+	nextState := compiled.Get("next").String()
+	if _, err = uuid.Parse(nextState); err != nil {
+		return flowResponse{}, errors.Wrap(err, "invalid response, it must be an uuid")
+	}
+
+	lastState := compiled.Get("last").String()
+	if _, err = uuid.Parse(lastState); err != nil {
+		return flowResponse{}, errors.Wrap(err, "invalid response, it must be an uuid")
+	}
+
+	return flowResponse{
+		next: nextState,
+		last: lastState,
+	}, nil
 }

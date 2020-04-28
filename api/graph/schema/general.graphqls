@@ -48,6 +48,7 @@ input SurveyGenerator {
 
     metadata: [Pair!]
     logic: String
+    due: Time
 }
 
 type SuveyGenerationResult {

@@ -10,6 +10,7 @@ import (
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/google/uuid"
 	"github.com/minskylab/collecta/ent/flow"
+	"github.com/minskylab/collecta/ent/survey"
 )
 
 // Flow is the model entity for the Flow schema.
@@ -31,22 +32,39 @@ type Flow struct {
 	Inputs []string `json:"inputs,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the FlowQuery when eager-loading is set.
-	Edges FlowEdges `json:"edges"`
+	Edges       FlowEdges `json:"edges"`
+	survey_flow *uuid.UUID
 }
 
 // FlowEdges holds the relations/edges for other nodes in the graph.
 type FlowEdges struct {
+	// Survey holds the value of the survey edge.
+	Survey *Survey
 	// Questions holds the value of the questions edge.
 	Questions []*Question
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [2]bool
+}
+
+// SurveyOrErr returns the Survey value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e FlowEdges) SurveyOrErr() (*Survey, error) {
+	if e.loadedTypes[0] {
+		if e.Survey == nil {
+			// The edge survey was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: survey.Label}
+		}
+		return e.Survey, nil
+	}
+	return nil, &NotLoadedError{edge: "survey"}
 }
 
 // QuestionsOrErr returns the Questions value or an error if the edge
 // was not loaded in eager-loading.
 func (e FlowEdges) QuestionsOrErr() ([]*Question, error) {
-	if e.loadedTypes[0] {
+	if e.loadedTypes[1] {
 		return e.Questions, nil
 	}
 	return nil, &NotLoadedError{edge: "questions"}
@@ -62,6 +80,13 @@ func (*Flow) scanValues() []interface{} {
 		&uuid.UUID{},      // terminationState
 		&uuid.UUID{},      // pastState
 		&[]byte{},         // inputs
+	}
+}
+
+// fkValues returns the types for scanning foreign-keys values from sql.Rows.
+func (*Flow) fkValues() []interface{} {
+	return []interface{}{
+		&uuid.UUID{}, // survey_flow
 	}
 }
 
@@ -110,7 +135,20 @@ func (f *Flow) assignValues(values ...interface{}) error {
 			return fmt.Errorf("unmarshal field inputs: %v", err)
 		}
 	}
+	values = values[6:]
+	if len(values) == len(flow.ForeignKeys) {
+		if value, ok := values[0].(*uuid.UUID); !ok {
+			return fmt.Errorf("unexpected type %T for field survey_flow", values[0])
+		} else if value != nil {
+			f.survey_flow = value
+		}
+	}
 	return nil
+}
+
+// QuerySurvey queries the survey edge of the Flow.
+func (f *Flow) QuerySurvey() *SurveyQuery {
+	return (&FlowClient{config: f.config}).QuerySurvey(f)
 }
 
 // QueryQuestions queries the questions edge of the Flow.

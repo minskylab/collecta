@@ -299,7 +299,7 @@ func (r *queryResolver) SurveyPercent(ctx context.Context, surveyID string) (flo
 		return 0.0, errors.Wrap(err, "error at fetch total questions of survey")
 	}
 
-	percent := float64(len(answeredQuestions))/float64(len(totalQuestions))
+	percent := float64(len(answeredQuestions)) / float64(len(totalQuestions))
 
 	return percent, nil
 }
@@ -357,7 +357,7 @@ func (r *queryResolver) LastQuestionOfSurvey(ctx context.Context, surveyID strin
 		return nil, errors.Wrap(err, "error at fetch total questions of survey")
 	}
 
-	percent := float64(len(answeredQuestions))/float64(len(totalQuestions))
+	percent := float64(len(answeredQuestions)) / float64(len(totalQuestions))
 
 	return &model.LastSurveyState{
 		LastQuestion: commons.QuestionToGQL(currentQuestion),
