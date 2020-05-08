@@ -25,6 +25,8 @@ type Domain struct {
 	Domain string `json:"domain,omitempty"`
 	// CollectaDomain holds the value of the "collectaDomain" field.
 	CollectaDomain string `json:"collectaDomain,omitempty"`
+	// CollectaClientCallback holds the value of the "collectaClientCallback" field.
+	CollectaClientCallback string `json:"collectaClientCallback,omitempty"`
 	// Tags holds the value of the "tags" field.
 	Tags []string `json:"tags,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
@@ -80,6 +82,7 @@ func (*Domain) scanValues() []interface{} {
 		&sql.NullString{}, // email
 		&sql.NullString{}, // domain
 		&sql.NullString{}, // collectaDomain
+		&sql.NullString{}, // collectaClientCallback
 		&[]byte{},         // tags
 	}
 }
@@ -116,9 +119,14 @@ func (d *Domain) assignValues(values ...interface{}) error {
 	} else if value.Valid {
 		d.CollectaDomain = value.String
 	}
+	if value, ok := values[4].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field collectaClientCallback", values[4])
+	} else if value.Valid {
+		d.CollectaClientCallback = value.String
+	}
 
-	if value, ok := values[4].(*[]byte); !ok {
-		return fmt.Errorf("unexpected type %T for field tags", values[4])
+	if value, ok := values[5].(*[]byte); !ok {
+		return fmt.Errorf("unexpected type %T for field tags", values[5])
 	} else if value != nil && len(*value) > 0 {
 		if err := json.Unmarshal(*value, &d.Tags); err != nil {
 			return fmt.Errorf("unmarshal field tags: %v", err)
@@ -173,6 +181,8 @@ func (d *Domain) String() string {
 	builder.WriteString(d.Domain)
 	builder.WriteString(", collectaDomain=")
 	builder.WriteString(d.CollectaDomain)
+	builder.WriteString(", collectaClientCallback=")
+	builder.WriteString(d.CollectaClientCallback)
 	builder.WriteString(", tags=")
 	builder.WriteString(fmt.Sprintf("%v", d.Tags))
 	builder.WriteByte(')')

@@ -19,18 +19,19 @@ import (
 // DomainUpdate is the builder for updating Domain entities.
 type DomainUpdate struct {
 	config
-	name           *string
-	email          *string
-	domain         *string
-	collectaDomain *string
-	tags           *[]string
-	surveys        map[uuid.UUID]struct{}
-	users          map[uuid.UUID]struct{}
-	admins         map[uuid.UUID]struct{}
-	removedSurveys map[uuid.UUID]struct{}
-	removedUsers   map[uuid.UUID]struct{}
-	removedAdmins  map[uuid.UUID]struct{}
-	predicates     []predicate.Domain
+	name                   *string
+	email                  *string
+	domain                 *string
+	collectaDomain         *string
+	collectaClientCallback *string
+	tags                   *[]string
+	surveys                map[uuid.UUID]struct{}
+	users                  map[uuid.UUID]struct{}
+	admins                 map[uuid.UUID]struct{}
+	removedSurveys         map[uuid.UUID]struct{}
+	removedUsers           map[uuid.UUID]struct{}
+	removedAdmins          map[uuid.UUID]struct{}
+	predicates             []predicate.Domain
 }
 
 // Where adds a new predicate for the builder.
@@ -60,6 +61,12 @@ func (du *DomainUpdate) SetDomain(s string) *DomainUpdate {
 // SetCollectaDomain sets the collectaDomain field.
 func (du *DomainUpdate) SetCollectaDomain(s string) *DomainUpdate {
 	du.collectaDomain = &s
+	return du
+}
+
+// SetCollectaClientCallback sets the collectaClientCallback field.
+func (du *DomainUpdate) SetCollectaClientCallback(s string) *DomainUpdate {
+	du.collectaClientCallback = &s
 	return du
 }
 
@@ -272,6 +279,13 @@ func (du *DomainUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Column: domain.FieldCollectaDomain,
 		})
 	}
+	if value := du.collectaClientCallback; value != nil {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: domain.FieldCollectaClientCallback,
+		})
+	}
 	if value := du.tags; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeJSON,
@@ -407,18 +421,19 @@ func (du *DomainUpdate) sqlSave(ctx context.Context) (n int, err error) {
 // DomainUpdateOne is the builder for updating a single Domain entity.
 type DomainUpdateOne struct {
 	config
-	id             uuid.UUID
-	name           *string
-	email          *string
-	domain         *string
-	collectaDomain *string
-	tags           *[]string
-	surveys        map[uuid.UUID]struct{}
-	users          map[uuid.UUID]struct{}
-	admins         map[uuid.UUID]struct{}
-	removedSurveys map[uuid.UUID]struct{}
-	removedUsers   map[uuid.UUID]struct{}
-	removedAdmins  map[uuid.UUID]struct{}
+	id                     uuid.UUID
+	name                   *string
+	email                  *string
+	domain                 *string
+	collectaDomain         *string
+	collectaClientCallback *string
+	tags                   *[]string
+	surveys                map[uuid.UUID]struct{}
+	users                  map[uuid.UUID]struct{}
+	admins                 map[uuid.UUID]struct{}
+	removedSurveys         map[uuid.UUID]struct{}
+	removedUsers           map[uuid.UUID]struct{}
+	removedAdmins          map[uuid.UUID]struct{}
 }
 
 // SetName sets the name field.
@@ -442,6 +457,12 @@ func (duo *DomainUpdateOne) SetDomain(s string) *DomainUpdateOne {
 // SetCollectaDomain sets the collectaDomain field.
 func (duo *DomainUpdateOne) SetCollectaDomain(s string) *DomainUpdateOne {
 	duo.collectaDomain = &s
+	return duo
+}
+
+// SetCollectaClientCallback sets the collectaClientCallback field.
+func (duo *DomainUpdateOne) SetCollectaClientCallback(s string) *DomainUpdateOne {
+	duo.collectaClientCallback = &s
 	return duo
 }
 
@@ -646,6 +667,13 @@ func (duo *DomainUpdateOne) sqlSave(ctx context.Context) (d *Domain, err error) 
 			Type:   field.TypeString,
 			Value:  *value,
 			Column: domain.FieldCollectaDomain,
+		})
+	}
+	if value := duo.collectaClientCallback; value != nil {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: domain.FieldCollectaClientCallback,
 		})
 	}
 	if value := duo.tags; value != nil {

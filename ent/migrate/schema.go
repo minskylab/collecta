@@ -104,6 +104,7 @@ var (
 		{Name: "email", Type: field.TypeString, Unique: true},
 		{Name: "domain", Type: field.TypeString, Unique: true},
 		{Name: "collecta_domain", Type: field.TypeString, Unique: true},
+		{Name: "collecta_client_callback", Type: field.TypeString, Unique: true},
 		{Name: "tags", Type: field.TypeJSON},
 	}
 	// DomainsTable holds the schema information for the "domains" table.

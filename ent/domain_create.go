@@ -18,15 +18,16 @@ import (
 // DomainCreate is the builder for creating a Domain entity.
 type DomainCreate struct {
 	config
-	id             *uuid.UUID
-	name           *string
-	email          *string
-	domain         *string
-	collectaDomain *string
-	tags           *[]string
-	surveys        map[uuid.UUID]struct{}
-	users          map[uuid.UUID]struct{}
-	admins         map[uuid.UUID]struct{}
+	id                     *uuid.UUID
+	name                   *string
+	email                  *string
+	domain                 *string
+	collectaDomain         *string
+	collectaClientCallback *string
+	tags                   *[]string
+	surveys                map[uuid.UUID]struct{}
+	users                  map[uuid.UUID]struct{}
+	admins                 map[uuid.UUID]struct{}
 }
 
 // SetName sets the name field.
@@ -50,6 +51,12 @@ func (dc *DomainCreate) SetDomain(s string) *DomainCreate {
 // SetCollectaDomain sets the collectaDomain field.
 func (dc *DomainCreate) SetCollectaDomain(s string) *DomainCreate {
 	dc.collectaDomain = &s
+	return dc
+}
+
+// SetCollectaClientCallback sets the collectaClientCallback field.
+func (dc *DomainCreate) SetCollectaClientCallback(s string) *DomainCreate {
+	dc.collectaClientCallback = &s
 	return dc
 }
 
@@ -145,6 +152,9 @@ func (dc *DomainCreate) Save(ctx context.Context) (*Domain, error) {
 	if dc.collectaDomain == nil {
 		return nil, errors.New("ent: missing required field \"collectaDomain\"")
 	}
+	if dc.collectaClientCallback == nil {
+		return nil, errors.New("ent: missing required field \"collectaClientCallback\"")
+	}
 	if dc.tags == nil {
 		return nil, errors.New("ent: missing required field \"tags\"")
 	}
@@ -206,6 +216,14 @@ func (dc *DomainCreate) sqlSave(ctx context.Context) (*Domain, error) {
 			Column: domain.FieldCollectaDomain,
 		})
 		d.CollectaDomain = *value
+	}
+	if value := dc.collectaClientCallback; value != nil {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: domain.FieldCollectaClientCallback,
+		})
+		d.CollectaClientCallback = *value
 	}
 	if value := dc.tags; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{

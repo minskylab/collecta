@@ -19,6 +19,8 @@ const (
 	FieldDomain = "domain"
 	// FieldCollectaDomain holds the string denoting the collectadomain vertex property in the database.
 	FieldCollectaDomain = "collecta_domain"
+	// FieldCollectaClientCallback holds the string denoting the collectaclientcallback vertex property in the database.
+	FieldCollectaClientCallback = "collecta_client_callback"
 	// FieldTags holds the string denoting the tags vertex property in the database.
 	FieldTags = "tags"
 
@@ -50,6 +52,7 @@ var Columns = []string{
 	FieldEmail,
 	FieldDomain,
 	FieldCollectaDomain,
+	FieldCollectaClientCallback,
 	FieldTags,
 }
 
