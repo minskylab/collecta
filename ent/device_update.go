@@ -4,6 +4,7 @@ package ent
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -15,7 +16,8 @@ import (
 // DeviceUpdate is the builder for updating Device entities.
 type DeviceUpdate struct {
 	config
-	device     *string
+	hooks      []Hook
+	mutation   *DeviceMutation
 	predicates []predicate.Device
 }
 
@@ -27,13 +29,36 @@ func (du *DeviceUpdate) Where(ps ...predicate.Device) *DeviceUpdate {
 
 // SetDevice sets the device field.
 func (du *DeviceUpdate) SetDevice(s string) *DeviceUpdate {
-	du.device = &s
+	du.mutation.SetDevice(s)
 	return du
 }
 
 // Save executes the query and returns the number of rows/vertices matched by this operation.
 func (du *DeviceUpdate) Save(ctx context.Context) (int, error) {
-	return du.sqlSave(ctx)
+	var (
+		err      error
+		affected int
+	)
+	if len(du.hooks) == 0 {
+		affected, err = du.sqlSave(ctx)
+	} else {
+		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
+			mutation, ok := m.(*DeviceMutation)
+			if !ok {
+				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			du.mutation = mutation
+			affected, err = du.sqlSave(ctx)
+			return affected, err
+		})
+		for i := len(du.hooks) - 1; i >= 0; i-- {
+			mut = du.hooks[i](mut)
+		}
+		if _, err := mut.Mutate(ctx, du.mutation); err != nil {
+			return 0, err
+		}
+	}
+	return affected, err
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -76,10 +101,10 @@ func (du *DeviceUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 		}
 	}
-	if value := du.device; value != nil {
+	if value, ok := du.mutation.Device(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: device.FieldDevice,
 		})
 	}
@@ -97,19 +122,42 @@ func (du *DeviceUpdate) sqlSave(ctx context.Context) (n int, err error) {
 // DeviceUpdateOne is the builder for updating a single Device entity.
 type DeviceUpdateOne struct {
 	config
-	id     int
-	device *string
+	hooks    []Hook
+	mutation *DeviceMutation
 }
 
 // SetDevice sets the device field.
 func (duo *DeviceUpdateOne) SetDevice(s string) *DeviceUpdateOne {
-	duo.device = &s
+	duo.mutation.SetDevice(s)
 	return duo
 }
 
 // Save executes the query and returns the updated entity.
 func (duo *DeviceUpdateOne) Save(ctx context.Context) (*Device, error) {
-	return duo.sqlSave(ctx)
+	var (
+		err  error
+		node *Device
+	)
+	if len(duo.hooks) == 0 {
+		node, err = duo.sqlSave(ctx)
+	} else {
+		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
+			mutation, ok := m.(*DeviceMutation)
+			if !ok {
+				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			duo.mutation = mutation
+			node, err = duo.sqlSave(ctx)
+			return node, err
+		})
+		for i := len(duo.hooks) - 1; i >= 0; i-- {
+			mut = duo.hooks[i](mut)
+		}
+		if _, err := mut.Mutate(ctx, duo.mutation); err != nil {
+			return nil, err
+		}
+	}
+	return node, err
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -140,16 +188,20 @@ func (duo *DeviceUpdateOne) sqlSave(ctx context.Context) (d *Device, err error) 
 			Table:   device.Table,
 			Columns: device.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Value:  duo.id,
 				Type:   field.TypeInt,
 				Column: device.FieldID,
 			},
 		},
 	}
-	if value := duo.device; value != nil {
+	id, ok := duo.mutation.ID()
+	if !ok {
+		return nil, fmt.Errorf("missing Device.ID for update")
+	}
+	_spec.Node.ID.Value = id
+	if value, ok := duo.mutation.Device(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: device.FieldDevice,
 		})
 	}

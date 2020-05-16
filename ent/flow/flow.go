@@ -2,27 +2,22 @@
 
 package flow
 
-import (
-	"github.com/minskylab/collecta/ent/schema"
-)
-
 const (
 	// Label holds the string label denoting the flow type in the database.
 	Label = "flow"
 	// FieldID holds the string denoting the id field in the database.
-	FieldID = "id"
-	// FieldState holds the string denoting the state vertex property in the database.
-	FieldState = "state"
-	// FieldStateTable holds the string denoting the statetable vertex property in the database.
-	FieldStateTable = "state_table"
-	// FieldInitialState holds the string denoting the initialstate vertex property in the database.
-	FieldInitialState = "initial_state"
-	// FieldTerminationState holds the string denoting the terminationstate vertex property in the database.
-	FieldTerminationState = "termination_state"
-	// FieldPastState holds the string denoting the paststate vertex property in the database.
-	FieldPastState = "past_state"
-	// FieldInputs holds the string denoting the inputs vertex property in the database.
-	FieldInputs = "inputs"
+	FieldID               = "id"                // FieldState holds the string denoting the state vertex property in the database.
+	FieldState            = "state"             // FieldStateTable holds the string denoting the statetable vertex property in the database.
+	FieldStateTable       = "state_table"       // FieldInitialState holds the string denoting the initialstate vertex property in the database.
+	FieldInitialState     = "initial_state"     // FieldTerminationState holds the string denoting the terminationstate vertex property in the database.
+	FieldTerminationState = "termination_state" // FieldPastState holds the string denoting the paststate vertex property in the database.
+	FieldPastState        = "past_state"        // FieldInputs holds the string denoting the inputs vertex property in the database.
+	FieldInputs           = "inputs"
+
+	// EdgeSurvey holds the string denoting the survey edge name in mutations.
+	EdgeSurvey = "survey"
+	// EdgeQuestions holds the string denoting the questions edge name in mutations.
+	EdgeQuestions = "questions"
 
 	// Table holds the table name of the flow in the database.
 	Table = "flows"
@@ -59,10 +54,6 @@ var ForeignKeys = []string{
 }
 
 var (
-	fields = schema.Flow{}.Fields()
-
-	// descStateTable is the schema descriptor for stateTable field.
-	descStateTable = fields[2].Descriptor()
 	// StateTableValidator is a validator for the "stateTable" field. It is called by the builders before save.
-	StateTableValidator = descStateTable.Validators[0].(func(string) error)
+	StateTableValidator func(string) error
 )

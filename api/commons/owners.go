@@ -33,7 +33,7 @@ func OwnerOfDomain(ctx context.Context, db *db.DB, obj *model.Domain) ([]uuid.UU
 	return ids, nil
 }
 
-func OwnerOfUser(ctx context.Context, db *db.DB, obj *model.User) (uuid.UUID, error) {
+func OwnerOfPerson(ctx context.Context, db *db.DB, obj *model.Person) (uuid.UUID, error) {
 	return uuid.Parse(obj.ID)
 }
 

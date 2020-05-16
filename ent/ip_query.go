@@ -23,8 +23,9 @@ type IPQuery struct {
 	order      []Order
 	unique     []string
 	predicates []predicate.IP
-	// intermediate query.
-	sql *sql.Selector
+	// intermediate query (i.e. traversal path).
+	sql  *sql.Selector
+	path func(context.Context) (*sql.Selector, error)
 }
 
 // Where adds a new predicate for the builder.
@@ -147,6 +148,9 @@ func (iq *IPQuery) OnlyXID(ctx context.Context) int {
 
 // All executes the query and returns a list of IPs.
 func (iq *IPQuery) All(ctx context.Context) ([]*IP, error) {
+	if err := iq.prepareQuery(ctx); err != nil {
+		return nil, err
+	}
 	return iq.sqlAll(ctx)
 }
 
@@ -179,6 +183,9 @@ func (iq *IPQuery) IDsX(ctx context.Context) []int {
 
 // Count returns the count of the given query.
 func (iq *IPQuery) Count(ctx context.Context) (int, error) {
+	if err := iq.prepareQuery(ctx); err != nil {
+		return 0, err
+	}
 	return iq.sqlCount(ctx)
 }
 
@@ -193,6 +200,9 @@ func (iq *IPQuery) CountX(ctx context.Context) int {
 
 // Exist returns true if the query has elements in the graph.
 func (iq *IPQuery) Exist(ctx context.Context) (bool, error) {
+	if err := iq.prepareQuery(ctx); err != nil {
+		return false, err
+	}
 	return iq.sqlExist(ctx)
 }
 
@@ -216,7 +226,8 @@ func (iq *IPQuery) Clone() *IPQuery {
 		unique:     append([]string{}, iq.unique...),
 		predicates: append([]predicate.IP{}, iq.predicates...),
 		// clone intermediate query.
-		sql: iq.sql.Clone(),
+		sql:  iq.sql.Clone(),
+		path: iq.path,
 	}
 }
 
@@ -238,7 +249,12 @@ func (iq *IPQuery) Clone() *IPQuery {
 func (iq *IPQuery) GroupBy(field string, fields ...string) *IPGroupBy {
 	group := &IPGroupBy{config: iq.config}
 	group.fields = append([]string{field}, fields...)
-	group.sql = iq.sqlQuery()
+	group.path = func(ctx context.Context) (prev *sql.Selector, err error) {
+		if err := iq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		return iq.sqlQuery(), nil
+	}
 	return group
 }
 
@@ -257,8 +273,24 @@ func (iq *IPQuery) GroupBy(field string, fields ...string) *IPGroupBy {
 func (iq *IPQuery) Select(field string, fields ...string) *IPSelect {
 	selector := &IPSelect{config: iq.config}
 	selector.fields = append([]string{field}, fields...)
-	selector.sql = iq.sqlQuery()
+	selector.path = func(ctx context.Context) (prev *sql.Selector, err error) {
+		if err := iq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		return iq.sqlQuery(), nil
+	}
 	return selector
+}
+
+func (iq *IPQuery) prepareQuery(ctx context.Context) error {
+	if iq.path != nil {
+		prev, err := iq.path(ctx)
+		if err != nil {
+			return err
+		}
+		iq.sql = prev
+	}
+	return nil
 }
 
 func (iq *IPQuery) sqlAll(ctx context.Context) ([]*IP, error) {
@@ -367,8 +399,9 @@ type IPGroupBy struct {
 	config
 	fields []string
 	fns    []Aggregate
-	// intermediate query.
-	sql *sql.Selector
+	// intermediate query (i.e. traversal path).
+	sql  *sql.Selector
+	path func(context.Context) (*sql.Selector, error)
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
@@ -379,6 +412,11 @@ func (igb *IPGroupBy) Aggregate(fns ...Aggregate) *IPGroupBy {
 
 // Scan applies the group-by query and scan the result into the given value.
 func (igb *IPGroupBy) Scan(ctx context.Context, v interface{}) error {
+	query, err := igb.path(ctx)
+	if err != nil {
+		return err
+	}
+	igb.sql = query
 	return igb.sqlScan(ctx, v)
 }
 
@@ -497,12 +535,18 @@ func (igb *IPGroupBy) sqlQuery() *sql.Selector {
 type IPSelect struct {
 	config
 	fields []string
-	// intermediate queries.
-	sql *sql.Selector
+	// intermediate query (i.e. traversal path).
+	sql  *sql.Selector
+	path func(context.Context) (*sql.Selector, error)
 }
 
 // Scan applies the selector query and scan the result into the given value.
 func (is *IPSelect) Scan(ctx context.Context, v interface{}) error {
+	query, err := is.path(ctx)
+	if err != nil {
+		return err
+	}
+	is.sql = query
 	return is.sqlScan(ctx, v)
 }
 

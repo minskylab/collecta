@@ -21,28 +21,19 @@ import (
 // PersonCreate is the builder for creating a Person entity.
 type PersonCreate struct {
 	config
-	id           *uuid.UUID
-	name         *string
-	lastActivity *time.Time
-	username     *string
-	picture      *string
-	roles        *[]string
-	accounts     map[uuid.UUID]struct{}
-	contacts     map[uuid.UUID]struct{}
-	surveys      map[uuid.UUID]struct{}
-	domains      map[uuid.UUID]struct{}
-	adminOf      map[uuid.UUID]struct{}
+	mutation *PersonMutation
+	hooks    []Hook
 }
 
 // SetName sets the name field.
 func (pc *PersonCreate) SetName(s string) *PersonCreate {
-	pc.name = &s
+	pc.mutation.SetName(s)
 	return pc
 }
 
 // SetLastActivity sets the lastActivity field.
 func (pc *PersonCreate) SetLastActivity(t time.Time) *PersonCreate {
-	pc.lastActivity = &t
+	pc.mutation.SetLastActivity(t)
 	return pc
 }
 
@@ -56,7 +47,7 @@ func (pc *PersonCreate) SetNillableLastActivity(t *time.Time) *PersonCreate {
 
 // SetUsername sets the username field.
 func (pc *PersonCreate) SetUsername(s string) *PersonCreate {
-	pc.username = &s
+	pc.mutation.SetUsername(s)
 	return pc
 }
 
@@ -70,7 +61,7 @@ func (pc *PersonCreate) SetNillableUsername(s *string) *PersonCreate {
 
 // SetPicture sets the picture field.
 func (pc *PersonCreate) SetPicture(s string) *PersonCreate {
-	pc.picture = &s
+	pc.mutation.SetPicture(s)
 	return pc
 }
 
@@ -84,24 +75,19 @@ func (pc *PersonCreate) SetNillablePicture(s *string) *PersonCreate {
 
 // SetRoles sets the roles field.
 func (pc *PersonCreate) SetRoles(s []string) *PersonCreate {
-	pc.roles = &s
+	pc.mutation.SetRoles(s)
 	return pc
 }
 
 // SetID sets the id field.
 func (pc *PersonCreate) SetID(u uuid.UUID) *PersonCreate {
-	pc.id = &u
+	pc.mutation.SetID(u)
 	return pc
 }
 
 // AddAccountIDs adds the accounts edge to Account by ids.
 func (pc *PersonCreate) AddAccountIDs(ids ...uuid.UUID) *PersonCreate {
-	if pc.accounts == nil {
-		pc.accounts = make(map[uuid.UUID]struct{})
-	}
-	for i := range ids {
-		pc.accounts[ids[i]] = struct{}{}
-	}
+	pc.mutation.AddAccountIDs(ids...)
 	return pc
 }
 
@@ -116,12 +102,7 @@ func (pc *PersonCreate) AddAccounts(a ...*Account) *PersonCreate {
 
 // AddContactIDs adds the contacts edge to Contact by ids.
 func (pc *PersonCreate) AddContactIDs(ids ...uuid.UUID) *PersonCreate {
-	if pc.contacts == nil {
-		pc.contacts = make(map[uuid.UUID]struct{})
-	}
-	for i := range ids {
-		pc.contacts[ids[i]] = struct{}{}
-	}
+	pc.mutation.AddContactIDs(ids...)
 	return pc
 }
 
@@ -136,12 +117,7 @@ func (pc *PersonCreate) AddContacts(c ...*Contact) *PersonCreate {
 
 // AddSurveyIDs adds the surveys edge to Survey by ids.
 func (pc *PersonCreate) AddSurveyIDs(ids ...uuid.UUID) *PersonCreate {
-	if pc.surveys == nil {
-		pc.surveys = make(map[uuid.UUID]struct{})
-	}
-	for i := range ids {
-		pc.surveys[ids[i]] = struct{}{}
-	}
+	pc.mutation.AddSurveyIDs(ids...)
 	return pc
 }
 
@@ -156,12 +132,7 @@ func (pc *PersonCreate) AddSurveys(s ...*Survey) *PersonCreate {
 
 // AddDomainIDs adds the domains edge to Domain by ids.
 func (pc *PersonCreate) AddDomainIDs(ids ...uuid.UUID) *PersonCreate {
-	if pc.domains == nil {
-		pc.domains = make(map[uuid.UUID]struct{})
-	}
-	for i := range ids {
-		pc.domains[ids[i]] = struct{}{}
-	}
+	pc.mutation.AddDomainIDs(ids...)
 	return pc
 }
 
@@ -176,12 +147,7 @@ func (pc *PersonCreate) AddDomains(d ...*Domain) *PersonCreate {
 
 // AddAdminOfIDs adds the adminOf edge to Domain by ids.
 func (pc *PersonCreate) AddAdminOfIDs(ids ...uuid.UUID) *PersonCreate {
-	if pc.adminOf == nil {
-		pc.adminOf = make(map[uuid.UUID]struct{})
-	}
-	for i := range ids {
-		pc.adminOf[ids[i]] = struct{}{}
-	}
+	pc.mutation.AddAdminOfIDs(ids...)
 	return pc
 }
 
@@ -196,17 +162,42 @@ func (pc *PersonCreate) AddAdminOf(d ...*Domain) *PersonCreate {
 
 // Save creates the Person in the database.
 func (pc *PersonCreate) Save(ctx context.Context) (*Person, error) {
-	if pc.name == nil {
+	if _, ok := pc.mutation.Name(); !ok {
 		return nil, errors.New("ent: missing required field \"name\"")
 	}
-	if err := person.NameValidator(*pc.name); err != nil {
-		return nil, fmt.Errorf("ent: validator failed for field \"name\": %v", err)
+	if v, ok := pc.mutation.Name(); ok {
+		if err := person.NameValidator(v); err != nil {
+			return nil, fmt.Errorf("ent: validator failed for field \"name\": %v", err)
+		}
 	}
-	if pc.lastActivity == nil {
+	if _, ok := pc.mutation.LastActivity(); !ok {
 		v := person.DefaultLastActivity()
-		pc.lastActivity = &v
+		pc.mutation.SetLastActivity(v)
 	}
-	return pc.sqlSave(ctx)
+	var (
+		err  error
+		node *Person
+	)
+	if len(pc.hooks) == 0 {
+		node, err = pc.sqlSave(ctx)
+	} else {
+		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
+			mutation, ok := m.(*PersonMutation)
+			if !ok {
+				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			pc.mutation = mutation
+			node, err = pc.sqlSave(ctx)
+			return node, err
+		})
+		for i := len(pc.hooks) - 1; i >= 0; i-- {
+			mut = pc.hooks[i](mut)
+		}
+		if _, err := mut.Mutate(ctx, pc.mutation); err != nil {
+			return nil, err
+		}
+	}
+	return node, err
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -229,51 +220,51 @@ func (pc *PersonCreate) sqlSave(ctx context.Context) (*Person, error) {
 			},
 		}
 	)
-	if value := pc.id; value != nil {
-		pe.ID = *value
-		_spec.ID.Value = *value
+	if id, ok := pc.mutation.ID(); ok {
+		pe.ID = id
+		_spec.ID.Value = id
 	}
-	if value := pc.name; value != nil {
+	if value, ok := pc.mutation.Name(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: person.FieldName,
 		})
-		pe.Name = *value
+		pe.Name = value
 	}
-	if value := pc.lastActivity; value != nil {
+	if value, ok := pc.mutation.LastActivity(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  *value,
+			Value:  value,
 			Column: person.FieldLastActivity,
 		})
-		pe.LastActivity = *value
+		pe.LastActivity = value
 	}
-	if value := pc.username; value != nil {
+	if value, ok := pc.mutation.Username(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: person.FieldUsername,
 		})
-		pe.Username = *value
+		pe.Username = value
 	}
-	if value := pc.picture; value != nil {
+	if value, ok := pc.mutation.Picture(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: person.FieldPicture,
 		})
-		pe.Picture = *value
+		pe.Picture = value
 	}
-	if value := pc.roles; value != nil {
+	if value, ok := pc.mutation.Roles(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeJSON,
-			Value:  *value,
+			Value:  value,
 			Column: person.FieldRoles,
 		})
-		pe.Roles = *value
+		pe.Roles = value
 	}
-	if nodes := pc.accounts; len(nodes) > 0 {
+	if nodes := pc.mutation.AccountsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -287,12 +278,12 @@ func (pc *PersonCreate) sqlSave(ctx context.Context) (*Person, error) {
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := pc.contacts; len(nodes) > 0 {
+	if nodes := pc.mutation.ContactsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -306,12 +297,12 @@ func (pc *PersonCreate) sqlSave(ctx context.Context) (*Person, error) {
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := pc.surveys; len(nodes) > 0 {
+	if nodes := pc.mutation.SurveysIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -325,12 +316,12 @@ func (pc *PersonCreate) sqlSave(ctx context.Context) (*Person, error) {
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := pc.domains; len(nodes) > 0 {
+	if nodes := pc.mutation.DomainsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
 			Inverse: true,
@@ -344,12 +335,12 @@ func (pc *PersonCreate) sqlSave(ctx context.Context) (*Person, error) {
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := pc.adminOf; len(nodes) > 0 {
+	if nodes := pc.mutation.AdminOfIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
 			Inverse: true,
@@ -363,7 +354,7 @@ func (pc *PersonCreate) sqlSave(ctx context.Context) (*Person, error) {
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)

@@ -13,8 +13,8 @@ import (
 	"github.com/minskylab/collecta/api/graph/generated"
 	"github.com/minskylab/collecta/api/graph/model"
 	"github.com/minskylab/collecta/ent/domain"
-	"github.com/minskylab/collecta/ent/survey"
 	"github.com/minskylab/collecta/ent/person"
+	"github.com/minskylab/collecta/ent/survey"
 )
 
 func (r *surveyResolver) Flow(ctx context.Context, obj *model.Survey) (*model.Flow, error) {
@@ -39,7 +39,7 @@ func (r *surveyResolver) Flow(ctx context.Context, obj *model.Survey) (*model.Fl
 	return commons.FlowToGQL(e), nil
 }
 
-func (r *surveyResolver) For(ctx context.Context, obj *model.Survey) (*model.User, error) {
+func (r *surveyResolver) For(ctx context.Context, obj *model.Survey) (*model.Person, error) {
 	ownerResID, err := commons.OwnerOfSurvey(ctx, r.DB, obj)
 	if err != nil {
 		return nil, errors.Wrap(err, "error at extract owner of resource")

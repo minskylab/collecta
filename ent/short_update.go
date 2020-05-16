@@ -4,6 +4,7 @@ package ent
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -15,7 +16,8 @@ import (
 // ShortUpdate is the builder for updating Short entities.
 type ShortUpdate struct {
 	config
-
+	hooks      []Hook
+	mutation   *ShortMutation
 	predicates []predicate.Short
 }
 
@@ -27,7 +29,30 @@ func (su *ShortUpdate) Where(ps ...predicate.Short) *ShortUpdate {
 
 // Save executes the query and returns the number of rows/vertices matched by this operation.
 func (su *ShortUpdate) Save(ctx context.Context) (int, error) {
-	return su.sqlSave(ctx)
+	var (
+		err      error
+		affected int
+	)
+	if len(su.hooks) == 0 {
+		affected, err = su.sqlSave(ctx)
+	} else {
+		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
+			mutation, ok := m.(*ShortMutation)
+			if !ok {
+				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			su.mutation = mutation
+			affected, err = su.sqlSave(ctx)
+			return affected, err
+		})
+		for i := len(su.hooks) - 1; i >= 0; i-- {
+			mut = su.hooks[i](mut)
+		}
+		if _, err := mut.Mutate(ctx, su.mutation); err != nil {
+			return 0, err
+		}
+	}
+	return affected, err
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -84,12 +109,36 @@ func (su *ShortUpdate) sqlSave(ctx context.Context) (n int, err error) {
 // ShortUpdateOne is the builder for updating a single Short entity.
 type ShortUpdateOne struct {
 	config
-	id int
+	hooks    []Hook
+	mutation *ShortMutation
 }
 
 // Save executes the query and returns the updated entity.
 func (suo *ShortUpdateOne) Save(ctx context.Context) (*Short, error) {
-	return suo.sqlSave(ctx)
+	var (
+		err  error
+		node *Short
+	)
+	if len(suo.hooks) == 0 {
+		node, err = suo.sqlSave(ctx)
+	} else {
+		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
+			mutation, ok := m.(*ShortMutation)
+			if !ok {
+				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			suo.mutation = mutation
+			node, err = suo.sqlSave(ctx)
+			return node, err
+		})
+		for i := len(suo.hooks) - 1; i >= 0; i-- {
+			mut = suo.hooks[i](mut)
+		}
+		if _, err := mut.Mutate(ctx, suo.mutation); err != nil {
+			return nil, err
+		}
+	}
+	return node, err
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -120,12 +169,16 @@ func (suo *ShortUpdateOne) sqlSave(ctx context.Context) (s *Short, err error) {
 			Table:   short.Table,
 			Columns: short.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Value:  suo.id,
 				Type:   field.TypeInt,
 				Column: short.FieldID,
 			},
 		},
 	}
+	id, ok := suo.mutation.ID()
+	if !ok {
+		return nil, fmt.Errorf("missing Short.ID for update")
+	}
+	_spec.Node.ID.Value = id
 	s = &Short{config: suo.config}
 	_spec.Assign = s.assignValues
 	_spec.ScanValues = s.scanValues()

@@ -2,27 +2,24 @@
 
 package domain
 
-import (
-	"github.com/minskylab/collecta/ent/schema"
-)
-
 const (
 	// Label holds the string label denoting the domain type in the database.
 	Label = "domain"
 	// FieldID holds the string denoting the id field in the database.
-	FieldID = "id"
-	// FieldName holds the string denoting the name vertex property in the database.
-	FieldName = "name"
-	// FieldEmail holds the string denoting the email vertex property in the database.
-	FieldEmail = "email"
-	// FieldDomain holds the string denoting the domain vertex property in the database.
-	FieldDomain = "domain"
-	// FieldCollectaDomain holds the string denoting the collectadomain vertex property in the database.
-	FieldCollectaDomain = "collecta_domain"
-	// FieldCollectaClientCallback holds the string denoting the collectaclientcallback vertex property in the database.
-	FieldCollectaClientCallback = "collecta_client_callback"
-	// FieldTags holds the string denoting the tags vertex property in the database.
-	FieldTags = "tags"
+	FieldID                     = "id"                       // FieldName holds the string denoting the name vertex property in the database.
+	FieldName                   = "name"                     // FieldEmail holds the string denoting the email vertex property in the database.
+	FieldEmail                  = "email"                    // FieldDomain holds the string denoting the domain vertex property in the database.
+	FieldDomain                 = "domain"                   // FieldCollectaDomain holds the string denoting the collectadomain vertex property in the database.
+	FieldCollectaDomain         = "collecta_domain"          // FieldCollectaClientCallback holds the string denoting the collectaclientcallback vertex property in the database.
+	FieldCollectaClientCallback = "collecta_client_callback" // FieldTags holds the string denoting the tags vertex property in the database.
+	FieldTags                   = "tags"
+
+	// EdgeSurveys holds the string denoting the surveys edge name in mutations.
+	EdgeSurveys = "surveys"
+	// EdgeUsers holds the string denoting the users edge name in mutations.
+	EdgeUsers = "users"
+	// EdgeAdmins holds the string denoting the admins edge name in mutations.
+	EdgeAdmins = "admins"
 
 	// Table holds the table name of the domain in the database.
 	Table = "domains"
@@ -66,15 +63,8 @@ var (
 )
 
 var (
-	fields = schema.Domain{}.Fields()
-
-	// descName is the schema descriptor for name field.
-	descName = fields[1].Descriptor()
 	// NameValidator is a validator for the "name" field. It is called by the builders before save.
-	NameValidator = descName.Validators[0].(func(string) error)
-
-	// descEmail is the schema descriptor for email field.
-	descEmail = fields[2].Descriptor()
+	NameValidator func(string) error
 	// EmailValidator is a validator for the "email" field. It is called by the builders before save.
-	EmailValidator = descEmail.Validators[0].(func(string) error)
+	EmailValidator func(string) error
 )

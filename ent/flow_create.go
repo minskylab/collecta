@@ -18,65 +18,55 @@ import (
 // FlowCreate is the builder for creating a Flow entity.
 type FlowCreate struct {
 	config
-	id               *uuid.UUID
-	state            *uuid.UUID
-	stateTable       *string
-	initialState     *uuid.UUID
-	terminationState *uuid.UUID
-	pastState        *uuid.UUID
-	inputs           *[]string
-	survey           map[uuid.UUID]struct{}
-	questions        map[uuid.UUID]struct{}
+	mutation *FlowMutation
+	hooks    []Hook
 }
 
 // SetState sets the state field.
 func (fc *FlowCreate) SetState(u uuid.UUID) *FlowCreate {
-	fc.state = &u
+	fc.mutation.SetState(u)
 	return fc
 }
 
 // SetStateTable sets the stateTable field.
 func (fc *FlowCreate) SetStateTable(s string) *FlowCreate {
-	fc.stateTable = &s
+	fc.mutation.SetStateTable(s)
 	return fc
 }
 
 // SetInitialState sets the initialState field.
 func (fc *FlowCreate) SetInitialState(u uuid.UUID) *FlowCreate {
-	fc.initialState = &u
+	fc.mutation.SetInitialState(u)
 	return fc
 }
 
 // SetTerminationState sets the terminationState field.
 func (fc *FlowCreate) SetTerminationState(u uuid.UUID) *FlowCreate {
-	fc.terminationState = &u
+	fc.mutation.SetTerminationState(u)
 	return fc
 }
 
 // SetPastState sets the pastState field.
 func (fc *FlowCreate) SetPastState(u uuid.UUID) *FlowCreate {
-	fc.pastState = &u
+	fc.mutation.SetPastState(u)
 	return fc
 }
 
 // SetInputs sets the inputs field.
 func (fc *FlowCreate) SetInputs(s []string) *FlowCreate {
-	fc.inputs = &s
+	fc.mutation.SetInputs(s)
 	return fc
 }
 
 // SetID sets the id field.
 func (fc *FlowCreate) SetID(u uuid.UUID) *FlowCreate {
-	fc.id = &u
+	fc.mutation.SetID(u)
 	return fc
 }
 
 // SetSurveyID sets the survey edge to Survey by id.
 func (fc *FlowCreate) SetSurveyID(id uuid.UUID) *FlowCreate {
-	if fc.survey == nil {
-		fc.survey = make(map[uuid.UUID]struct{})
-	}
-	fc.survey[id] = struct{}{}
+	fc.mutation.SetSurveyID(id)
 	return fc
 }
 
@@ -95,12 +85,7 @@ func (fc *FlowCreate) SetSurvey(s *Survey) *FlowCreate {
 
 // AddQuestionIDs adds the questions edge to Question by ids.
 func (fc *FlowCreate) AddQuestionIDs(ids ...uuid.UUID) *FlowCreate {
-	if fc.questions == nil {
-		fc.questions = make(map[uuid.UUID]struct{})
-	}
-	for i := range ids {
-		fc.questions[ids[i]] = struct{}{}
-	}
+	fc.mutation.AddQuestionIDs(ids...)
 	return fc
 }
 
@@ -115,28 +100,50 @@ func (fc *FlowCreate) AddQuestions(q ...*Question) *FlowCreate {
 
 // Save creates the Flow in the database.
 func (fc *FlowCreate) Save(ctx context.Context) (*Flow, error) {
-	if fc.state == nil {
+	if _, ok := fc.mutation.State(); !ok {
 		return nil, errors.New("ent: missing required field \"state\"")
 	}
-	if fc.stateTable == nil {
+	if _, ok := fc.mutation.StateTable(); !ok {
 		return nil, errors.New("ent: missing required field \"stateTable\"")
 	}
-	if err := flow.StateTableValidator(*fc.stateTable); err != nil {
-		return nil, fmt.Errorf("ent: validator failed for field \"stateTable\": %v", err)
+	if v, ok := fc.mutation.StateTable(); ok {
+		if err := flow.StateTableValidator(v); err != nil {
+			return nil, fmt.Errorf("ent: validator failed for field \"stateTable\": %v", err)
+		}
 	}
-	if fc.initialState == nil {
+	if _, ok := fc.mutation.InitialState(); !ok {
 		return nil, errors.New("ent: missing required field \"initialState\"")
 	}
-	if fc.terminationState == nil {
+	if _, ok := fc.mutation.TerminationState(); !ok {
 		return nil, errors.New("ent: missing required field \"terminationState\"")
 	}
-	if len(fc.survey) > 1 {
-		return nil, errors.New("ent: multiple assignments on a unique edge \"survey\"")
-	}
-	if fc.questions == nil {
+	if len(fc.mutation.QuestionsIDs()) == 0 {
 		return nil, errors.New("ent: missing required edge \"questions\"")
 	}
-	return fc.sqlSave(ctx)
+	var (
+		err  error
+		node *Flow
+	)
+	if len(fc.hooks) == 0 {
+		node, err = fc.sqlSave(ctx)
+	} else {
+		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
+			mutation, ok := m.(*FlowMutation)
+			if !ok {
+				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			fc.mutation = mutation
+			node, err = fc.sqlSave(ctx)
+			return node, err
+		})
+		for i := len(fc.hooks) - 1; i >= 0; i-- {
+			mut = fc.hooks[i](mut)
+		}
+		if _, err := mut.Mutate(ctx, fc.mutation); err != nil {
+			return nil, err
+		}
+	}
+	return node, err
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -159,59 +166,59 @@ func (fc *FlowCreate) sqlSave(ctx context.Context) (*Flow, error) {
 			},
 		}
 	)
-	if value := fc.id; value != nil {
-		f.ID = *value
-		_spec.ID.Value = *value
+	if id, ok := fc.mutation.ID(); ok {
+		f.ID = id
+		_spec.ID.Value = id
 	}
-	if value := fc.state; value != nil {
+	if value, ok := fc.mutation.State(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeUUID,
-			Value:  *value,
+			Value:  value,
 			Column: flow.FieldState,
 		})
-		f.State = *value
+		f.State = value
 	}
-	if value := fc.stateTable; value != nil {
+	if value, ok := fc.mutation.StateTable(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: flow.FieldStateTable,
 		})
-		f.StateTable = *value
+		f.StateTable = value
 	}
-	if value := fc.initialState; value != nil {
+	if value, ok := fc.mutation.InitialState(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeUUID,
-			Value:  *value,
+			Value:  value,
 			Column: flow.FieldInitialState,
 		})
-		f.InitialState = *value
+		f.InitialState = value
 	}
-	if value := fc.terminationState; value != nil {
+	if value, ok := fc.mutation.TerminationState(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeUUID,
-			Value:  *value,
+			Value:  value,
 			Column: flow.FieldTerminationState,
 		})
-		f.TerminationState = *value
+		f.TerminationState = value
 	}
-	if value := fc.pastState; value != nil {
+	if value, ok := fc.mutation.PastState(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeUUID,
-			Value:  *value,
+			Value:  value,
 			Column: flow.FieldPastState,
 		})
-		f.PastState = *value
+		f.PastState = value
 	}
-	if value := fc.inputs; value != nil {
+	if value, ok := fc.mutation.Inputs(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeJSON,
-			Value:  *value,
+			Value:  value,
 			Column: flow.FieldInputs,
 		})
-		f.Inputs = *value
+		f.Inputs = value
 	}
-	if nodes := fc.survey; len(nodes) > 0 {
+	if nodes := fc.mutation.SurveyIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2O,
 			Inverse: true,
@@ -225,12 +232,12 @@ func (fc *FlowCreate) sqlSave(ctx context.Context) (*Flow, error) {
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := fc.questions; len(nodes) > 0 {
+	if nodes := fc.mutation.QuestionsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -244,7 +251,7 @@ func (fc *FlowCreate) sqlSave(ctx context.Context) (*Flow, error) {
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)

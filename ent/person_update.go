@@ -22,25 +22,9 @@ import (
 // PersonUpdate is the builder for updating Person entities.
 type PersonUpdate struct {
 	config
-	name            *string
-	lastActivity    *time.Time
-	username        *string
-	clearusername   bool
-	picture         *string
-	clearpicture    bool
-	roles           *[]string
-	clearroles      bool
-	accounts        map[uuid.UUID]struct{}
-	contacts        map[uuid.UUID]struct{}
-	surveys         map[uuid.UUID]struct{}
-	domains         map[uuid.UUID]struct{}
-	adminOf         map[uuid.UUID]struct{}
-	removedAccounts map[uuid.UUID]struct{}
-	removedContacts map[uuid.UUID]struct{}
-	removedSurveys  map[uuid.UUID]struct{}
-	removedDomains  map[uuid.UUID]struct{}
-	removedAdminOf  map[uuid.UUID]struct{}
-	predicates      []predicate.Person
+	hooks      []Hook
+	mutation   *PersonMutation
+	predicates []predicate.Person
 }
 
 // Where adds a new predicate for the builder.
@@ -51,13 +35,13 @@ func (pu *PersonUpdate) Where(ps ...predicate.Person) *PersonUpdate {
 
 // SetName sets the name field.
 func (pu *PersonUpdate) SetName(s string) *PersonUpdate {
-	pu.name = &s
+	pu.mutation.SetName(s)
 	return pu
 }
 
 // SetLastActivity sets the lastActivity field.
 func (pu *PersonUpdate) SetLastActivity(t time.Time) *PersonUpdate {
-	pu.lastActivity = &t
+	pu.mutation.SetLastActivity(t)
 	return pu
 }
 
@@ -71,7 +55,7 @@ func (pu *PersonUpdate) SetNillableLastActivity(t *time.Time) *PersonUpdate {
 
 // SetUsername sets the username field.
 func (pu *PersonUpdate) SetUsername(s string) *PersonUpdate {
-	pu.username = &s
+	pu.mutation.SetUsername(s)
 	return pu
 }
 
@@ -85,14 +69,13 @@ func (pu *PersonUpdate) SetNillableUsername(s *string) *PersonUpdate {
 
 // ClearUsername clears the value of username.
 func (pu *PersonUpdate) ClearUsername() *PersonUpdate {
-	pu.username = nil
-	pu.clearusername = true
+	pu.mutation.ClearUsername()
 	return pu
 }
 
 // SetPicture sets the picture field.
 func (pu *PersonUpdate) SetPicture(s string) *PersonUpdate {
-	pu.picture = &s
+	pu.mutation.SetPicture(s)
 	return pu
 }
 
@@ -106,32 +89,25 @@ func (pu *PersonUpdate) SetNillablePicture(s *string) *PersonUpdate {
 
 // ClearPicture clears the value of picture.
 func (pu *PersonUpdate) ClearPicture() *PersonUpdate {
-	pu.picture = nil
-	pu.clearpicture = true
+	pu.mutation.ClearPicture()
 	return pu
 }
 
 // SetRoles sets the roles field.
 func (pu *PersonUpdate) SetRoles(s []string) *PersonUpdate {
-	pu.roles = &s
+	pu.mutation.SetRoles(s)
 	return pu
 }
 
 // ClearRoles clears the value of roles.
 func (pu *PersonUpdate) ClearRoles() *PersonUpdate {
-	pu.roles = nil
-	pu.clearroles = true
+	pu.mutation.ClearRoles()
 	return pu
 }
 
 // AddAccountIDs adds the accounts edge to Account by ids.
 func (pu *PersonUpdate) AddAccountIDs(ids ...uuid.UUID) *PersonUpdate {
-	if pu.accounts == nil {
-		pu.accounts = make(map[uuid.UUID]struct{})
-	}
-	for i := range ids {
-		pu.accounts[ids[i]] = struct{}{}
-	}
+	pu.mutation.AddAccountIDs(ids...)
 	return pu
 }
 
@@ -146,12 +122,7 @@ func (pu *PersonUpdate) AddAccounts(a ...*Account) *PersonUpdate {
 
 // AddContactIDs adds the contacts edge to Contact by ids.
 func (pu *PersonUpdate) AddContactIDs(ids ...uuid.UUID) *PersonUpdate {
-	if pu.contacts == nil {
-		pu.contacts = make(map[uuid.UUID]struct{})
-	}
-	for i := range ids {
-		pu.contacts[ids[i]] = struct{}{}
-	}
+	pu.mutation.AddContactIDs(ids...)
 	return pu
 }
 
@@ -166,12 +137,7 @@ func (pu *PersonUpdate) AddContacts(c ...*Contact) *PersonUpdate {
 
 // AddSurveyIDs adds the surveys edge to Survey by ids.
 func (pu *PersonUpdate) AddSurveyIDs(ids ...uuid.UUID) *PersonUpdate {
-	if pu.surveys == nil {
-		pu.surveys = make(map[uuid.UUID]struct{})
-	}
-	for i := range ids {
-		pu.surveys[ids[i]] = struct{}{}
-	}
+	pu.mutation.AddSurveyIDs(ids...)
 	return pu
 }
 
@@ -186,12 +152,7 @@ func (pu *PersonUpdate) AddSurveys(s ...*Survey) *PersonUpdate {
 
 // AddDomainIDs adds the domains edge to Domain by ids.
 func (pu *PersonUpdate) AddDomainIDs(ids ...uuid.UUID) *PersonUpdate {
-	if pu.domains == nil {
-		pu.domains = make(map[uuid.UUID]struct{})
-	}
-	for i := range ids {
-		pu.domains[ids[i]] = struct{}{}
-	}
+	pu.mutation.AddDomainIDs(ids...)
 	return pu
 }
 
@@ -206,12 +167,7 @@ func (pu *PersonUpdate) AddDomains(d ...*Domain) *PersonUpdate {
 
 // AddAdminOfIDs adds the adminOf edge to Domain by ids.
 func (pu *PersonUpdate) AddAdminOfIDs(ids ...uuid.UUID) *PersonUpdate {
-	if pu.adminOf == nil {
-		pu.adminOf = make(map[uuid.UUID]struct{})
-	}
-	for i := range ids {
-		pu.adminOf[ids[i]] = struct{}{}
-	}
+	pu.mutation.AddAdminOfIDs(ids...)
 	return pu
 }
 
@@ -226,12 +182,7 @@ func (pu *PersonUpdate) AddAdminOf(d ...*Domain) *PersonUpdate {
 
 // RemoveAccountIDs removes the accounts edge to Account by ids.
 func (pu *PersonUpdate) RemoveAccountIDs(ids ...uuid.UUID) *PersonUpdate {
-	if pu.removedAccounts == nil {
-		pu.removedAccounts = make(map[uuid.UUID]struct{})
-	}
-	for i := range ids {
-		pu.removedAccounts[ids[i]] = struct{}{}
-	}
+	pu.mutation.RemoveAccountIDs(ids...)
 	return pu
 }
 
@@ -246,12 +197,7 @@ func (pu *PersonUpdate) RemoveAccounts(a ...*Account) *PersonUpdate {
 
 // RemoveContactIDs removes the contacts edge to Contact by ids.
 func (pu *PersonUpdate) RemoveContactIDs(ids ...uuid.UUID) *PersonUpdate {
-	if pu.removedContacts == nil {
-		pu.removedContacts = make(map[uuid.UUID]struct{})
-	}
-	for i := range ids {
-		pu.removedContacts[ids[i]] = struct{}{}
-	}
+	pu.mutation.RemoveContactIDs(ids...)
 	return pu
 }
 
@@ -266,12 +212,7 @@ func (pu *PersonUpdate) RemoveContacts(c ...*Contact) *PersonUpdate {
 
 // RemoveSurveyIDs removes the surveys edge to Survey by ids.
 func (pu *PersonUpdate) RemoveSurveyIDs(ids ...uuid.UUID) *PersonUpdate {
-	if pu.removedSurveys == nil {
-		pu.removedSurveys = make(map[uuid.UUID]struct{})
-	}
-	for i := range ids {
-		pu.removedSurveys[ids[i]] = struct{}{}
-	}
+	pu.mutation.RemoveSurveyIDs(ids...)
 	return pu
 }
 
@@ -286,12 +227,7 @@ func (pu *PersonUpdate) RemoveSurveys(s ...*Survey) *PersonUpdate {
 
 // RemoveDomainIDs removes the domains edge to Domain by ids.
 func (pu *PersonUpdate) RemoveDomainIDs(ids ...uuid.UUID) *PersonUpdate {
-	if pu.removedDomains == nil {
-		pu.removedDomains = make(map[uuid.UUID]struct{})
-	}
-	for i := range ids {
-		pu.removedDomains[ids[i]] = struct{}{}
-	}
+	pu.mutation.RemoveDomainIDs(ids...)
 	return pu
 }
 
@@ -306,12 +242,7 @@ func (pu *PersonUpdate) RemoveDomains(d ...*Domain) *PersonUpdate {
 
 // RemoveAdminOfIDs removes the adminOf edge to Domain by ids.
 func (pu *PersonUpdate) RemoveAdminOfIDs(ids ...uuid.UUID) *PersonUpdate {
-	if pu.removedAdminOf == nil {
-		pu.removedAdminOf = make(map[uuid.UUID]struct{})
-	}
-	for i := range ids {
-		pu.removedAdminOf[ids[i]] = struct{}{}
-	}
+	pu.mutation.RemoveAdminOfIDs(ids...)
 	return pu
 }
 
@@ -326,12 +257,36 @@ func (pu *PersonUpdate) RemoveAdminOf(d ...*Domain) *PersonUpdate {
 
 // Save executes the query and returns the number of rows/vertices matched by this operation.
 func (pu *PersonUpdate) Save(ctx context.Context) (int, error) {
-	if pu.name != nil {
-		if err := person.NameValidator(*pu.name); err != nil {
+	if v, ok := pu.mutation.Name(); ok {
+		if err := person.NameValidator(v); err != nil {
 			return 0, fmt.Errorf("ent: validator failed for field \"name\": %v", err)
 		}
 	}
-	return pu.sqlSave(ctx)
+
+	var (
+		err      error
+		affected int
+	)
+	if len(pu.hooks) == 0 {
+		affected, err = pu.sqlSave(ctx)
+	} else {
+		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
+			mutation, ok := m.(*PersonMutation)
+			if !ok {
+				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			pu.mutation = mutation
+			affected, err = pu.sqlSave(ctx)
+			return affected, err
+		})
+		for i := len(pu.hooks) - 1; i >= 0; i-- {
+			mut = pu.hooks[i](mut)
+		}
+		if _, err := mut.Mutate(ctx, pu.mutation); err != nil {
+			return 0, err
+		}
+	}
+	return affected, err
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -374,60 +329,60 @@ func (pu *PersonUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 		}
 	}
-	if value := pu.name; value != nil {
+	if value, ok := pu.mutation.Name(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: person.FieldName,
 		})
 	}
-	if value := pu.lastActivity; value != nil {
+	if value, ok := pu.mutation.LastActivity(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  *value,
+			Value:  value,
 			Column: person.FieldLastActivity,
 		})
 	}
-	if value := pu.username; value != nil {
+	if value, ok := pu.mutation.Username(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: person.FieldUsername,
 		})
 	}
-	if pu.clearusername {
+	if pu.mutation.UsernameCleared() {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: person.FieldUsername,
 		})
 	}
-	if value := pu.picture; value != nil {
+	if value, ok := pu.mutation.Picture(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: person.FieldPicture,
 		})
 	}
-	if pu.clearpicture {
+	if pu.mutation.PictureCleared() {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: person.FieldPicture,
 		})
 	}
-	if value := pu.roles; value != nil {
+	if value, ok := pu.mutation.Roles(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeJSON,
-			Value:  *value,
+			Value:  value,
 			Column: person.FieldRoles,
 		})
 	}
-	if pu.clearroles {
+	if pu.mutation.RolesCleared() {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeJSON,
 			Column: person.FieldRoles,
 		})
 	}
-	if nodes := pu.removedAccounts; len(nodes) > 0 {
+	if nodes := pu.mutation.RemovedAccountsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -441,12 +396,12 @@ func (pu *PersonUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := pu.accounts; len(nodes) > 0 {
+	if nodes := pu.mutation.AccountsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -460,12 +415,12 @@ func (pu *PersonUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if nodes := pu.removedContacts; len(nodes) > 0 {
+	if nodes := pu.mutation.RemovedContactsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -479,12 +434,12 @@ func (pu *PersonUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := pu.contacts; len(nodes) > 0 {
+	if nodes := pu.mutation.ContactsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -498,12 +453,12 @@ func (pu *PersonUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if nodes := pu.removedSurveys; len(nodes) > 0 {
+	if nodes := pu.mutation.RemovedSurveysIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -517,12 +472,12 @@ func (pu *PersonUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := pu.surveys; len(nodes) > 0 {
+	if nodes := pu.mutation.SurveysIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -536,12 +491,12 @@ func (pu *PersonUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if nodes := pu.removedDomains; len(nodes) > 0 {
+	if nodes := pu.mutation.RemovedDomainsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
 			Inverse: true,
@@ -555,12 +510,12 @@ func (pu *PersonUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := pu.domains; len(nodes) > 0 {
+	if nodes := pu.mutation.DomainsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
 			Inverse: true,
@@ -574,12 +529,12 @@ func (pu *PersonUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if nodes := pu.removedAdminOf; len(nodes) > 0 {
+	if nodes := pu.mutation.RemovedAdminOfIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
 			Inverse: true,
@@ -593,12 +548,12 @@ func (pu *PersonUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := pu.adminOf; len(nodes) > 0 {
+	if nodes := pu.mutation.AdminOfIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
 			Inverse: true,
@@ -612,7 +567,7 @@ func (pu *PersonUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
@@ -631,36 +586,19 @@ func (pu *PersonUpdate) sqlSave(ctx context.Context) (n int, err error) {
 // PersonUpdateOne is the builder for updating a single Person entity.
 type PersonUpdateOne struct {
 	config
-	id              uuid.UUID
-	name            *string
-	lastActivity    *time.Time
-	username        *string
-	clearusername   bool
-	picture         *string
-	clearpicture    bool
-	roles           *[]string
-	clearroles      bool
-	accounts        map[uuid.UUID]struct{}
-	contacts        map[uuid.UUID]struct{}
-	surveys         map[uuid.UUID]struct{}
-	domains         map[uuid.UUID]struct{}
-	adminOf         map[uuid.UUID]struct{}
-	removedAccounts map[uuid.UUID]struct{}
-	removedContacts map[uuid.UUID]struct{}
-	removedSurveys  map[uuid.UUID]struct{}
-	removedDomains  map[uuid.UUID]struct{}
-	removedAdminOf  map[uuid.UUID]struct{}
+	hooks    []Hook
+	mutation *PersonMutation
 }
 
 // SetName sets the name field.
 func (puo *PersonUpdateOne) SetName(s string) *PersonUpdateOne {
-	puo.name = &s
+	puo.mutation.SetName(s)
 	return puo
 }
 
 // SetLastActivity sets the lastActivity field.
 func (puo *PersonUpdateOne) SetLastActivity(t time.Time) *PersonUpdateOne {
-	puo.lastActivity = &t
+	puo.mutation.SetLastActivity(t)
 	return puo
 }
 
@@ -674,7 +612,7 @@ func (puo *PersonUpdateOne) SetNillableLastActivity(t *time.Time) *PersonUpdateO
 
 // SetUsername sets the username field.
 func (puo *PersonUpdateOne) SetUsername(s string) *PersonUpdateOne {
-	puo.username = &s
+	puo.mutation.SetUsername(s)
 	return puo
 }
 
@@ -688,14 +626,13 @@ func (puo *PersonUpdateOne) SetNillableUsername(s *string) *PersonUpdateOne {
 
 // ClearUsername clears the value of username.
 func (puo *PersonUpdateOne) ClearUsername() *PersonUpdateOne {
-	puo.username = nil
-	puo.clearusername = true
+	puo.mutation.ClearUsername()
 	return puo
 }
 
 // SetPicture sets the picture field.
 func (puo *PersonUpdateOne) SetPicture(s string) *PersonUpdateOne {
-	puo.picture = &s
+	puo.mutation.SetPicture(s)
 	return puo
 }
 
@@ -709,32 +646,25 @@ func (puo *PersonUpdateOne) SetNillablePicture(s *string) *PersonUpdateOne {
 
 // ClearPicture clears the value of picture.
 func (puo *PersonUpdateOne) ClearPicture() *PersonUpdateOne {
-	puo.picture = nil
-	puo.clearpicture = true
+	puo.mutation.ClearPicture()
 	return puo
 }
 
 // SetRoles sets the roles field.
 func (puo *PersonUpdateOne) SetRoles(s []string) *PersonUpdateOne {
-	puo.roles = &s
+	puo.mutation.SetRoles(s)
 	return puo
 }
 
 // ClearRoles clears the value of roles.
 func (puo *PersonUpdateOne) ClearRoles() *PersonUpdateOne {
-	puo.roles = nil
-	puo.clearroles = true
+	puo.mutation.ClearRoles()
 	return puo
 }
 
 // AddAccountIDs adds the accounts edge to Account by ids.
 func (puo *PersonUpdateOne) AddAccountIDs(ids ...uuid.UUID) *PersonUpdateOne {
-	if puo.accounts == nil {
-		puo.accounts = make(map[uuid.UUID]struct{})
-	}
-	for i := range ids {
-		puo.accounts[ids[i]] = struct{}{}
-	}
+	puo.mutation.AddAccountIDs(ids...)
 	return puo
 }
 
@@ -749,12 +679,7 @@ func (puo *PersonUpdateOne) AddAccounts(a ...*Account) *PersonUpdateOne {
 
 // AddContactIDs adds the contacts edge to Contact by ids.
 func (puo *PersonUpdateOne) AddContactIDs(ids ...uuid.UUID) *PersonUpdateOne {
-	if puo.contacts == nil {
-		puo.contacts = make(map[uuid.UUID]struct{})
-	}
-	for i := range ids {
-		puo.contacts[ids[i]] = struct{}{}
-	}
+	puo.mutation.AddContactIDs(ids...)
 	return puo
 }
 
@@ -769,12 +694,7 @@ func (puo *PersonUpdateOne) AddContacts(c ...*Contact) *PersonUpdateOne {
 
 // AddSurveyIDs adds the surveys edge to Survey by ids.
 func (puo *PersonUpdateOne) AddSurveyIDs(ids ...uuid.UUID) *PersonUpdateOne {
-	if puo.surveys == nil {
-		puo.surveys = make(map[uuid.UUID]struct{})
-	}
-	for i := range ids {
-		puo.surveys[ids[i]] = struct{}{}
-	}
+	puo.mutation.AddSurveyIDs(ids...)
 	return puo
 }
 
@@ -789,12 +709,7 @@ func (puo *PersonUpdateOne) AddSurveys(s ...*Survey) *PersonUpdateOne {
 
 // AddDomainIDs adds the domains edge to Domain by ids.
 func (puo *PersonUpdateOne) AddDomainIDs(ids ...uuid.UUID) *PersonUpdateOne {
-	if puo.domains == nil {
-		puo.domains = make(map[uuid.UUID]struct{})
-	}
-	for i := range ids {
-		puo.domains[ids[i]] = struct{}{}
-	}
+	puo.mutation.AddDomainIDs(ids...)
 	return puo
 }
 
@@ -809,12 +724,7 @@ func (puo *PersonUpdateOne) AddDomains(d ...*Domain) *PersonUpdateOne {
 
 // AddAdminOfIDs adds the adminOf edge to Domain by ids.
 func (puo *PersonUpdateOne) AddAdminOfIDs(ids ...uuid.UUID) *PersonUpdateOne {
-	if puo.adminOf == nil {
-		puo.adminOf = make(map[uuid.UUID]struct{})
-	}
-	for i := range ids {
-		puo.adminOf[ids[i]] = struct{}{}
-	}
+	puo.mutation.AddAdminOfIDs(ids...)
 	return puo
 }
 
@@ -829,12 +739,7 @@ func (puo *PersonUpdateOne) AddAdminOf(d ...*Domain) *PersonUpdateOne {
 
 // RemoveAccountIDs removes the accounts edge to Account by ids.
 func (puo *PersonUpdateOne) RemoveAccountIDs(ids ...uuid.UUID) *PersonUpdateOne {
-	if puo.removedAccounts == nil {
-		puo.removedAccounts = make(map[uuid.UUID]struct{})
-	}
-	for i := range ids {
-		puo.removedAccounts[ids[i]] = struct{}{}
-	}
+	puo.mutation.RemoveAccountIDs(ids...)
 	return puo
 }
 
@@ -849,12 +754,7 @@ func (puo *PersonUpdateOne) RemoveAccounts(a ...*Account) *PersonUpdateOne {
 
 // RemoveContactIDs removes the contacts edge to Contact by ids.
 func (puo *PersonUpdateOne) RemoveContactIDs(ids ...uuid.UUID) *PersonUpdateOne {
-	if puo.removedContacts == nil {
-		puo.removedContacts = make(map[uuid.UUID]struct{})
-	}
-	for i := range ids {
-		puo.removedContacts[ids[i]] = struct{}{}
-	}
+	puo.mutation.RemoveContactIDs(ids...)
 	return puo
 }
 
@@ -869,12 +769,7 @@ func (puo *PersonUpdateOne) RemoveContacts(c ...*Contact) *PersonUpdateOne {
 
 // RemoveSurveyIDs removes the surveys edge to Survey by ids.
 func (puo *PersonUpdateOne) RemoveSurveyIDs(ids ...uuid.UUID) *PersonUpdateOne {
-	if puo.removedSurveys == nil {
-		puo.removedSurveys = make(map[uuid.UUID]struct{})
-	}
-	for i := range ids {
-		puo.removedSurveys[ids[i]] = struct{}{}
-	}
+	puo.mutation.RemoveSurveyIDs(ids...)
 	return puo
 }
 
@@ -889,12 +784,7 @@ func (puo *PersonUpdateOne) RemoveSurveys(s ...*Survey) *PersonUpdateOne {
 
 // RemoveDomainIDs removes the domains edge to Domain by ids.
 func (puo *PersonUpdateOne) RemoveDomainIDs(ids ...uuid.UUID) *PersonUpdateOne {
-	if puo.removedDomains == nil {
-		puo.removedDomains = make(map[uuid.UUID]struct{})
-	}
-	for i := range ids {
-		puo.removedDomains[ids[i]] = struct{}{}
-	}
+	puo.mutation.RemoveDomainIDs(ids...)
 	return puo
 }
 
@@ -909,12 +799,7 @@ func (puo *PersonUpdateOne) RemoveDomains(d ...*Domain) *PersonUpdateOne {
 
 // RemoveAdminOfIDs removes the adminOf edge to Domain by ids.
 func (puo *PersonUpdateOne) RemoveAdminOfIDs(ids ...uuid.UUID) *PersonUpdateOne {
-	if puo.removedAdminOf == nil {
-		puo.removedAdminOf = make(map[uuid.UUID]struct{})
-	}
-	for i := range ids {
-		puo.removedAdminOf[ids[i]] = struct{}{}
-	}
+	puo.mutation.RemoveAdminOfIDs(ids...)
 	return puo
 }
 
@@ -929,12 +814,36 @@ func (puo *PersonUpdateOne) RemoveAdminOf(d ...*Domain) *PersonUpdateOne {
 
 // Save executes the query and returns the updated entity.
 func (puo *PersonUpdateOne) Save(ctx context.Context) (*Person, error) {
-	if puo.name != nil {
-		if err := person.NameValidator(*puo.name); err != nil {
+	if v, ok := puo.mutation.Name(); ok {
+		if err := person.NameValidator(v); err != nil {
 			return nil, fmt.Errorf("ent: validator failed for field \"name\": %v", err)
 		}
 	}
-	return puo.sqlSave(ctx)
+
+	var (
+		err  error
+		node *Person
+	)
+	if len(puo.hooks) == 0 {
+		node, err = puo.sqlSave(ctx)
+	} else {
+		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
+			mutation, ok := m.(*PersonMutation)
+			if !ok {
+				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			puo.mutation = mutation
+			node, err = puo.sqlSave(ctx)
+			return node, err
+		})
+		for i := len(puo.hooks) - 1; i >= 0; i-- {
+			mut = puo.hooks[i](mut)
+		}
+		if _, err := mut.Mutate(ctx, puo.mutation); err != nil {
+			return nil, err
+		}
+	}
+	return node, err
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -965,66 +874,70 @@ func (puo *PersonUpdateOne) sqlSave(ctx context.Context) (pe *Person, err error)
 			Table:   person.Table,
 			Columns: person.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Value:  puo.id,
 				Type:   field.TypeUUID,
 				Column: person.FieldID,
 			},
 		},
 	}
-	if value := puo.name; value != nil {
+	id, ok := puo.mutation.ID()
+	if !ok {
+		return nil, fmt.Errorf("missing Person.ID for update")
+	}
+	_spec.Node.ID.Value = id
+	if value, ok := puo.mutation.Name(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: person.FieldName,
 		})
 	}
-	if value := puo.lastActivity; value != nil {
+	if value, ok := puo.mutation.LastActivity(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  *value,
+			Value:  value,
 			Column: person.FieldLastActivity,
 		})
 	}
-	if value := puo.username; value != nil {
+	if value, ok := puo.mutation.Username(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: person.FieldUsername,
 		})
 	}
-	if puo.clearusername {
+	if puo.mutation.UsernameCleared() {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: person.FieldUsername,
 		})
 	}
-	if value := puo.picture; value != nil {
+	if value, ok := puo.mutation.Picture(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: person.FieldPicture,
 		})
 	}
-	if puo.clearpicture {
+	if puo.mutation.PictureCleared() {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: person.FieldPicture,
 		})
 	}
-	if value := puo.roles; value != nil {
+	if value, ok := puo.mutation.Roles(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeJSON,
-			Value:  *value,
+			Value:  value,
 			Column: person.FieldRoles,
 		})
 	}
-	if puo.clearroles {
+	if puo.mutation.RolesCleared() {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeJSON,
 			Column: person.FieldRoles,
 		})
 	}
-	if nodes := puo.removedAccounts; len(nodes) > 0 {
+	if nodes := puo.mutation.RemovedAccountsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -1038,12 +951,12 @@ func (puo *PersonUpdateOne) sqlSave(ctx context.Context) (pe *Person, err error)
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := puo.accounts; len(nodes) > 0 {
+	if nodes := puo.mutation.AccountsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -1057,12 +970,12 @@ func (puo *PersonUpdateOne) sqlSave(ctx context.Context) (pe *Person, err error)
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if nodes := puo.removedContacts; len(nodes) > 0 {
+	if nodes := puo.mutation.RemovedContactsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -1076,12 +989,12 @@ func (puo *PersonUpdateOne) sqlSave(ctx context.Context) (pe *Person, err error)
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := puo.contacts; len(nodes) > 0 {
+	if nodes := puo.mutation.ContactsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -1095,12 +1008,12 @@ func (puo *PersonUpdateOne) sqlSave(ctx context.Context) (pe *Person, err error)
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if nodes := puo.removedSurveys; len(nodes) > 0 {
+	if nodes := puo.mutation.RemovedSurveysIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -1114,12 +1027,12 @@ func (puo *PersonUpdateOne) sqlSave(ctx context.Context) (pe *Person, err error)
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := puo.surveys; len(nodes) > 0 {
+	if nodes := puo.mutation.SurveysIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -1133,12 +1046,12 @@ func (puo *PersonUpdateOne) sqlSave(ctx context.Context) (pe *Person, err error)
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if nodes := puo.removedDomains; len(nodes) > 0 {
+	if nodes := puo.mutation.RemovedDomainsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
 			Inverse: true,
@@ -1152,12 +1065,12 @@ func (puo *PersonUpdateOne) sqlSave(ctx context.Context) (pe *Person, err error)
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := puo.domains; len(nodes) > 0 {
+	if nodes := puo.mutation.DomainsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
 			Inverse: true,
@@ -1171,12 +1084,12 @@ func (puo *PersonUpdateOne) sqlSave(ctx context.Context) (pe *Person, err error)
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if nodes := puo.removedAdminOf; len(nodes) > 0 {
+	if nodes := puo.mutation.RemovedAdminOfIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
 			Inverse: true,
@@ -1190,12 +1103,12 @@ func (puo *PersonUpdateOne) sqlSave(ctx context.Context) (pe *Person, err error)
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := puo.adminOf; len(nodes) > 0 {
+	if nodes := puo.mutation.AdminOfIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
 			Inverse: true,
@@ -1209,7 +1122,7 @@ func (puo *PersonUpdateOne) sqlSave(ctx context.Context) (pe *Person, err error)
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)

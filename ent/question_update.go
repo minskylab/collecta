@@ -4,7 +4,6 @@ package ent
 
 import (
 	"context"
-	"errors"
 	"fmt"
 
 	"github.com/facebookincubator/ent/dialect/sql"
@@ -21,21 +20,9 @@ import (
 // QuestionUpdate is the builder for updating Question entities.
 type QuestionUpdate struct {
 	config
-	hash          *string
-	title         *string
-	description   *string
-	metadata      *map[string]string
-	clearmetadata bool
-
-	clearvalidator bool
-	anonymous      *bool
-	answers        map[uuid.UUID]struct{}
-	input          map[uuid.UUID]struct{}
-	flow           map[uuid.UUID]struct{}
-	removedAnswers map[uuid.UUID]struct{}
-	clearedInput   bool
-	clearedFlow    bool
-	predicates     []predicate.Question
+	hooks      []Hook
+	mutation   *QuestionMutation
+	predicates []predicate.Question
 }
 
 // Where adds a new predicate for the builder.
@@ -46,38 +33,37 @@ func (qu *QuestionUpdate) Where(ps ...predicate.Question) *QuestionUpdate {
 
 // SetHash sets the hash field.
 func (qu *QuestionUpdate) SetHash(s string) *QuestionUpdate {
-	qu.hash = &s
+	qu.mutation.SetHash(s)
 	return qu
 }
 
 // SetTitle sets the title field.
 func (qu *QuestionUpdate) SetTitle(s string) *QuestionUpdate {
-	qu.title = &s
+	qu.mutation.SetTitle(s)
 	return qu
 }
 
 // SetDescription sets the description field.
 func (qu *QuestionUpdate) SetDescription(s string) *QuestionUpdate {
-	qu.description = &s
+	qu.mutation.SetDescription(s)
 	return qu
 }
 
 // SetMetadata sets the metadata field.
 func (qu *QuestionUpdate) SetMetadata(m map[string]string) *QuestionUpdate {
-	qu.metadata = &m
+	qu.mutation.SetMetadata(m)
 	return qu
 }
 
 // ClearMetadata clears the value of metadata.
 func (qu *QuestionUpdate) ClearMetadata() *QuestionUpdate {
-	qu.metadata = nil
-	qu.clearmetadata = true
+	qu.mutation.ClearMetadata()
 	return qu
 }
 
 // SetAnonymous sets the anonymous field.
 func (qu *QuestionUpdate) SetAnonymous(b bool) *QuestionUpdate {
-	qu.anonymous = &b
+	qu.mutation.SetAnonymous(b)
 	return qu
 }
 
@@ -91,12 +77,7 @@ func (qu *QuestionUpdate) SetNillableAnonymous(b *bool) *QuestionUpdate {
 
 // AddAnswerIDs adds the answers edge to Answer by ids.
 func (qu *QuestionUpdate) AddAnswerIDs(ids ...uuid.UUID) *QuestionUpdate {
-	if qu.answers == nil {
-		qu.answers = make(map[uuid.UUID]struct{})
-	}
-	for i := range ids {
-		qu.answers[ids[i]] = struct{}{}
-	}
+	qu.mutation.AddAnswerIDs(ids...)
 	return qu
 }
 
@@ -111,10 +92,7 @@ func (qu *QuestionUpdate) AddAnswers(a ...*Answer) *QuestionUpdate {
 
 // SetInputID sets the input edge to Input by id.
 func (qu *QuestionUpdate) SetInputID(id uuid.UUID) *QuestionUpdate {
-	if qu.input == nil {
-		qu.input = make(map[uuid.UUID]struct{})
-	}
-	qu.input[id] = struct{}{}
+	qu.mutation.SetInputID(id)
 	return qu
 }
 
@@ -133,10 +111,7 @@ func (qu *QuestionUpdate) SetInput(i *Input) *QuestionUpdate {
 
 // SetFlowID sets the flow edge to Flow by id.
 func (qu *QuestionUpdate) SetFlowID(id uuid.UUID) *QuestionUpdate {
-	if qu.flow == nil {
-		qu.flow = make(map[uuid.UUID]struct{})
-	}
-	qu.flow[id] = struct{}{}
+	qu.mutation.SetFlowID(id)
 	return qu
 }
 
@@ -155,12 +130,7 @@ func (qu *QuestionUpdate) SetFlow(f *Flow) *QuestionUpdate {
 
 // RemoveAnswerIDs removes the answers edge to Answer by ids.
 func (qu *QuestionUpdate) RemoveAnswerIDs(ids ...uuid.UUID) *QuestionUpdate {
-	if qu.removedAnswers == nil {
-		qu.removedAnswers = make(map[uuid.UUID]struct{})
-	}
-	for i := range ids {
-		qu.removedAnswers[ids[i]] = struct{}{}
-	}
+	qu.mutation.RemoveAnswerIDs(ids...)
 	return qu
 }
 
@@ -175,30 +145,48 @@ func (qu *QuestionUpdate) RemoveAnswers(a ...*Answer) *QuestionUpdate {
 
 // ClearInput clears the input edge to Input.
 func (qu *QuestionUpdate) ClearInput() *QuestionUpdate {
-	qu.clearedInput = true
+	qu.mutation.ClearInput()
 	return qu
 }
 
 // ClearFlow clears the flow edge to Flow.
 func (qu *QuestionUpdate) ClearFlow() *QuestionUpdate {
-	qu.clearedFlow = true
+	qu.mutation.ClearFlow()
 	return qu
 }
 
 // Save executes the query and returns the number of rows/vertices matched by this operation.
 func (qu *QuestionUpdate) Save(ctx context.Context) (int, error) {
-	if qu.title != nil {
-		if err := question.TitleValidator(*qu.title); err != nil {
+	if v, ok := qu.mutation.Title(); ok {
+		if err := question.TitleValidator(v); err != nil {
 			return 0, fmt.Errorf("ent: validator failed for field \"title\": %v", err)
 		}
 	}
-	if len(qu.input) > 1 {
-		return 0, errors.New("ent: multiple assignments on a unique edge \"input\"")
+
+	var (
+		err      error
+		affected int
+	)
+	if len(qu.hooks) == 0 {
+		affected, err = qu.sqlSave(ctx)
+	} else {
+		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
+			mutation, ok := m.(*QuestionMutation)
+			if !ok {
+				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			qu.mutation = mutation
+			affected, err = qu.sqlSave(ctx)
+			return affected, err
+		})
+		for i := len(qu.hooks) - 1; i >= 0; i-- {
+			mut = qu.hooks[i](mut)
+		}
+		if _, err := mut.Mutate(ctx, qu.mutation); err != nil {
+			return 0, err
+		}
 	}
-	if len(qu.flow) > 1 {
-		return 0, errors.New("ent: multiple assignments on a unique edge \"flow\"")
-	}
-	return qu.sqlSave(ctx)
+	return affected, err
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -241,54 +229,54 @@ func (qu *QuestionUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 		}
 	}
-	if value := qu.hash; value != nil {
+	if value, ok := qu.mutation.Hash(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: question.FieldHash,
 		})
 	}
-	if value := qu.title; value != nil {
+	if value, ok := qu.mutation.Title(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: question.FieldTitle,
 		})
 	}
-	if value := qu.description; value != nil {
+	if value, ok := qu.mutation.Description(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: question.FieldDescription,
 		})
 	}
-	if value := qu.metadata; value != nil {
+	if value, ok := qu.mutation.Metadata(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeJSON,
-			Value:  *value,
+			Value:  value,
 			Column: question.FieldMetadata,
 		})
 	}
-	if qu.clearmetadata {
+	if qu.mutation.MetadataCleared() {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeJSON,
 			Column: question.FieldMetadata,
 		})
 	}
-	if qu.clearvalidator {
+	if qu.mutation.ValidatorCleared() {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: question.FieldValidator,
 		})
 	}
-	if value := qu.anonymous; value != nil {
+	if value, ok := qu.mutation.Anonymous(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeBool,
-			Value:  *value,
+			Value:  value,
 			Column: question.FieldAnonymous,
 		})
 	}
-	if nodes := qu.removedAnswers; len(nodes) > 0 {
+	if nodes := qu.mutation.RemovedAnswersIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -302,12 +290,12 @@ func (qu *QuestionUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := qu.answers; len(nodes) > 0 {
+	if nodes := qu.mutation.AnswersIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -321,12 +309,12 @@ func (qu *QuestionUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if qu.clearedInput {
+	if qu.mutation.InputCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2O,
 			Inverse: false,
@@ -342,7 +330,7 @@ func (qu *QuestionUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := qu.input; len(nodes) > 0 {
+	if nodes := qu.mutation.InputIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2O,
 			Inverse: false,
@@ -356,12 +344,12 @@ func (qu *QuestionUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if qu.clearedFlow {
+	if qu.mutation.FlowCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -377,7 +365,7 @@ func (qu *QuestionUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := qu.flow; len(nodes) > 0 {
+	if nodes := qu.mutation.FlowIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -391,7 +379,7 @@ func (qu *QuestionUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
@@ -410,57 +398,43 @@ func (qu *QuestionUpdate) sqlSave(ctx context.Context) (n int, err error) {
 // QuestionUpdateOne is the builder for updating a single Question entity.
 type QuestionUpdateOne struct {
 	config
-	id            uuid.UUID
-	hash          *string
-	title         *string
-	description   *string
-	metadata      *map[string]string
-	clearmetadata bool
-
-	clearvalidator bool
-	anonymous      *bool
-	answers        map[uuid.UUID]struct{}
-	input          map[uuid.UUID]struct{}
-	flow           map[uuid.UUID]struct{}
-	removedAnswers map[uuid.UUID]struct{}
-	clearedInput   bool
-	clearedFlow    bool
+	hooks    []Hook
+	mutation *QuestionMutation
 }
 
 // SetHash sets the hash field.
 func (quo *QuestionUpdateOne) SetHash(s string) *QuestionUpdateOne {
-	quo.hash = &s
+	quo.mutation.SetHash(s)
 	return quo
 }
 
 // SetTitle sets the title field.
 func (quo *QuestionUpdateOne) SetTitle(s string) *QuestionUpdateOne {
-	quo.title = &s
+	quo.mutation.SetTitle(s)
 	return quo
 }
 
 // SetDescription sets the description field.
 func (quo *QuestionUpdateOne) SetDescription(s string) *QuestionUpdateOne {
-	quo.description = &s
+	quo.mutation.SetDescription(s)
 	return quo
 }
 
 // SetMetadata sets the metadata field.
 func (quo *QuestionUpdateOne) SetMetadata(m map[string]string) *QuestionUpdateOne {
-	quo.metadata = &m
+	quo.mutation.SetMetadata(m)
 	return quo
 }
 
 // ClearMetadata clears the value of metadata.
 func (quo *QuestionUpdateOne) ClearMetadata() *QuestionUpdateOne {
-	quo.metadata = nil
-	quo.clearmetadata = true
+	quo.mutation.ClearMetadata()
 	return quo
 }
 
 // SetAnonymous sets the anonymous field.
 func (quo *QuestionUpdateOne) SetAnonymous(b bool) *QuestionUpdateOne {
-	quo.anonymous = &b
+	quo.mutation.SetAnonymous(b)
 	return quo
 }
 
@@ -474,12 +448,7 @@ func (quo *QuestionUpdateOne) SetNillableAnonymous(b *bool) *QuestionUpdateOne {
 
 // AddAnswerIDs adds the answers edge to Answer by ids.
 func (quo *QuestionUpdateOne) AddAnswerIDs(ids ...uuid.UUID) *QuestionUpdateOne {
-	if quo.answers == nil {
-		quo.answers = make(map[uuid.UUID]struct{})
-	}
-	for i := range ids {
-		quo.answers[ids[i]] = struct{}{}
-	}
+	quo.mutation.AddAnswerIDs(ids...)
 	return quo
 }
 
@@ -494,10 +463,7 @@ func (quo *QuestionUpdateOne) AddAnswers(a ...*Answer) *QuestionUpdateOne {
 
 // SetInputID sets the input edge to Input by id.
 func (quo *QuestionUpdateOne) SetInputID(id uuid.UUID) *QuestionUpdateOne {
-	if quo.input == nil {
-		quo.input = make(map[uuid.UUID]struct{})
-	}
-	quo.input[id] = struct{}{}
+	quo.mutation.SetInputID(id)
 	return quo
 }
 
@@ -516,10 +482,7 @@ func (quo *QuestionUpdateOne) SetInput(i *Input) *QuestionUpdateOne {
 
 // SetFlowID sets the flow edge to Flow by id.
 func (quo *QuestionUpdateOne) SetFlowID(id uuid.UUID) *QuestionUpdateOne {
-	if quo.flow == nil {
-		quo.flow = make(map[uuid.UUID]struct{})
-	}
-	quo.flow[id] = struct{}{}
+	quo.mutation.SetFlowID(id)
 	return quo
 }
 
@@ -538,12 +501,7 @@ func (quo *QuestionUpdateOne) SetFlow(f *Flow) *QuestionUpdateOne {
 
 // RemoveAnswerIDs removes the answers edge to Answer by ids.
 func (quo *QuestionUpdateOne) RemoveAnswerIDs(ids ...uuid.UUID) *QuestionUpdateOne {
-	if quo.removedAnswers == nil {
-		quo.removedAnswers = make(map[uuid.UUID]struct{})
-	}
-	for i := range ids {
-		quo.removedAnswers[ids[i]] = struct{}{}
-	}
+	quo.mutation.RemoveAnswerIDs(ids...)
 	return quo
 }
 
@@ -558,30 +516,48 @@ func (quo *QuestionUpdateOne) RemoveAnswers(a ...*Answer) *QuestionUpdateOne {
 
 // ClearInput clears the input edge to Input.
 func (quo *QuestionUpdateOne) ClearInput() *QuestionUpdateOne {
-	quo.clearedInput = true
+	quo.mutation.ClearInput()
 	return quo
 }
 
 // ClearFlow clears the flow edge to Flow.
 func (quo *QuestionUpdateOne) ClearFlow() *QuestionUpdateOne {
-	quo.clearedFlow = true
+	quo.mutation.ClearFlow()
 	return quo
 }
 
 // Save executes the query and returns the updated entity.
 func (quo *QuestionUpdateOne) Save(ctx context.Context) (*Question, error) {
-	if quo.title != nil {
-		if err := question.TitleValidator(*quo.title); err != nil {
+	if v, ok := quo.mutation.Title(); ok {
+		if err := question.TitleValidator(v); err != nil {
 			return nil, fmt.Errorf("ent: validator failed for field \"title\": %v", err)
 		}
 	}
-	if len(quo.input) > 1 {
-		return nil, errors.New("ent: multiple assignments on a unique edge \"input\"")
+
+	var (
+		err  error
+		node *Question
+	)
+	if len(quo.hooks) == 0 {
+		node, err = quo.sqlSave(ctx)
+	} else {
+		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
+			mutation, ok := m.(*QuestionMutation)
+			if !ok {
+				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			quo.mutation = mutation
+			node, err = quo.sqlSave(ctx)
+			return node, err
+		})
+		for i := len(quo.hooks) - 1; i >= 0; i-- {
+			mut = quo.hooks[i](mut)
+		}
+		if _, err := mut.Mutate(ctx, quo.mutation); err != nil {
+			return nil, err
+		}
 	}
-	if len(quo.flow) > 1 {
-		return nil, errors.New("ent: multiple assignments on a unique edge \"flow\"")
-	}
-	return quo.sqlSave(ctx)
+	return node, err
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -612,60 +588,64 @@ func (quo *QuestionUpdateOne) sqlSave(ctx context.Context) (q *Question, err err
 			Table:   question.Table,
 			Columns: question.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Value:  quo.id,
 				Type:   field.TypeUUID,
 				Column: question.FieldID,
 			},
 		},
 	}
-	if value := quo.hash; value != nil {
+	id, ok := quo.mutation.ID()
+	if !ok {
+		return nil, fmt.Errorf("missing Question.ID for update")
+	}
+	_spec.Node.ID.Value = id
+	if value, ok := quo.mutation.Hash(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: question.FieldHash,
 		})
 	}
-	if value := quo.title; value != nil {
+	if value, ok := quo.mutation.Title(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: question.FieldTitle,
 		})
 	}
-	if value := quo.description; value != nil {
+	if value, ok := quo.mutation.Description(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: question.FieldDescription,
 		})
 	}
-	if value := quo.metadata; value != nil {
+	if value, ok := quo.mutation.Metadata(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeJSON,
-			Value:  *value,
+			Value:  value,
 			Column: question.FieldMetadata,
 		})
 	}
-	if quo.clearmetadata {
+	if quo.mutation.MetadataCleared() {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeJSON,
 			Column: question.FieldMetadata,
 		})
 	}
-	if quo.clearvalidator {
+	if quo.mutation.ValidatorCleared() {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: question.FieldValidator,
 		})
 	}
-	if value := quo.anonymous; value != nil {
+	if value, ok := quo.mutation.Anonymous(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeBool,
-			Value:  *value,
+			Value:  value,
 			Column: question.FieldAnonymous,
 		})
 	}
-	if nodes := quo.removedAnswers; len(nodes) > 0 {
+	if nodes := quo.mutation.RemovedAnswersIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -679,12 +659,12 @@ func (quo *QuestionUpdateOne) sqlSave(ctx context.Context) (q *Question, err err
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := quo.answers; len(nodes) > 0 {
+	if nodes := quo.mutation.AnswersIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -698,12 +678,12 @@ func (quo *QuestionUpdateOne) sqlSave(ctx context.Context) (q *Question, err err
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if quo.clearedInput {
+	if quo.mutation.InputCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2O,
 			Inverse: false,
@@ -719,7 +699,7 @@ func (quo *QuestionUpdateOne) sqlSave(ctx context.Context) (q *Question, err err
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := quo.input; len(nodes) > 0 {
+	if nodes := quo.mutation.InputIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2O,
 			Inverse: false,
@@ -733,12 +713,12 @@ func (quo *QuestionUpdateOne) sqlSave(ctx context.Context) (q *Question, err err
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if quo.clearedFlow {
+	if quo.mutation.FlowCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -754,7 +734,7 @@ func (quo *QuestionUpdateOne) sqlSave(ctx context.Context) (q *Question, err err
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := quo.flow; len(nodes) > 0 {
+	if nodes := quo.mutation.FlowIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -768,7 +748,7 @@ func (quo *QuestionUpdateOne) sqlSave(ctx context.Context) (q *Question, err err
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)

@@ -19,19 +19,9 @@ import (
 // DomainUpdate is the builder for updating Domain entities.
 type DomainUpdate struct {
 	config
-	name                   *string
-	email                  *string
-	domain                 *string
-	collectaDomain         *string
-	collectaClientCallback *string
-	tags                   *[]string
-	surveys                map[uuid.UUID]struct{}
-	users                  map[uuid.UUID]struct{}
-	admins                 map[uuid.UUID]struct{}
-	removedSurveys         map[uuid.UUID]struct{}
-	removedUsers           map[uuid.UUID]struct{}
-	removedAdmins          map[uuid.UUID]struct{}
-	predicates             []predicate.Domain
+	hooks      []Hook
+	mutation   *DomainMutation
+	predicates []predicate.Domain
 }
 
 // Where adds a new predicate for the builder.
@@ -42,48 +32,43 @@ func (du *DomainUpdate) Where(ps ...predicate.Domain) *DomainUpdate {
 
 // SetName sets the name field.
 func (du *DomainUpdate) SetName(s string) *DomainUpdate {
-	du.name = &s
+	du.mutation.SetName(s)
 	return du
 }
 
 // SetEmail sets the email field.
 func (du *DomainUpdate) SetEmail(s string) *DomainUpdate {
-	du.email = &s
+	du.mutation.SetEmail(s)
 	return du
 }
 
 // SetDomain sets the domain field.
 func (du *DomainUpdate) SetDomain(s string) *DomainUpdate {
-	du.domain = &s
+	du.mutation.SetDomain(s)
 	return du
 }
 
 // SetCollectaDomain sets the collectaDomain field.
 func (du *DomainUpdate) SetCollectaDomain(s string) *DomainUpdate {
-	du.collectaDomain = &s
+	du.mutation.SetCollectaDomain(s)
 	return du
 }
 
 // SetCollectaClientCallback sets the collectaClientCallback field.
 func (du *DomainUpdate) SetCollectaClientCallback(s string) *DomainUpdate {
-	du.collectaClientCallback = &s
+	du.mutation.SetCollectaClientCallback(s)
 	return du
 }
 
 // SetTags sets the tags field.
 func (du *DomainUpdate) SetTags(s []string) *DomainUpdate {
-	du.tags = &s
+	du.mutation.SetTags(s)
 	return du
 }
 
 // AddSurveyIDs adds the surveys edge to Survey by ids.
 func (du *DomainUpdate) AddSurveyIDs(ids ...uuid.UUID) *DomainUpdate {
-	if du.surveys == nil {
-		du.surveys = make(map[uuid.UUID]struct{})
-	}
-	for i := range ids {
-		du.surveys[ids[i]] = struct{}{}
-	}
+	du.mutation.AddSurveyIDs(ids...)
 	return du
 }
 
@@ -98,12 +83,7 @@ func (du *DomainUpdate) AddSurveys(s ...*Survey) *DomainUpdate {
 
 // AddUserIDs adds the users edge to Person by ids.
 func (du *DomainUpdate) AddUserIDs(ids ...uuid.UUID) *DomainUpdate {
-	if du.users == nil {
-		du.users = make(map[uuid.UUID]struct{})
-	}
-	for i := range ids {
-		du.users[ids[i]] = struct{}{}
-	}
+	du.mutation.AddUserIDs(ids...)
 	return du
 }
 
@@ -118,12 +98,7 @@ func (du *DomainUpdate) AddUsers(p ...*Person) *DomainUpdate {
 
 // AddAdminIDs adds the admins edge to Person by ids.
 func (du *DomainUpdate) AddAdminIDs(ids ...uuid.UUID) *DomainUpdate {
-	if du.admins == nil {
-		du.admins = make(map[uuid.UUID]struct{})
-	}
-	for i := range ids {
-		du.admins[ids[i]] = struct{}{}
-	}
+	du.mutation.AddAdminIDs(ids...)
 	return du
 }
 
@@ -138,12 +113,7 @@ func (du *DomainUpdate) AddAdmins(p ...*Person) *DomainUpdate {
 
 // RemoveSurveyIDs removes the surveys edge to Survey by ids.
 func (du *DomainUpdate) RemoveSurveyIDs(ids ...uuid.UUID) *DomainUpdate {
-	if du.removedSurveys == nil {
-		du.removedSurveys = make(map[uuid.UUID]struct{})
-	}
-	for i := range ids {
-		du.removedSurveys[ids[i]] = struct{}{}
-	}
+	du.mutation.RemoveSurveyIDs(ids...)
 	return du
 }
 
@@ -158,12 +128,7 @@ func (du *DomainUpdate) RemoveSurveys(s ...*Survey) *DomainUpdate {
 
 // RemoveUserIDs removes the users edge to Person by ids.
 func (du *DomainUpdate) RemoveUserIDs(ids ...uuid.UUID) *DomainUpdate {
-	if du.removedUsers == nil {
-		du.removedUsers = make(map[uuid.UUID]struct{})
-	}
-	for i := range ids {
-		du.removedUsers[ids[i]] = struct{}{}
-	}
+	du.mutation.RemoveUserIDs(ids...)
 	return du
 }
 
@@ -178,12 +143,7 @@ func (du *DomainUpdate) RemoveUsers(p ...*Person) *DomainUpdate {
 
 // RemoveAdminIDs removes the admins edge to Person by ids.
 func (du *DomainUpdate) RemoveAdminIDs(ids ...uuid.UUID) *DomainUpdate {
-	if du.removedAdmins == nil {
-		du.removedAdmins = make(map[uuid.UUID]struct{})
-	}
-	for i := range ids {
-		du.removedAdmins[ids[i]] = struct{}{}
-	}
+	du.mutation.RemoveAdminIDs(ids...)
 	return du
 }
 
@@ -198,17 +158,41 @@ func (du *DomainUpdate) RemoveAdmins(p ...*Person) *DomainUpdate {
 
 // Save executes the query and returns the number of rows/vertices matched by this operation.
 func (du *DomainUpdate) Save(ctx context.Context) (int, error) {
-	if du.name != nil {
-		if err := domain.NameValidator(*du.name); err != nil {
+	if v, ok := du.mutation.Name(); ok {
+		if err := domain.NameValidator(v); err != nil {
 			return 0, fmt.Errorf("ent: validator failed for field \"name\": %v", err)
 		}
 	}
-	if du.email != nil {
-		if err := domain.EmailValidator(*du.email); err != nil {
+	if v, ok := du.mutation.Email(); ok {
+		if err := domain.EmailValidator(v); err != nil {
 			return 0, fmt.Errorf("ent: validator failed for field \"email\": %v", err)
 		}
 	}
-	return du.sqlSave(ctx)
+
+	var (
+		err      error
+		affected int
+	)
+	if len(du.hooks) == 0 {
+		affected, err = du.sqlSave(ctx)
+	} else {
+		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
+			mutation, ok := m.(*DomainMutation)
+			if !ok {
+				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			du.mutation = mutation
+			affected, err = du.sqlSave(ctx)
+			return affected, err
+		})
+		for i := len(du.hooks) - 1; i >= 0; i-- {
+			mut = du.hooks[i](mut)
+		}
+		if _, err := mut.Mutate(ctx, du.mutation); err != nil {
+			return 0, err
+		}
+	}
+	return affected, err
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -251,49 +235,49 @@ func (du *DomainUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 		}
 	}
-	if value := du.name; value != nil {
+	if value, ok := du.mutation.Name(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: domain.FieldName,
 		})
 	}
-	if value := du.email; value != nil {
+	if value, ok := du.mutation.Email(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: domain.FieldEmail,
 		})
 	}
-	if value := du.domain; value != nil {
+	if value, ok := du.mutation.Domain(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: domain.FieldDomain,
 		})
 	}
-	if value := du.collectaDomain; value != nil {
+	if value, ok := du.mutation.CollectaDomain(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: domain.FieldCollectaDomain,
 		})
 	}
-	if value := du.collectaClientCallback; value != nil {
+	if value, ok := du.mutation.CollectaClientCallback(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: domain.FieldCollectaClientCallback,
 		})
 	}
-	if value := du.tags; value != nil {
+	if value, ok := du.mutation.Tags(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeJSON,
-			Value:  *value,
+			Value:  value,
 			Column: domain.FieldTags,
 		})
 	}
-	if nodes := du.removedSurveys; len(nodes) > 0 {
+	if nodes := du.mutation.RemovedSurveysIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -307,12 +291,12 @@ func (du *DomainUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := du.surveys; len(nodes) > 0 {
+	if nodes := du.mutation.SurveysIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -326,12 +310,12 @@ func (du *DomainUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if nodes := du.removedUsers; len(nodes) > 0 {
+	if nodes := du.mutation.RemovedUsersIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
 			Inverse: false,
@@ -345,12 +329,12 @@ func (du *DomainUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := du.users; len(nodes) > 0 {
+	if nodes := du.mutation.UsersIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
 			Inverse: false,
@@ -364,12 +348,12 @@ func (du *DomainUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if nodes := du.removedAdmins; len(nodes) > 0 {
+	if nodes := du.mutation.RemovedAdminsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
 			Inverse: false,
@@ -383,12 +367,12 @@ func (du *DomainUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := du.admins; len(nodes) > 0 {
+	if nodes := du.mutation.AdminsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
 			Inverse: false,
@@ -402,7 +386,7 @@ func (du *DomainUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
@@ -421,65 +405,49 @@ func (du *DomainUpdate) sqlSave(ctx context.Context) (n int, err error) {
 // DomainUpdateOne is the builder for updating a single Domain entity.
 type DomainUpdateOne struct {
 	config
-	id                     uuid.UUID
-	name                   *string
-	email                  *string
-	domain                 *string
-	collectaDomain         *string
-	collectaClientCallback *string
-	tags                   *[]string
-	surveys                map[uuid.UUID]struct{}
-	users                  map[uuid.UUID]struct{}
-	admins                 map[uuid.UUID]struct{}
-	removedSurveys         map[uuid.UUID]struct{}
-	removedUsers           map[uuid.UUID]struct{}
-	removedAdmins          map[uuid.UUID]struct{}
+	hooks    []Hook
+	mutation *DomainMutation
 }
 
 // SetName sets the name field.
 func (duo *DomainUpdateOne) SetName(s string) *DomainUpdateOne {
-	duo.name = &s
+	duo.mutation.SetName(s)
 	return duo
 }
 
 // SetEmail sets the email field.
 func (duo *DomainUpdateOne) SetEmail(s string) *DomainUpdateOne {
-	duo.email = &s
+	duo.mutation.SetEmail(s)
 	return duo
 }
 
 // SetDomain sets the domain field.
 func (duo *DomainUpdateOne) SetDomain(s string) *DomainUpdateOne {
-	duo.domain = &s
+	duo.mutation.SetDomain(s)
 	return duo
 }
 
 // SetCollectaDomain sets the collectaDomain field.
 func (duo *DomainUpdateOne) SetCollectaDomain(s string) *DomainUpdateOne {
-	duo.collectaDomain = &s
+	duo.mutation.SetCollectaDomain(s)
 	return duo
 }
 
 // SetCollectaClientCallback sets the collectaClientCallback field.
 func (duo *DomainUpdateOne) SetCollectaClientCallback(s string) *DomainUpdateOne {
-	duo.collectaClientCallback = &s
+	duo.mutation.SetCollectaClientCallback(s)
 	return duo
 }
 
 // SetTags sets the tags field.
 func (duo *DomainUpdateOne) SetTags(s []string) *DomainUpdateOne {
-	duo.tags = &s
+	duo.mutation.SetTags(s)
 	return duo
 }
 
 // AddSurveyIDs adds the surveys edge to Survey by ids.
 func (duo *DomainUpdateOne) AddSurveyIDs(ids ...uuid.UUID) *DomainUpdateOne {
-	if duo.surveys == nil {
-		duo.surveys = make(map[uuid.UUID]struct{})
-	}
-	for i := range ids {
-		duo.surveys[ids[i]] = struct{}{}
-	}
+	duo.mutation.AddSurveyIDs(ids...)
 	return duo
 }
 
@@ -494,12 +462,7 @@ func (duo *DomainUpdateOne) AddSurveys(s ...*Survey) *DomainUpdateOne {
 
 // AddUserIDs adds the users edge to Person by ids.
 func (duo *DomainUpdateOne) AddUserIDs(ids ...uuid.UUID) *DomainUpdateOne {
-	if duo.users == nil {
-		duo.users = make(map[uuid.UUID]struct{})
-	}
-	for i := range ids {
-		duo.users[ids[i]] = struct{}{}
-	}
+	duo.mutation.AddUserIDs(ids...)
 	return duo
 }
 
@@ -514,12 +477,7 @@ func (duo *DomainUpdateOne) AddUsers(p ...*Person) *DomainUpdateOne {
 
 // AddAdminIDs adds the admins edge to Person by ids.
 func (duo *DomainUpdateOne) AddAdminIDs(ids ...uuid.UUID) *DomainUpdateOne {
-	if duo.admins == nil {
-		duo.admins = make(map[uuid.UUID]struct{})
-	}
-	for i := range ids {
-		duo.admins[ids[i]] = struct{}{}
-	}
+	duo.mutation.AddAdminIDs(ids...)
 	return duo
 }
 
@@ -534,12 +492,7 @@ func (duo *DomainUpdateOne) AddAdmins(p ...*Person) *DomainUpdateOne {
 
 // RemoveSurveyIDs removes the surveys edge to Survey by ids.
 func (duo *DomainUpdateOne) RemoveSurveyIDs(ids ...uuid.UUID) *DomainUpdateOne {
-	if duo.removedSurveys == nil {
-		duo.removedSurveys = make(map[uuid.UUID]struct{})
-	}
-	for i := range ids {
-		duo.removedSurveys[ids[i]] = struct{}{}
-	}
+	duo.mutation.RemoveSurveyIDs(ids...)
 	return duo
 }
 
@@ -554,12 +507,7 @@ func (duo *DomainUpdateOne) RemoveSurveys(s ...*Survey) *DomainUpdateOne {
 
 // RemoveUserIDs removes the users edge to Person by ids.
 func (duo *DomainUpdateOne) RemoveUserIDs(ids ...uuid.UUID) *DomainUpdateOne {
-	if duo.removedUsers == nil {
-		duo.removedUsers = make(map[uuid.UUID]struct{})
-	}
-	for i := range ids {
-		duo.removedUsers[ids[i]] = struct{}{}
-	}
+	duo.mutation.RemoveUserIDs(ids...)
 	return duo
 }
 
@@ -574,12 +522,7 @@ func (duo *DomainUpdateOne) RemoveUsers(p ...*Person) *DomainUpdateOne {
 
 // RemoveAdminIDs removes the admins edge to Person by ids.
 func (duo *DomainUpdateOne) RemoveAdminIDs(ids ...uuid.UUID) *DomainUpdateOne {
-	if duo.removedAdmins == nil {
-		duo.removedAdmins = make(map[uuid.UUID]struct{})
-	}
-	for i := range ids {
-		duo.removedAdmins[ids[i]] = struct{}{}
-	}
+	duo.mutation.RemoveAdminIDs(ids...)
 	return duo
 }
 
@@ -594,17 +537,41 @@ func (duo *DomainUpdateOne) RemoveAdmins(p ...*Person) *DomainUpdateOne {
 
 // Save executes the query and returns the updated entity.
 func (duo *DomainUpdateOne) Save(ctx context.Context) (*Domain, error) {
-	if duo.name != nil {
-		if err := domain.NameValidator(*duo.name); err != nil {
+	if v, ok := duo.mutation.Name(); ok {
+		if err := domain.NameValidator(v); err != nil {
 			return nil, fmt.Errorf("ent: validator failed for field \"name\": %v", err)
 		}
 	}
-	if duo.email != nil {
-		if err := domain.EmailValidator(*duo.email); err != nil {
+	if v, ok := duo.mutation.Email(); ok {
+		if err := domain.EmailValidator(v); err != nil {
 			return nil, fmt.Errorf("ent: validator failed for field \"email\": %v", err)
 		}
 	}
-	return duo.sqlSave(ctx)
+
+	var (
+		err  error
+		node *Domain
+	)
+	if len(duo.hooks) == 0 {
+		node, err = duo.sqlSave(ctx)
+	} else {
+		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
+			mutation, ok := m.(*DomainMutation)
+			if !ok {
+				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			duo.mutation = mutation
+			node, err = duo.sqlSave(ctx)
+			return node, err
+		})
+		for i := len(duo.hooks) - 1; i >= 0; i-- {
+			mut = duo.hooks[i](mut)
+		}
+		if _, err := mut.Mutate(ctx, duo.mutation); err != nil {
+			return nil, err
+		}
+	}
+	return node, err
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -635,55 +602,59 @@ func (duo *DomainUpdateOne) sqlSave(ctx context.Context) (d *Domain, err error) 
 			Table:   domain.Table,
 			Columns: domain.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Value:  duo.id,
 				Type:   field.TypeUUID,
 				Column: domain.FieldID,
 			},
 		},
 	}
-	if value := duo.name; value != nil {
+	id, ok := duo.mutation.ID()
+	if !ok {
+		return nil, fmt.Errorf("missing Domain.ID for update")
+	}
+	_spec.Node.ID.Value = id
+	if value, ok := duo.mutation.Name(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: domain.FieldName,
 		})
 	}
-	if value := duo.email; value != nil {
+	if value, ok := duo.mutation.Email(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: domain.FieldEmail,
 		})
 	}
-	if value := duo.domain; value != nil {
+	if value, ok := duo.mutation.Domain(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: domain.FieldDomain,
 		})
 	}
-	if value := duo.collectaDomain; value != nil {
+	if value, ok := duo.mutation.CollectaDomain(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: domain.FieldCollectaDomain,
 		})
 	}
-	if value := duo.collectaClientCallback; value != nil {
+	if value, ok := duo.mutation.CollectaClientCallback(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: domain.FieldCollectaClientCallback,
 		})
 	}
-	if value := duo.tags; value != nil {
+	if value, ok := duo.mutation.Tags(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeJSON,
-			Value:  *value,
+			Value:  value,
 			Column: domain.FieldTags,
 		})
 	}
-	if nodes := duo.removedSurveys; len(nodes) > 0 {
+	if nodes := duo.mutation.RemovedSurveysIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -697,12 +668,12 @@ func (duo *DomainUpdateOne) sqlSave(ctx context.Context) (d *Domain, err error) 
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := duo.surveys; len(nodes) > 0 {
+	if nodes := duo.mutation.SurveysIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -716,12 +687,12 @@ func (duo *DomainUpdateOne) sqlSave(ctx context.Context) (d *Domain, err error) 
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if nodes := duo.removedUsers; len(nodes) > 0 {
+	if nodes := duo.mutation.RemovedUsersIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
 			Inverse: false,
@@ -735,12 +706,12 @@ func (duo *DomainUpdateOne) sqlSave(ctx context.Context) (d *Domain, err error) 
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := duo.users; len(nodes) > 0 {
+	if nodes := duo.mutation.UsersIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
 			Inverse: false,
@@ -754,12 +725,12 @@ func (duo *DomainUpdateOne) sqlSave(ctx context.Context) (d *Domain, err error) 
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if nodes := duo.removedAdmins; len(nodes) > 0 {
+	if nodes := duo.mutation.RemovedAdminsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
 			Inverse: false,
@@ -773,12 +744,12 @@ func (duo *DomainUpdateOne) sqlSave(ctx context.Context) (d *Domain, err error) 
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := duo.admins; len(nodes) > 0 {
+	if nodes := duo.mutation.AdminsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
 			Inverse: false,
@@ -792,7 +763,7 @@ func (duo *DomainUpdateOne) sqlSave(ctx context.Context) (d *Domain, err error) 
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)

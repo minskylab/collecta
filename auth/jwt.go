@@ -47,7 +47,7 @@ func (collectaAuth *Auth) verifyJWTToken(ctx context.Context, tokenString string
 	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
 		uID, ok := claims["sub"].(string)
 		if ok {
-			return collectaAuth.db.Ent.User.Get(ctx, uuid.MustParse(uID))
+			return collectaAuth.db.Ent.Person.Get(ctx, uuid.MustParse(uID))
 		}
 	}
 

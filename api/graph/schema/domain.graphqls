@@ -7,6 +7,6 @@ type Domain {
     collectaClientCallback: String!
     tags: [String!]!
     surveys: [Survey!]!
-    users: [User!]!
-    admins: [User!]!
+    users: [Person!]!
+    admins: [Person!]!
 }

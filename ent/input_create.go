@@ -17,23 +17,19 @@ import (
 // InputCreate is the builder for creating a Input entity.
 type InputCreate struct {
 	config
-	id       *uuid.UUID
-	kind     *input.Kind
-	multiple *bool
-	defaults *[]string
-	options  *map[string]string
-	question map[uuid.UUID]struct{}
+	mutation *InputMutation
+	hooks    []Hook
 }
 
 // SetKind sets the kind field.
 func (ic *InputCreate) SetKind(i input.Kind) *InputCreate {
-	ic.kind = &i
+	ic.mutation.SetKind(i)
 	return ic
 }
 
 // SetMultiple sets the multiple field.
 func (ic *InputCreate) SetMultiple(b bool) *InputCreate {
-	ic.multiple = &b
+	ic.mutation.SetMultiple(b)
 	return ic
 }
 
@@ -47,28 +43,25 @@ func (ic *InputCreate) SetNillableMultiple(b *bool) *InputCreate {
 
 // SetDefaults sets the defaults field.
 func (ic *InputCreate) SetDefaults(s []string) *InputCreate {
-	ic.defaults = &s
+	ic.mutation.SetDefaults(s)
 	return ic
 }
 
 // SetOptions sets the options field.
 func (ic *InputCreate) SetOptions(m map[string]string) *InputCreate {
-	ic.options = &m
+	ic.mutation.SetOptions(m)
 	return ic
 }
 
 // SetID sets the id field.
 func (ic *InputCreate) SetID(u uuid.UUID) *InputCreate {
-	ic.id = &u
+	ic.mutation.SetID(u)
 	return ic
 }
 
 // SetQuestionID sets the question edge to Question by id.
 func (ic *InputCreate) SetQuestionID(id uuid.UUID) *InputCreate {
-	if ic.question == nil {
-		ic.question = make(map[uuid.UUID]struct{})
-	}
-	ic.question[id] = struct{}{}
+	ic.mutation.SetQuestionID(id)
 	return ic
 }
 
@@ -79,23 +72,45 @@ func (ic *InputCreate) SetQuestion(q *Question) *InputCreate {
 
 // Save creates the Input in the database.
 func (ic *InputCreate) Save(ctx context.Context) (*Input, error) {
-	if ic.kind == nil {
+	if _, ok := ic.mutation.Kind(); !ok {
 		return nil, errors.New("ent: missing required field \"kind\"")
 	}
-	if err := input.KindValidator(*ic.kind); err != nil {
-		return nil, fmt.Errorf("ent: validator failed for field \"kind\": %v", err)
+	if v, ok := ic.mutation.Kind(); ok {
+		if err := input.KindValidator(v); err != nil {
+			return nil, fmt.Errorf("ent: validator failed for field \"kind\": %v", err)
+		}
 	}
-	if ic.multiple == nil {
+	if _, ok := ic.mutation.Multiple(); !ok {
 		v := input.DefaultMultiple
-		ic.multiple = &v
+		ic.mutation.SetMultiple(v)
 	}
-	if len(ic.question) > 1 {
-		return nil, errors.New("ent: multiple assignments on a unique edge \"question\"")
-	}
-	if ic.question == nil {
+	if _, ok := ic.mutation.QuestionID(); !ok {
 		return nil, errors.New("ent: missing required edge \"question\"")
 	}
-	return ic.sqlSave(ctx)
+	var (
+		err  error
+		node *Input
+	)
+	if len(ic.hooks) == 0 {
+		node, err = ic.sqlSave(ctx)
+	} else {
+		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
+			mutation, ok := m.(*InputMutation)
+			if !ok {
+				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			ic.mutation = mutation
+			node, err = ic.sqlSave(ctx)
+			return node, err
+		})
+		for i := len(ic.hooks) - 1; i >= 0; i-- {
+			mut = ic.hooks[i](mut)
+		}
+		if _, err := mut.Mutate(ctx, ic.mutation); err != nil {
+			return nil, err
+		}
+	}
+	return node, err
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -118,43 +133,43 @@ func (ic *InputCreate) sqlSave(ctx context.Context) (*Input, error) {
 			},
 		}
 	)
-	if value := ic.id; value != nil {
-		i.ID = *value
-		_spec.ID.Value = *value
+	if id, ok := ic.mutation.ID(); ok {
+		i.ID = id
+		_spec.ID.Value = id
 	}
-	if value := ic.kind; value != nil {
+	if value, ok := ic.mutation.Kind(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeEnum,
-			Value:  *value,
+			Value:  value,
 			Column: input.FieldKind,
 		})
-		i.Kind = *value
+		i.Kind = value
 	}
-	if value := ic.multiple; value != nil {
+	if value, ok := ic.mutation.Multiple(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeBool,
-			Value:  *value,
+			Value:  value,
 			Column: input.FieldMultiple,
 		})
-		i.Multiple = *value
+		i.Multiple = value
 	}
-	if value := ic.defaults; value != nil {
+	if value, ok := ic.mutation.Defaults(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeJSON,
-			Value:  *value,
+			Value:  value,
 			Column: input.FieldDefaults,
 		})
-		i.Defaults = *value
+		i.Defaults = value
 	}
-	if value := ic.options; value != nil {
+	if value, ok := ic.mutation.Options(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeJSON,
-			Value:  *value,
+			Value:  value,
 			Column: input.FieldOptions,
 		})
-		i.Options = *value
+		i.Options = value
 	}
-	if nodes := ic.question; len(nodes) > 0 {
+	if nodes := ic.mutation.QuestionIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2O,
 			Inverse: true,
@@ -168,7 +183,7 @@ func (ic *InputCreate) sqlSave(ctx context.Context) (*Input, error) {
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)

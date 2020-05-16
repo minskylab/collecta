@@ -92,7 +92,7 @@ func createSurveysFromAPI(ctx context.Context, db *db.DB, domainID uuid.UUID, dr
 		return nil, errors.New("users target not specified")
 	}
 
-	audience := make([]*ent.User, 0)
+	audience := make([]*ent.Person, 0)
 
 	switch draft.Target.TargetKind {
 	case model.SurveyAudenceKindPublic:
@@ -116,7 +116,7 @@ func createSurveysFromAPI(ctx context.Context, db *db.DB, domainID uuid.UUID, dr
 				return nil, errors.Wrap(err, "error at parse one user ID from your audience")
 			}
 
-			u, err := db.Ent.User.Get(ctx, userID)
+			u, err := db.Ent.Person.Get(ctx, userID)
 			if err != nil {
 				return nil, errors.Wrap(err, "error at get user ")
 			}

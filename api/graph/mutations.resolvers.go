@@ -6,7 +6,6 @@ package graph
 import (
 	"context"
 
-	"github.com/minskylab/collecta/ent/person"
 	"github.com/minskylab/collecta/errors"
 
 	"fmt"
@@ -25,6 +24,7 @@ import (
 	"github.com/minskylab/collecta/ent/account"
 	"github.com/minskylab/collecta/ent/domain"
 	"github.com/minskylab/collecta/ent/flow"
+	"github.com/minskylab/collecta/ent/person"
 	"github.com/minskylab/collecta/ent/question"
 	"github.com/minskylab/collecta/ent/survey"
 	"golang.org/x/crypto/bcrypt"

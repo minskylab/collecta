@@ -20,35 +20,25 @@ import (
 // SurveyCreate is the builder for creating a Survey entity.
 type SurveyCreate struct {
 	config
-	id              *uuid.UUID
-	tags            *[]string
-	lastInteraction *time.Time
-	dueDate         *time.Time
-	title           *string
-	description     *string
-	metadata        *map[string]string
-	done            *bool
-	isPublic        *bool
-	flow            map[uuid.UUID]struct{}
-	_for            map[uuid.UUID]struct{}
-	owner           map[uuid.UUID]struct{}
+	mutation *SurveyMutation
+	hooks    []Hook
 }
 
 // SetTags sets the tags field.
 func (sc *SurveyCreate) SetTags(s []string) *SurveyCreate {
-	sc.tags = &s
+	sc.mutation.SetTags(s)
 	return sc
 }
 
 // SetLastInteraction sets the lastInteraction field.
 func (sc *SurveyCreate) SetLastInteraction(t time.Time) *SurveyCreate {
-	sc.lastInteraction = &t
+	sc.mutation.SetLastInteraction(t)
 	return sc
 }
 
 // SetDueDate sets the dueDate field.
 func (sc *SurveyCreate) SetDueDate(t time.Time) *SurveyCreate {
-	sc.dueDate = &t
+	sc.mutation.SetDueDate(t)
 	return sc
 }
 
@@ -62,13 +52,13 @@ func (sc *SurveyCreate) SetNillableDueDate(t *time.Time) *SurveyCreate {
 
 // SetTitle sets the title field.
 func (sc *SurveyCreate) SetTitle(s string) *SurveyCreate {
-	sc.title = &s
+	sc.mutation.SetTitle(s)
 	return sc
 }
 
 // SetDescription sets the description field.
 func (sc *SurveyCreate) SetDescription(s string) *SurveyCreate {
-	sc.description = &s
+	sc.mutation.SetDescription(s)
 	return sc
 }
 
@@ -82,13 +72,13 @@ func (sc *SurveyCreate) SetNillableDescription(s *string) *SurveyCreate {
 
 // SetMetadata sets the metadata field.
 func (sc *SurveyCreate) SetMetadata(m map[string]string) *SurveyCreate {
-	sc.metadata = &m
+	sc.mutation.SetMetadata(m)
 	return sc
 }
 
 // SetDone sets the done field.
 func (sc *SurveyCreate) SetDone(b bool) *SurveyCreate {
-	sc.done = &b
+	sc.mutation.SetDone(b)
 	return sc
 }
 
@@ -102,7 +92,7 @@ func (sc *SurveyCreate) SetNillableDone(b *bool) *SurveyCreate {
 
 // SetIsPublic sets the isPublic field.
 func (sc *SurveyCreate) SetIsPublic(b bool) *SurveyCreate {
-	sc.isPublic = &b
+	sc.mutation.SetIsPublic(b)
 	return sc
 }
 
@@ -116,16 +106,13 @@ func (sc *SurveyCreate) SetNillableIsPublic(b *bool) *SurveyCreate {
 
 // SetID sets the id field.
 func (sc *SurveyCreate) SetID(u uuid.UUID) *SurveyCreate {
-	sc.id = &u
+	sc.mutation.SetID(u)
 	return sc
 }
 
 // SetFlowID sets the flow edge to Flow by id.
 func (sc *SurveyCreate) SetFlowID(id uuid.UUID) *SurveyCreate {
-	if sc.flow == nil {
-		sc.flow = make(map[uuid.UUID]struct{})
-	}
-	sc.flow[id] = struct{}{}
+	sc.mutation.SetFlowID(id)
 	return sc
 }
 
@@ -136,10 +123,7 @@ func (sc *SurveyCreate) SetFlow(f *Flow) *SurveyCreate {
 
 // SetForID sets the for edge to Person by id.
 func (sc *SurveyCreate) SetForID(id uuid.UUID) *SurveyCreate {
-	if sc._for == nil {
-		sc._for = make(map[uuid.UUID]struct{})
-	}
-	sc._for[id] = struct{}{}
+	sc.mutation.SetForID(id)
 	return sc
 }
 
@@ -150,10 +134,7 @@ func (sc *SurveyCreate) SetFor(p *Person) *SurveyCreate {
 
 // SetOwnerID sets the owner edge to Domain by id.
 func (sc *SurveyCreate) SetOwnerID(id uuid.UUID) *SurveyCreate {
-	if sc.owner == nil {
-		sc.owner = make(map[uuid.UUID]struct{})
-	}
-	sc.owner[id] = struct{}{}
+	sc.mutation.SetOwnerID(id)
 	return sc
 }
 
@@ -172,46 +153,62 @@ func (sc *SurveyCreate) SetOwner(d *Domain) *SurveyCreate {
 
 // Save creates the Survey in the database.
 func (sc *SurveyCreate) Save(ctx context.Context) (*Survey, error) {
-	if sc.tags == nil {
+	if _, ok := sc.mutation.Tags(); !ok {
 		return nil, errors.New("ent: missing required field \"tags\"")
 	}
-	if sc.lastInteraction == nil {
+	if _, ok := sc.mutation.LastInteraction(); !ok {
 		return nil, errors.New("ent: missing required field \"lastInteraction\"")
 	}
-	if sc.dueDate == nil {
+	if _, ok := sc.mutation.DueDate(); !ok {
 		v := survey.DefaultDueDate()
-		sc.dueDate = &v
+		sc.mutation.SetDueDate(v)
 	}
-	if sc.title == nil {
+	if _, ok := sc.mutation.Title(); !ok {
 		return nil, errors.New("ent: missing required field \"title\"")
 	}
-	if err := survey.TitleValidator(*sc.title); err != nil {
-		return nil, fmt.Errorf("ent: validator failed for field \"title\": %v", err)
+	if v, ok := sc.mutation.Title(); ok {
+		if err := survey.TitleValidator(v); err != nil {
+			return nil, fmt.Errorf("ent: validator failed for field \"title\": %v", err)
+		}
 	}
-	if sc.done == nil {
+	if _, ok := sc.mutation.Done(); !ok {
 		v := survey.DefaultDone
-		sc.done = &v
+		sc.mutation.SetDone(v)
 	}
-	if sc.isPublic == nil {
+	if _, ok := sc.mutation.IsPublic(); !ok {
 		v := survey.DefaultIsPublic
-		sc.isPublic = &v
+		sc.mutation.SetIsPublic(v)
 	}
-	if len(sc.flow) > 1 {
-		return nil, errors.New("ent: multiple assignments on a unique edge \"flow\"")
-	}
-	if sc.flow == nil {
+	if _, ok := sc.mutation.FlowID(); !ok {
 		return nil, errors.New("ent: missing required edge \"flow\"")
 	}
-	if len(sc._for) > 1 {
-		return nil, errors.New("ent: multiple assignments on a unique edge \"for\"")
-	}
-	if sc._for == nil {
+	if _, ok := sc.mutation.ForID(); !ok {
 		return nil, errors.New("ent: missing required edge \"for\"")
 	}
-	if len(sc.owner) > 1 {
-		return nil, errors.New("ent: multiple assignments on a unique edge \"owner\"")
+	var (
+		err  error
+		node *Survey
+	)
+	if len(sc.hooks) == 0 {
+		node, err = sc.sqlSave(ctx)
+	} else {
+		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
+			mutation, ok := m.(*SurveyMutation)
+			if !ok {
+				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			sc.mutation = mutation
+			node, err = sc.sqlSave(ctx)
+			return node, err
+		})
+		for i := len(sc.hooks) - 1; i >= 0; i-- {
+			mut = sc.hooks[i](mut)
+		}
+		if _, err := mut.Mutate(ctx, sc.mutation); err != nil {
+			return nil, err
+		}
 	}
-	return sc.sqlSave(ctx)
+	return node, err
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -234,75 +231,75 @@ func (sc *SurveyCreate) sqlSave(ctx context.Context) (*Survey, error) {
 			},
 		}
 	)
-	if value := sc.id; value != nil {
-		s.ID = *value
-		_spec.ID.Value = *value
+	if id, ok := sc.mutation.ID(); ok {
+		s.ID = id
+		_spec.ID.Value = id
 	}
-	if value := sc.tags; value != nil {
+	if value, ok := sc.mutation.Tags(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeJSON,
-			Value:  *value,
+			Value:  value,
 			Column: survey.FieldTags,
 		})
-		s.Tags = *value
+		s.Tags = value
 	}
-	if value := sc.lastInteraction; value != nil {
+	if value, ok := sc.mutation.LastInteraction(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  *value,
+			Value:  value,
 			Column: survey.FieldLastInteraction,
 		})
-		s.LastInteraction = *value
+		s.LastInteraction = value
 	}
-	if value := sc.dueDate; value != nil {
+	if value, ok := sc.mutation.DueDate(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  *value,
+			Value:  value,
 			Column: survey.FieldDueDate,
 		})
-		s.DueDate = *value
+		s.DueDate = value
 	}
-	if value := sc.title; value != nil {
+	if value, ok := sc.mutation.Title(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: survey.FieldTitle,
 		})
-		s.Title = *value
+		s.Title = value
 	}
-	if value := sc.description; value != nil {
+	if value, ok := sc.mutation.Description(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: survey.FieldDescription,
 		})
-		s.Description = *value
+		s.Description = value
 	}
-	if value := sc.metadata; value != nil {
+	if value, ok := sc.mutation.Metadata(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeJSON,
-			Value:  *value,
+			Value:  value,
 			Column: survey.FieldMetadata,
 		})
-		s.Metadata = *value
+		s.Metadata = value
 	}
-	if value := sc.done; value != nil {
+	if value, ok := sc.mutation.Done(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeBool,
-			Value:  *value,
+			Value:  value,
 			Column: survey.FieldDone,
 		})
-		s.Done = *value
+		s.Done = value
 	}
-	if value := sc.isPublic; value != nil {
+	if value, ok := sc.mutation.IsPublic(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeBool,
-			Value:  *value,
+			Value:  value,
 			Column: survey.FieldIsPublic,
 		})
-		s.IsPublic = *value
+		s.IsPublic = value
 	}
-	if nodes := sc.flow; len(nodes) > 0 {
+	if nodes := sc.mutation.FlowIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2O,
 			Inverse: false,
@@ -316,12 +313,12 @@ func (sc *SurveyCreate) sqlSave(ctx context.Context) (*Survey, error) {
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := sc._for; len(nodes) > 0 {
+	if nodes := sc.mutation.ForIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -335,12 +332,12 @@ func (sc *SurveyCreate) sqlSave(ctx context.Context) (*Survey, error) {
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := sc.owner; len(nodes) > 0 {
+	if nodes := sc.mutation.OwnerIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -354,7 +351,7 @@ func (sc *SurveyCreate) sqlSave(ctx context.Context) (*Survey, error) {
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)

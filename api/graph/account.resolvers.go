@@ -6,7 +6,6 @@ package graph
 import (
 	"context"
 
-
 	"github.com/google/uuid"
 	"github.com/minskylab/collecta/api/commons"
 	"github.com/minskylab/collecta/api/graph/generated"
@@ -16,7 +15,7 @@ import (
 	"github.com/minskylab/collecta/errors"
 )
 
-func (r *accountResolver) Owner(ctx context.Context, obj *model.Account) (*model.User, error) {
+func (r *accountResolver) Owner(ctx context.Context, obj *model.Account) (*model.Person, error) {
 	ownerResID, err := commons.OwnerOfAccount(ctx, r.DB, obj)
 	if err != nil {
 		return nil, errors.Wrap(err, "error at extract owner of resource")

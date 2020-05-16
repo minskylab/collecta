@@ -13,6 +13,7 @@ import (
 	"github.com/facebookincubator/ent/schema/field"
 	"github.com/google/uuid"
 	"github.com/minskylab/collecta/ent/account"
+	"github.com/minskylab/collecta/ent/person"
 	"github.com/minskylab/collecta/ent/predicate"
 )
 
@@ -27,8 +28,9 @@ type AccountQuery struct {
 	// eager-loading edges.
 	withOwner *PersonQuery
 	withFKs   bool
-	// intermediate query.
-	sql *sql.Selector
+	// intermediate query (i.e. traversal path).
+	sql  *sql.Selector
+	path func(context.Context) (*sql.Selector, error)
 }
 
 // Where adds a new predicate for the builder.
@@ -58,12 +60,18 @@ func (aq *AccountQuery) Order(o ...Order) *AccountQuery {
 // QueryOwner chains the current query on the owner edge.
 func (aq *AccountQuery) QueryOwner() *PersonQuery {
 	query := &PersonQuery{config: aq.config}
-	step := sqlgraph.NewStep(
-		sqlgraph.From(account.Table, account.FieldID, aq.sqlQuery()),
-		sqlgraph.To(person.Table, person.FieldID),
-		sqlgraph.Edge(sqlgraph.M2O, true, account.OwnerTable, account.OwnerColumn),
-	)
-	query.sql = sqlgraph.SetNeighbors(aq.driver.Dialect(), step)
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := aq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(account.Table, account.FieldID, aq.sqlQuery()),
+			sqlgraph.To(person.Table, person.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, account.OwnerTable, account.OwnerColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(aq.driver.Dialect(), step)
+		return fromU, nil
+	}
 	return query
 }
 
@@ -163,6 +171,9 @@ func (aq *AccountQuery) OnlyXID(ctx context.Context) uuid.UUID {
 
 // All executes the query and returns a list of Accounts.
 func (aq *AccountQuery) All(ctx context.Context) ([]*Account, error) {
+	if err := aq.prepareQuery(ctx); err != nil {
+		return nil, err
+	}
 	return aq.sqlAll(ctx)
 }
 
@@ -195,6 +206,9 @@ func (aq *AccountQuery) IDsX(ctx context.Context) []uuid.UUID {
 
 // Count returns the count of the given query.
 func (aq *AccountQuery) Count(ctx context.Context) (int, error) {
+	if err := aq.prepareQuery(ctx); err != nil {
+		return 0, err
+	}
 	return aq.sqlCount(ctx)
 }
 
@@ -209,6 +223,9 @@ func (aq *AccountQuery) CountX(ctx context.Context) int {
 
 // Exist returns true if the query has elements in the graph.
 func (aq *AccountQuery) Exist(ctx context.Context) (bool, error) {
+	if err := aq.prepareQuery(ctx); err != nil {
+		return false, err
+	}
 	return aq.sqlExist(ctx)
 }
 
@@ -232,7 +249,8 @@ func (aq *AccountQuery) Clone() *AccountQuery {
 		unique:     append([]string{}, aq.unique...),
 		predicates: append([]predicate.Account{}, aq.predicates...),
 		// clone intermediate query.
-		sql: aq.sql.Clone(),
+		sql:  aq.sql.Clone(),
+		path: aq.path,
 	}
 }
 
@@ -265,7 +283,12 @@ func (aq *AccountQuery) WithOwner(opts ...func(*PersonQuery)) *AccountQuery {
 func (aq *AccountQuery) GroupBy(field string, fields ...string) *AccountGroupBy {
 	group := &AccountGroupBy{config: aq.config}
 	group.fields = append([]string{field}, fields...)
-	group.sql = aq.sqlQuery()
+	group.path = func(ctx context.Context) (prev *sql.Selector, err error) {
+		if err := aq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		return aq.sqlQuery(), nil
+	}
 	return group
 }
 
@@ -284,8 +307,24 @@ func (aq *AccountQuery) GroupBy(field string, fields ...string) *AccountGroupBy 
 func (aq *AccountQuery) Select(field string, fields ...string) *AccountSelect {
 	selector := &AccountSelect{config: aq.config}
 	selector.fields = append([]string{field}, fields...)
-	selector.sql = aq.sqlQuery()
+	selector.path = func(ctx context.Context) (prev *sql.Selector, err error) {
+		if err := aq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		return aq.sqlQuery(), nil
+	}
 	return selector
+}
+
+func (aq *AccountQuery) prepareQuery(ctx context.Context) error {
+	if aq.path != nil {
+		prev, err := aq.path(ctx)
+		if err != nil {
+			return err
+		}
+		aq.sql = prev
+	}
+	return nil
 }
 
 func (aq *AccountQuery) sqlAll(ctx context.Context) ([]*Account, error) {
@@ -434,8 +473,9 @@ type AccountGroupBy struct {
 	config
 	fields []string
 	fns    []Aggregate
-	// intermediate query.
-	sql *sql.Selector
+	// intermediate query (i.e. traversal path).
+	sql  *sql.Selector
+	path func(context.Context) (*sql.Selector, error)
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
@@ -446,6 +486,11 @@ func (agb *AccountGroupBy) Aggregate(fns ...Aggregate) *AccountGroupBy {
 
 // Scan applies the group-by query and scan the result into the given value.
 func (agb *AccountGroupBy) Scan(ctx context.Context, v interface{}) error {
+	query, err := agb.path(ctx)
+	if err != nil {
+		return err
+	}
+	agb.sql = query
 	return agb.sqlScan(ctx, v)
 }
 
@@ -564,12 +609,18 @@ func (agb *AccountGroupBy) sqlQuery() *sql.Selector {
 type AccountSelect struct {
 	config
 	fields []string
-	// intermediate queries.
-	sql *sql.Selector
+	// intermediate query (i.e. traversal path).
+	sql  *sql.Selector
+	path func(context.Context) (*sql.Selector, error)
 }
 
 // Scan applies the selector query and scan the result into the given value.
 func (as *AccountSelect) Scan(ctx context.Context, v interface{}) error {
+	query, err := as.path(ctx)
+	if err != nil {
+		return err
+	}
+	as.sql = query
 	return as.sqlScan(ctx, v)
 }
 

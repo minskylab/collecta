@@ -15,6 +15,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/minskylab/collecta/ent/account"
 	"github.com/minskylab/collecta/ent/contact"
+	"github.com/minskylab/collecta/ent/domain"
 	"github.com/minskylab/collecta/ent/person"
 	"github.com/minskylab/collecta/ent/predicate"
 	"github.com/minskylab/collecta/ent/survey"
@@ -34,8 +35,9 @@ type PersonQuery struct {
 	withSurveys  *SurveyQuery
 	withDomains  *DomainQuery
 	withAdminOf  *DomainQuery
-	// intermediate query.
-	sql *sql.Selector
+	// intermediate query (i.e. traversal path).
+	sql  *sql.Selector
+	path func(context.Context) (*sql.Selector, error)
 }
 
 // Where adds a new predicate for the builder.
@@ -65,60 +67,90 @@ func (pq *PersonQuery) Order(o ...Order) *PersonQuery {
 // QueryAccounts chains the current query on the accounts edge.
 func (pq *PersonQuery) QueryAccounts() *AccountQuery {
 	query := &AccountQuery{config: pq.config}
-	step := sqlgraph.NewStep(
-		sqlgraph.From(person.Table, person.FieldID, pq.sqlQuery()),
-		sqlgraph.To(account.Table, account.FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, person.AccountsTable, person.AccountsColumn),
-	)
-	query.sql = sqlgraph.SetNeighbors(pq.driver.Dialect(), step)
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := pq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(person.Table, person.FieldID, pq.sqlQuery()),
+			sqlgraph.To(account.Table, account.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, person.AccountsTable, person.AccountsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(pq.driver.Dialect(), step)
+		return fromU, nil
+	}
 	return query
 }
 
 // QueryContacts chains the current query on the contacts edge.
 func (pq *PersonQuery) QueryContacts() *ContactQuery {
 	query := &ContactQuery{config: pq.config}
-	step := sqlgraph.NewStep(
-		sqlgraph.From(person.Table, person.FieldID, pq.sqlQuery()),
-		sqlgraph.To(contact.Table, contact.FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, person.ContactsTable, person.ContactsColumn),
-	)
-	query.sql = sqlgraph.SetNeighbors(pq.driver.Dialect(), step)
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := pq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(person.Table, person.FieldID, pq.sqlQuery()),
+			sqlgraph.To(contact.Table, contact.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, person.ContactsTable, person.ContactsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(pq.driver.Dialect(), step)
+		return fromU, nil
+	}
 	return query
 }
 
 // QuerySurveys chains the current query on the surveys edge.
 func (pq *PersonQuery) QuerySurveys() *SurveyQuery {
 	query := &SurveyQuery{config: pq.config}
-	step := sqlgraph.NewStep(
-		sqlgraph.From(person.Table, person.FieldID, pq.sqlQuery()),
-		sqlgraph.To(survey.Table, survey.FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, person.SurveysTable, person.SurveysColumn),
-	)
-	query.sql = sqlgraph.SetNeighbors(pq.driver.Dialect(), step)
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := pq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(person.Table, person.FieldID, pq.sqlQuery()),
+			sqlgraph.To(survey.Table, survey.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, person.SurveysTable, person.SurveysColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(pq.driver.Dialect(), step)
+		return fromU, nil
+	}
 	return query
 }
 
 // QueryDomains chains the current query on the domains edge.
 func (pq *PersonQuery) QueryDomains() *DomainQuery {
 	query := &DomainQuery{config: pq.config}
-	step := sqlgraph.NewStep(
-		sqlgraph.From(person.Table, person.FieldID, pq.sqlQuery()),
-		sqlgraph.To(domain.Table, domain.FieldID),
-		sqlgraph.Edge(sqlgraph.M2M, true, person.DomainsTable, person.DomainsPrimaryKey...),
-	)
-	query.sql = sqlgraph.SetNeighbors(pq.driver.Dialect(), step)
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := pq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(person.Table, person.FieldID, pq.sqlQuery()),
+			sqlgraph.To(domain.Table, domain.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, person.DomainsTable, person.DomainsPrimaryKey...),
+		)
+		fromU = sqlgraph.SetNeighbors(pq.driver.Dialect(), step)
+		return fromU, nil
+	}
 	return query
 }
 
 // QueryAdminOf chains the current query on the adminOf edge.
 func (pq *PersonQuery) QueryAdminOf() *DomainQuery {
 	query := &DomainQuery{config: pq.config}
-	step := sqlgraph.NewStep(
-		sqlgraph.From(person.Table, person.FieldID, pq.sqlQuery()),
-		sqlgraph.To(domain.Table, domain.FieldID),
-		sqlgraph.Edge(sqlgraph.M2M, true, person.AdminOfTable, person.AdminOfPrimaryKey...),
-	)
-	query.sql = sqlgraph.SetNeighbors(pq.driver.Dialect(), step)
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := pq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(person.Table, person.FieldID, pq.sqlQuery()),
+			sqlgraph.To(domain.Table, domain.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, person.AdminOfTable, person.AdminOfPrimaryKey...),
+		)
+		fromU = sqlgraph.SetNeighbors(pq.driver.Dialect(), step)
+		return fromU, nil
+	}
 	return query
 }
 
@@ -218,6 +250,9 @@ func (pq *PersonQuery) OnlyXID(ctx context.Context) uuid.UUID {
 
 // All executes the query and returns a list of Persons.
 func (pq *PersonQuery) All(ctx context.Context) ([]*Person, error) {
+	if err := pq.prepareQuery(ctx); err != nil {
+		return nil, err
+	}
 	return pq.sqlAll(ctx)
 }
 
@@ -250,6 +285,9 @@ func (pq *PersonQuery) IDsX(ctx context.Context) []uuid.UUID {
 
 // Count returns the count of the given query.
 func (pq *PersonQuery) Count(ctx context.Context) (int, error) {
+	if err := pq.prepareQuery(ctx); err != nil {
+		return 0, err
+	}
 	return pq.sqlCount(ctx)
 }
 
@@ -264,6 +302,9 @@ func (pq *PersonQuery) CountX(ctx context.Context) int {
 
 // Exist returns true if the query has elements in the graph.
 func (pq *PersonQuery) Exist(ctx context.Context) (bool, error) {
+	if err := pq.prepareQuery(ctx); err != nil {
+		return false, err
+	}
 	return pq.sqlExist(ctx)
 }
 
@@ -287,7 +328,8 @@ func (pq *PersonQuery) Clone() *PersonQuery {
 		unique:     append([]string{}, pq.unique...),
 		predicates: append([]predicate.Person{}, pq.predicates...),
 		// clone intermediate query.
-		sql: pq.sql.Clone(),
+		sql:  pq.sql.Clone(),
+		path: pq.path,
 	}
 }
 
@@ -364,7 +406,12 @@ func (pq *PersonQuery) WithAdminOf(opts ...func(*DomainQuery)) *PersonQuery {
 func (pq *PersonQuery) GroupBy(field string, fields ...string) *PersonGroupBy {
 	group := &PersonGroupBy{config: pq.config}
 	group.fields = append([]string{field}, fields...)
-	group.sql = pq.sqlQuery()
+	group.path = func(ctx context.Context) (prev *sql.Selector, err error) {
+		if err := pq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		return pq.sqlQuery(), nil
+	}
 	return group
 }
 
@@ -383,8 +430,24 @@ func (pq *PersonQuery) GroupBy(field string, fields ...string) *PersonGroupBy {
 func (pq *PersonQuery) Select(field string, fields ...string) *PersonSelect {
 	selector := &PersonSelect{config: pq.config}
 	selector.fields = append([]string{field}, fields...)
-	selector.sql = pq.sqlQuery()
+	selector.path = func(ctx context.Context) (prev *sql.Selector, err error) {
+		if err := pq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		return pq.sqlQuery(), nil
+	}
 	return selector
+}
+
+func (pq *PersonQuery) prepareQuery(ctx context.Context) error {
+	if pq.path != nil {
+		prev, err := pq.path(ctx)
+		if err != nil {
+			return err
+		}
+		pq.sql = prev
+	}
+	return nil
 }
 
 func (pq *PersonQuery) sqlAll(ctx context.Context) ([]*Person, error) {
@@ -712,8 +775,9 @@ type PersonGroupBy struct {
 	config
 	fields []string
 	fns    []Aggregate
-	// intermediate query.
-	sql *sql.Selector
+	// intermediate query (i.e. traversal path).
+	sql  *sql.Selector
+	path func(context.Context) (*sql.Selector, error)
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
@@ -724,6 +788,11 @@ func (pgb *PersonGroupBy) Aggregate(fns ...Aggregate) *PersonGroupBy {
 
 // Scan applies the group-by query and scan the result into the given value.
 func (pgb *PersonGroupBy) Scan(ctx context.Context, v interface{}) error {
+	query, err := pgb.path(ctx)
+	if err != nil {
+		return err
+	}
+	pgb.sql = query
 	return pgb.sqlScan(ctx, v)
 }
 
@@ -842,12 +911,18 @@ func (pgb *PersonGroupBy) sqlQuery() *sql.Selector {
 type PersonSelect struct {
 	config
 	fields []string
-	// intermediate queries.
-	sql *sql.Selector
+	// intermediate query (i.e. traversal path).
+	sql  *sql.Selector
+	path func(context.Context) (*sql.Selector, error)
 }
 
 // Scan applies the selector query and scan the result into the given value.
 func (ps *PersonSelect) Scan(ctx context.Context, v interface{}) error {
+	query, err := ps.path(ctx)
+	if err != nil {
+		return err
+	}
+	ps.sql = query
 	return ps.sqlScan(ctx, v)
 }
 

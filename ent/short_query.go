@@ -23,8 +23,9 @@ type ShortQuery struct {
 	order      []Order
 	unique     []string
 	predicates []predicate.Short
-	// intermediate query.
-	sql *sql.Selector
+	// intermediate query (i.e. traversal path).
+	sql  *sql.Selector
+	path func(context.Context) (*sql.Selector, error)
 }
 
 // Where adds a new predicate for the builder.
@@ -147,6 +148,9 @@ func (sq *ShortQuery) OnlyXID(ctx context.Context) int {
 
 // All executes the query and returns a list of Shorts.
 func (sq *ShortQuery) All(ctx context.Context) ([]*Short, error) {
+	if err := sq.prepareQuery(ctx); err != nil {
+		return nil, err
+	}
 	return sq.sqlAll(ctx)
 }
 
@@ -179,6 +183,9 @@ func (sq *ShortQuery) IDsX(ctx context.Context) []int {
 
 // Count returns the count of the given query.
 func (sq *ShortQuery) Count(ctx context.Context) (int, error) {
+	if err := sq.prepareQuery(ctx); err != nil {
+		return 0, err
+	}
 	return sq.sqlCount(ctx)
 }
 
@@ -193,6 +200,9 @@ func (sq *ShortQuery) CountX(ctx context.Context) int {
 
 // Exist returns true if the query has elements in the graph.
 func (sq *ShortQuery) Exist(ctx context.Context) (bool, error) {
+	if err := sq.prepareQuery(ctx); err != nil {
+		return false, err
+	}
 	return sq.sqlExist(ctx)
 }
 
@@ -216,7 +226,8 @@ func (sq *ShortQuery) Clone() *ShortQuery {
 		unique:     append([]string{}, sq.unique...),
 		predicates: append([]predicate.Short{}, sq.predicates...),
 		// clone intermediate query.
-		sql: sq.sql.Clone(),
+		sql:  sq.sql.Clone(),
+		path: sq.path,
 	}
 }
 
@@ -238,7 +249,12 @@ func (sq *ShortQuery) Clone() *ShortQuery {
 func (sq *ShortQuery) GroupBy(field string, fields ...string) *ShortGroupBy {
 	group := &ShortGroupBy{config: sq.config}
 	group.fields = append([]string{field}, fields...)
-	group.sql = sq.sqlQuery()
+	group.path = func(ctx context.Context) (prev *sql.Selector, err error) {
+		if err := sq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		return sq.sqlQuery(), nil
+	}
 	return group
 }
 
@@ -257,8 +273,24 @@ func (sq *ShortQuery) GroupBy(field string, fields ...string) *ShortGroupBy {
 func (sq *ShortQuery) Select(field string, fields ...string) *ShortSelect {
 	selector := &ShortSelect{config: sq.config}
 	selector.fields = append([]string{field}, fields...)
-	selector.sql = sq.sqlQuery()
+	selector.path = func(ctx context.Context) (prev *sql.Selector, err error) {
+		if err := sq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		return sq.sqlQuery(), nil
+	}
 	return selector
+}
+
+func (sq *ShortQuery) prepareQuery(ctx context.Context) error {
+	if sq.path != nil {
+		prev, err := sq.path(ctx)
+		if err != nil {
+			return err
+		}
+		sq.sql = prev
+	}
+	return nil
 }
 
 func (sq *ShortQuery) sqlAll(ctx context.Context) ([]*Short, error) {
@@ -367,8 +399,9 @@ type ShortGroupBy struct {
 	config
 	fields []string
 	fns    []Aggregate
-	// intermediate query.
-	sql *sql.Selector
+	// intermediate query (i.e. traversal path).
+	sql  *sql.Selector
+	path func(context.Context) (*sql.Selector, error)
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
@@ -379,6 +412,11 @@ func (sgb *ShortGroupBy) Aggregate(fns ...Aggregate) *ShortGroupBy {
 
 // Scan applies the group-by query and scan the result into the given value.
 func (sgb *ShortGroupBy) Scan(ctx context.Context, v interface{}) error {
+	query, err := sgb.path(ctx)
+	if err != nil {
+		return err
+	}
+	sgb.sql = query
 	return sgb.sqlScan(ctx, v)
 }
 
@@ -497,12 +535,18 @@ func (sgb *ShortGroupBy) sqlQuery() *sql.Selector {
 type ShortSelect struct {
 	config
 	fields []string
-	// intermediate queries.
-	sql *sql.Selector
+	// intermediate query (i.e. traversal path).
+	sql  *sql.Selector
+	path func(context.Context) (*sql.Selector, error)
 }
 
 // Scan applies the selector query and scan the result into the given value.
 func (ss *ShortSelect) Scan(ctx context.Context, v interface{}) error {
+	query, err := ss.path(ctx)
+	if err != nil {
+		return err
+	}
+	ss.sql = query
 	return ss.sqlScan(ctx, v)
 }
 

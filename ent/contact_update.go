@@ -19,15 +19,9 @@ import (
 // ContactUpdate is the builder for updating Contact entities.
 type ContactUpdate struct {
 	config
-	name         *string
-	value        *string
-	kind         *contact.Kind
-	principal    *bool
-	validated    *bool
-	fromAccount  *bool
-	owner        map[uuid.UUID]struct{}
-	clearedOwner bool
-	predicates   []predicate.Contact
+	hooks      []Hook
+	mutation   *ContactMutation
+	predicates []predicate.Contact
 }
 
 // Where adds a new predicate for the builder.
@@ -38,19 +32,19 @@ func (cu *ContactUpdate) Where(ps ...predicate.Contact) *ContactUpdate {
 
 // SetName sets the name field.
 func (cu *ContactUpdate) SetName(s string) *ContactUpdate {
-	cu.name = &s
+	cu.mutation.SetName(s)
 	return cu
 }
 
 // SetValue sets the value field.
 func (cu *ContactUpdate) SetValue(s string) *ContactUpdate {
-	cu.value = &s
+	cu.mutation.SetValue(s)
 	return cu
 }
 
 // SetKind sets the kind field.
 func (cu *ContactUpdate) SetKind(c contact.Kind) *ContactUpdate {
-	cu.kind = &c
+	cu.mutation.SetKind(c)
 	return cu
 }
 
@@ -64,19 +58,19 @@ func (cu *ContactUpdate) SetNillableKind(c *contact.Kind) *ContactUpdate {
 
 // SetPrincipal sets the principal field.
 func (cu *ContactUpdate) SetPrincipal(b bool) *ContactUpdate {
-	cu.principal = &b
+	cu.mutation.SetPrincipal(b)
 	return cu
 }
 
 // SetValidated sets the validated field.
 func (cu *ContactUpdate) SetValidated(b bool) *ContactUpdate {
-	cu.validated = &b
+	cu.mutation.SetValidated(b)
 	return cu
 }
 
 // SetFromAccount sets the fromAccount field.
 func (cu *ContactUpdate) SetFromAccount(b bool) *ContactUpdate {
-	cu.fromAccount = &b
+	cu.mutation.SetFromAccount(b)
 	return cu
 }
 
@@ -90,10 +84,7 @@ func (cu *ContactUpdate) SetNillableFromAccount(b *bool) *ContactUpdate {
 
 // SetOwnerID sets the owner edge to Person by id.
 func (cu *ContactUpdate) SetOwnerID(id uuid.UUID) *ContactUpdate {
-	if cu.owner == nil {
-		cu.owner = make(map[uuid.UUID]struct{})
-	}
-	cu.owner[id] = struct{}{}
+	cu.mutation.SetOwnerID(id)
 	return cu
 }
 
@@ -104,29 +95,50 @@ func (cu *ContactUpdate) SetOwner(p *Person) *ContactUpdate {
 
 // ClearOwner clears the owner edge to Person.
 func (cu *ContactUpdate) ClearOwner() *ContactUpdate {
-	cu.clearedOwner = true
+	cu.mutation.ClearOwner()
 	return cu
 }
 
 // Save executes the query and returns the number of rows/vertices matched by this operation.
 func (cu *ContactUpdate) Save(ctx context.Context) (int, error) {
-	if cu.value != nil {
-		if err := contact.ValueValidator(*cu.value); err != nil {
+	if v, ok := cu.mutation.Value(); ok {
+		if err := contact.ValueValidator(v); err != nil {
 			return 0, fmt.Errorf("ent: validator failed for field \"value\": %v", err)
 		}
 	}
-	if cu.kind != nil {
-		if err := contact.KindValidator(*cu.kind); err != nil {
+	if v, ok := cu.mutation.Kind(); ok {
+		if err := contact.KindValidator(v); err != nil {
 			return 0, fmt.Errorf("ent: validator failed for field \"kind\": %v", err)
 		}
 	}
-	if len(cu.owner) > 1 {
-		return 0, errors.New("ent: multiple assignments on a unique edge \"owner\"")
-	}
-	if cu.clearedOwner && cu.owner == nil {
+
+	if _, ok := cu.mutation.OwnerID(); cu.mutation.OwnerCleared() && !ok {
 		return 0, errors.New("ent: clearing a unique edge \"owner\"")
 	}
-	return cu.sqlSave(ctx)
+	var (
+		err      error
+		affected int
+	)
+	if len(cu.hooks) == 0 {
+		affected, err = cu.sqlSave(ctx)
+	} else {
+		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
+			mutation, ok := m.(*ContactMutation)
+			if !ok {
+				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			cu.mutation = mutation
+			affected, err = cu.sqlSave(ctx)
+			return affected, err
+		})
+		for i := len(cu.hooks) - 1; i >= 0; i-- {
+			mut = cu.hooks[i](mut)
+		}
+		if _, err := mut.Mutate(ctx, cu.mutation); err != nil {
+			return 0, err
+		}
+	}
+	return affected, err
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -169,49 +181,49 @@ func (cu *ContactUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 		}
 	}
-	if value := cu.name; value != nil {
+	if value, ok := cu.mutation.Name(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: contact.FieldName,
 		})
 	}
-	if value := cu.value; value != nil {
+	if value, ok := cu.mutation.Value(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: contact.FieldValue,
 		})
 	}
-	if value := cu.kind; value != nil {
+	if value, ok := cu.mutation.Kind(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeEnum,
-			Value:  *value,
+			Value:  value,
 			Column: contact.FieldKind,
 		})
 	}
-	if value := cu.principal; value != nil {
+	if value, ok := cu.mutation.Principal(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeBool,
-			Value:  *value,
+			Value:  value,
 			Column: contact.FieldPrincipal,
 		})
 	}
-	if value := cu.validated; value != nil {
+	if value, ok := cu.mutation.Validated(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeBool,
-			Value:  *value,
+			Value:  value,
 			Column: contact.FieldValidated,
 		})
 	}
-	if value := cu.fromAccount; value != nil {
+	if value, ok := cu.mutation.FromAccount(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeBool,
-			Value:  *value,
+			Value:  value,
 			Column: contact.FieldFromAccount,
 		})
 	}
-	if cu.clearedOwner {
+	if cu.mutation.OwnerCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -227,7 +239,7 @@ func (cu *ContactUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := cu.owner; len(nodes) > 0 {
+	if nodes := cu.mutation.OwnerIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -241,7 +253,7 @@ func (cu *ContactUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
@@ -260,32 +272,25 @@ func (cu *ContactUpdate) sqlSave(ctx context.Context) (n int, err error) {
 // ContactUpdateOne is the builder for updating a single Contact entity.
 type ContactUpdateOne struct {
 	config
-	id           uuid.UUID
-	name         *string
-	value        *string
-	kind         *contact.Kind
-	principal    *bool
-	validated    *bool
-	fromAccount  *bool
-	owner        map[uuid.UUID]struct{}
-	clearedOwner bool
+	hooks    []Hook
+	mutation *ContactMutation
 }
 
 // SetName sets the name field.
 func (cuo *ContactUpdateOne) SetName(s string) *ContactUpdateOne {
-	cuo.name = &s
+	cuo.mutation.SetName(s)
 	return cuo
 }
 
 // SetValue sets the value field.
 func (cuo *ContactUpdateOne) SetValue(s string) *ContactUpdateOne {
-	cuo.value = &s
+	cuo.mutation.SetValue(s)
 	return cuo
 }
 
 // SetKind sets the kind field.
 func (cuo *ContactUpdateOne) SetKind(c contact.Kind) *ContactUpdateOne {
-	cuo.kind = &c
+	cuo.mutation.SetKind(c)
 	return cuo
 }
 
@@ -299,19 +304,19 @@ func (cuo *ContactUpdateOne) SetNillableKind(c *contact.Kind) *ContactUpdateOne 
 
 // SetPrincipal sets the principal field.
 func (cuo *ContactUpdateOne) SetPrincipal(b bool) *ContactUpdateOne {
-	cuo.principal = &b
+	cuo.mutation.SetPrincipal(b)
 	return cuo
 }
 
 // SetValidated sets the validated field.
 func (cuo *ContactUpdateOne) SetValidated(b bool) *ContactUpdateOne {
-	cuo.validated = &b
+	cuo.mutation.SetValidated(b)
 	return cuo
 }
 
 // SetFromAccount sets the fromAccount field.
 func (cuo *ContactUpdateOne) SetFromAccount(b bool) *ContactUpdateOne {
-	cuo.fromAccount = &b
+	cuo.mutation.SetFromAccount(b)
 	return cuo
 }
 
@@ -325,10 +330,7 @@ func (cuo *ContactUpdateOne) SetNillableFromAccount(b *bool) *ContactUpdateOne {
 
 // SetOwnerID sets the owner edge to Person by id.
 func (cuo *ContactUpdateOne) SetOwnerID(id uuid.UUID) *ContactUpdateOne {
-	if cuo.owner == nil {
-		cuo.owner = make(map[uuid.UUID]struct{})
-	}
-	cuo.owner[id] = struct{}{}
+	cuo.mutation.SetOwnerID(id)
 	return cuo
 }
 
@@ -339,29 +341,50 @@ func (cuo *ContactUpdateOne) SetOwner(p *Person) *ContactUpdateOne {
 
 // ClearOwner clears the owner edge to Person.
 func (cuo *ContactUpdateOne) ClearOwner() *ContactUpdateOne {
-	cuo.clearedOwner = true
+	cuo.mutation.ClearOwner()
 	return cuo
 }
 
 // Save executes the query and returns the updated entity.
 func (cuo *ContactUpdateOne) Save(ctx context.Context) (*Contact, error) {
-	if cuo.value != nil {
-		if err := contact.ValueValidator(*cuo.value); err != nil {
+	if v, ok := cuo.mutation.Value(); ok {
+		if err := contact.ValueValidator(v); err != nil {
 			return nil, fmt.Errorf("ent: validator failed for field \"value\": %v", err)
 		}
 	}
-	if cuo.kind != nil {
-		if err := contact.KindValidator(*cuo.kind); err != nil {
+	if v, ok := cuo.mutation.Kind(); ok {
+		if err := contact.KindValidator(v); err != nil {
 			return nil, fmt.Errorf("ent: validator failed for field \"kind\": %v", err)
 		}
 	}
-	if len(cuo.owner) > 1 {
-		return nil, errors.New("ent: multiple assignments on a unique edge \"owner\"")
-	}
-	if cuo.clearedOwner && cuo.owner == nil {
+
+	if _, ok := cuo.mutation.OwnerID(); cuo.mutation.OwnerCleared() && !ok {
 		return nil, errors.New("ent: clearing a unique edge \"owner\"")
 	}
-	return cuo.sqlSave(ctx)
+	var (
+		err  error
+		node *Contact
+	)
+	if len(cuo.hooks) == 0 {
+		node, err = cuo.sqlSave(ctx)
+	} else {
+		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
+			mutation, ok := m.(*ContactMutation)
+			if !ok {
+				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			cuo.mutation = mutation
+			node, err = cuo.sqlSave(ctx)
+			return node, err
+		})
+		for i := len(cuo.hooks) - 1; i >= 0; i-- {
+			mut = cuo.hooks[i](mut)
+		}
+		if _, err := mut.Mutate(ctx, cuo.mutation); err != nil {
+			return nil, err
+		}
+	}
+	return node, err
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -392,55 +415,59 @@ func (cuo *ContactUpdateOne) sqlSave(ctx context.Context) (c *Contact, err error
 			Table:   contact.Table,
 			Columns: contact.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Value:  cuo.id,
 				Type:   field.TypeUUID,
 				Column: contact.FieldID,
 			},
 		},
 	}
-	if value := cuo.name; value != nil {
+	id, ok := cuo.mutation.ID()
+	if !ok {
+		return nil, fmt.Errorf("missing Contact.ID for update")
+	}
+	_spec.Node.ID.Value = id
+	if value, ok := cuo.mutation.Name(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: contact.FieldName,
 		})
 	}
-	if value := cuo.value; value != nil {
+	if value, ok := cuo.mutation.Value(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: contact.FieldValue,
 		})
 	}
-	if value := cuo.kind; value != nil {
+	if value, ok := cuo.mutation.Kind(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeEnum,
-			Value:  *value,
+			Value:  value,
 			Column: contact.FieldKind,
 		})
 	}
-	if value := cuo.principal; value != nil {
+	if value, ok := cuo.mutation.Principal(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeBool,
-			Value:  *value,
+			Value:  value,
 			Column: contact.FieldPrincipal,
 		})
 	}
-	if value := cuo.validated; value != nil {
+	if value, ok := cuo.mutation.Validated(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeBool,
-			Value:  *value,
+			Value:  value,
 			Column: contact.FieldValidated,
 		})
 	}
-	if value := cuo.fromAccount; value != nil {
+	if value, ok := cuo.mutation.FromAccount(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeBool,
-			Value:  *value,
+			Value:  value,
 			Column: contact.FieldFromAccount,
 		})
 	}
-	if cuo.clearedOwner {
+	if cuo.mutation.OwnerCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -456,7 +483,7 @@ func (cuo *ContactUpdateOne) sqlSave(ctx context.Context) (c *Contact, err error
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := cuo.owner; len(nodes) > 0 {
+	if nodes := cuo.mutation.OwnerIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -470,7 +497,7 @@ func (cuo *ContactUpdateOne) sqlSave(ctx context.Context) (c *Contact, err error
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)

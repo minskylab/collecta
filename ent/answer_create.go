@@ -5,6 +5,7 @@ package ent
 import (
 	"context"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -17,16 +18,13 @@ import (
 // AnswerCreate is the builder for creating a Answer entity.
 type AnswerCreate struct {
 	config
-	id        *uuid.UUID
-	at        *time.Time
-	responses *[]string
-	valid     *bool
-	question  map[uuid.UUID]struct{}
+	mutation *AnswerMutation
+	hooks    []Hook
 }
 
 // SetAt sets the at field.
 func (ac *AnswerCreate) SetAt(t time.Time) *AnswerCreate {
-	ac.at = &t
+	ac.mutation.SetAt(t)
 	return ac
 }
 
@@ -40,13 +38,13 @@ func (ac *AnswerCreate) SetNillableAt(t *time.Time) *AnswerCreate {
 
 // SetResponses sets the responses field.
 func (ac *AnswerCreate) SetResponses(s []string) *AnswerCreate {
-	ac.responses = &s
+	ac.mutation.SetResponses(s)
 	return ac
 }
 
 // SetValid sets the valid field.
 func (ac *AnswerCreate) SetValid(b bool) *AnswerCreate {
-	ac.valid = &b
+	ac.mutation.SetValid(b)
 	return ac
 }
 
@@ -60,16 +58,13 @@ func (ac *AnswerCreate) SetNillableValid(b *bool) *AnswerCreate {
 
 // SetID sets the id field.
 func (ac *AnswerCreate) SetID(u uuid.UUID) *AnswerCreate {
-	ac.id = &u
+	ac.mutation.SetID(u)
 	return ac
 }
 
 // SetQuestionID sets the question edge to Question by id.
 func (ac *AnswerCreate) SetQuestionID(id uuid.UUID) *AnswerCreate {
-	if ac.question == nil {
-		ac.question = make(map[uuid.UUID]struct{})
-	}
-	ac.question[id] = struct{}{}
+	ac.mutation.SetQuestionID(id)
 	return ac
 }
 
@@ -80,20 +75,40 @@ func (ac *AnswerCreate) SetQuestion(q *Question) *AnswerCreate {
 
 // Save creates the Answer in the database.
 func (ac *AnswerCreate) Save(ctx context.Context) (*Answer, error) {
-	if ac.at == nil {
+	if _, ok := ac.mutation.At(); !ok {
 		v := answer.DefaultAt()
-		ac.at = &v
+		ac.mutation.SetAt(v)
 	}
-	if ac.responses == nil {
+	if _, ok := ac.mutation.Responses(); !ok {
 		return nil, errors.New("ent: missing required field \"responses\"")
 	}
-	if len(ac.question) > 1 {
-		return nil, errors.New("ent: multiple assignments on a unique edge \"question\"")
-	}
-	if ac.question == nil {
+	if _, ok := ac.mutation.QuestionID(); !ok {
 		return nil, errors.New("ent: missing required edge \"question\"")
 	}
-	return ac.sqlSave(ctx)
+	var (
+		err  error
+		node *Answer
+	)
+	if len(ac.hooks) == 0 {
+		node, err = ac.sqlSave(ctx)
+	} else {
+		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
+			mutation, ok := m.(*AnswerMutation)
+			if !ok {
+				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			ac.mutation = mutation
+			node, err = ac.sqlSave(ctx)
+			return node, err
+		})
+		for i := len(ac.hooks) - 1; i >= 0; i-- {
+			mut = ac.hooks[i](mut)
+		}
+		if _, err := mut.Mutate(ctx, ac.mutation); err != nil {
+			return nil, err
+		}
+	}
+	return node, err
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -116,35 +131,35 @@ func (ac *AnswerCreate) sqlSave(ctx context.Context) (*Answer, error) {
 			},
 		}
 	)
-	if value := ac.id; value != nil {
-		a.ID = *value
-		_spec.ID.Value = *value
+	if id, ok := ac.mutation.ID(); ok {
+		a.ID = id
+		_spec.ID.Value = id
 	}
-	if value := ac.at; value != nil {
+	if value, ok := ac.mutation.At(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  *value,
+			Value:  value,
 			Column: answer.FieldAt,
 		})
-		a.At = *value
+		a.At = value
 	}
-	if value := ac.responses; value != nil {
+	if value, ok := ac.mutation.Responses(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeJSON,
-			Value:  *value,
+			Value:  value,
 			Column: answer.FieldResponses,
 		})
-		a.Responses = *value
+		a.Responses = value
 	}
-	if value := ac.valid; value != nil {
+	if value, ok := ac.mutation.Valid(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeBool,
-			Value:  *value,
+			Value:  value,
 			Column: answer.FieldValid,
 		})
-		a.Valid = *value
+		a.Valid = value
 	}
-	if nodes := ac.question; len(nodes) > 0 {
+	if nodes := ac.mutation.QuestionIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -158,7 +173,7 @@ func (ac *AnswerCreate) sqlSave(ctx context.Context) (*Answer, error) {
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)

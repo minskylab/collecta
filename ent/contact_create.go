@@ -17,31 +17,25 @@ import (
 // ContactCreate is the builder for creating a Contact entity.
 type ContactCreate struct {
 	config
-	id          *uuid.UUID
-	name        *string
-	value       *string
-	kind        *contact.Kind
-	principal   *bool
-	validated   *bool
-	fromAccount *bool
-	owner       map[uuid.UUID]struct{}
+	mutation *ContactMutation
+	hooks    []Hook
 }
 
 // SetName sets the name field.
 func (cc *ContactCreate) SetName(s string) *ContactCreate {
-	cc.name = &s
+	cc.mutation.SetName(s)
 	return cc
 }
 
 // SetValue sets the value field.
 func (cc *ContactCreate) SetValue(s string) *ContactCreate {
-	cc.value = &s
+	cc.mutation.SetValue(s)
 	return cc
 }
 
 // SetKind sets the kind field.
 func (cc *ContactCreate) SetKind(c contact.Kind) *ContactCreate {
-	cc.kind = &c
+	cc.mutation.SetKind(c)
 	return cc
 }
 
@@ -55,19 +49,19 @@ func (cc *ContactCreate) SetNillableKind(c *contact.Kind) *ContactCreate {
 
 // SetPrincipal sets the principal field.
 func (cc *ContactCreate) SetPrincipal(b bool) *ContactCreate {
-	cc.principal = &b
+	cc.mutation.SetPrincipal(b)
 	return cc
 }
 
 // SetValidated sets the validated field.
 func (cc *ContactCreate) SetValidated(b bool) *ContactCreate {
-	cc.validated = &b
+	cc.mutation.SetValidated(b)
 	return cc
 }
 
 // SetFromAccount sets the fromAccount field.
 func (cc *ContactCreate) SetFromAccount(b bool) *ContactCreate {
-	cc.fromAccount = &b
+	cc.mutation.SetFromAccount(b)
 	return cc
 }
 
@@ -81,16 +75,13 @@ func (cc *ContactCreate) SetNillableFromAccount(b *bool) *ContactCreate {
 
 // SetID sets the id field.
 func (cc *ContactCreate) SetID(u uuid.UUID) *ContactCreate {
-	cc.id = &u
+	cc.mutation.SetID(u)
 	return cc
 }
 
 // SetOwnerID sets the owner edge to Person by id.
 func (cc *ContactCreate) SetOwnerID(id uuid.UUID) *ContactCreate {
-	if cc.owner == nil {
-		cc.owner = make(map[uuid.UUID]struct{})
-	}
-	cc.owner[id] = struct{}{}
+	cc.mutation.SetOwnerID(id)
 	return cc
 }
 
@@ -101,39 +92,63 @@ func (cc *ContactCreate) SetOwner(p *Person) *ContactCreate {
 
 // Save creates the Contact in the database.
 func (cc *ContactCreate) Save(ctx context.Context) (*Contact, error) {
-	if cc.name == nil {
+	if _, ok := cc.mutation.Name(); !ok {
 		return nil, errors.New("ent: missing required field \"name\"")
 	}
-	if cc.value == nil {
+	if _, ok := cc.mutation.Value(); !ok {
 		return nil, errors.New("ent: missing required field \"value\"")
 	}
-	if err := contact.ValueValidator(*cc.value); err != nil {
-		return nil, fmt.Errorf("ent: validator failed for field \"value\": %v", err)
+	if v, ok := cc.mutation.Value(); ok {
+		if err := contact.ValueValidator(v); err != nil {
+			return nil, fmt.Errorf("ent: validator failed for field \"value\": %v", err)
+		}
 	}
-	if cc.kind == nil {
+	if _, ok := cc.mutation.Kind(); !ok {
 		v := contact.DefaultKind
-		cc.kind = &v
+		cc.mutation.SetKind(v)
 	}
-	if err := contact.KindValidator(*cc.kind); err != nil {
-		return nil, fmt.Errorf("ent: validator failed for field \"kind\": %v", err)
+	if v, ok := cc.mutation.Kind(); ok {
+		if err := contact.KindValidator(v); err != nil {
+			return nil, fmt.Errorf("ent: validator failed for field \"kind\": %v", err)
+		}
 	}
-	if cc.principal == nil {
+	if _, ok := cc.mutation.Principal(); !ok {
 		return nil, errors.New("ent: missing required field \"principal\"")
 	}
-	if cc.validated == nil {
+	if _, ok := cc.mutation.Validated(); !ok {
 		return nil, errors.New("ent: missing required field \"validated\"")
 	}
-	if cc.fromAccount == nil {
+	if _, ok := cc.mutation.FromAccount(); !ok {
 		v := contact.DefaultFromAccount
-		cc.fromAccount = &v
+		cc.mutation.SetFromAccount(v)
 	}
-	if len(cc.owner) > 1 {
-		return nil, errors.New("ent: multiple assignments on a unique edge \"owner\"")
-	}
-	if cc.owner == nil {
+	if _, ok := cc.mutation.OwnerID(); !ok {
 		return nil, errors.New("ent: missing required edge \"owner\"")
 	}
-	return cc.sqlSave(ctx)
+	var (
+		err  error
+		node *Contact
+	)
+	if len(cc.hooks) == 0 {
+		node, err = cc.sqlSave(ctx)
+	} else {
+		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
+			mutation, ok := m.(*ContactMutation)
+			if !ok {
+				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			cc.mutation = mutation
+			node, err = cc.sqlSave(ctx)
+			return node, err
+		})
+		for i := len(cc.hooks) - 1; i >= 0; i-- {
+			mut = cc.hooks[i](mut)
+		}
+		if _, err := mut.Mutate(ctx, cc.mutation); err != nil {
+			return nil, err
+		}
+	}
+	return node, err
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -156,59 +171,59 @@ func (cc *ContactCreate) sqlSave(ctx context.Context) (*Contact, error) {
 			},
 		}
 	)
-	if value := cc.id; value != nil {
-		c.ID = *value
-		_spec.ID.Value = *value
+	if id, ok := cc.mutation.ID(); ok {
+		c.ID = id
+		_spec.ID.Value = id
 	}
-	if value := cc.name; value != nil {
+	if value, ok := cc.mutation.Name(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: contact.FieldName,
 		})
-		c.Name = *value
+		c.Name = value
 	}
-	if value := cc.value; value != nil {
+	if value, ok := cc.mutation.Value(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: contact.FieldValue,
 		})
-		c.Value = *value
+		c.Value = value
 	}
-	if value := cc.kind; value != nil {
+	if value, ok := cc.mutation.Kind(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeEnum,
-			Value:  *value,
+			Value:  value,
 			Column: contact.FieldKind,
 		})
-		c.Kind = *value
+		c.Kind = value
 	}
-	if value := cc.principal; value != nil {
+	if value, ok := cc.mutation.Principal(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeBool,
-			Value:  *value,
+			Value:  value,
 			Column: contact.FieldPrincipal,
 		})
-		c.Principal = *value
+		c.Principal = value
 	}
-	if value := cc.validated; value != nil {
+	if value, ok := cc.mutation.Validated(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeBool,
-			Value:  *value,
+			Value:  value,
 			Column: contact.FieldValidated,
 		})
-		c.Validated = *value
+		c.Validated = value
 	}
-	if value := cc.fromAccount; value != nil {
+	if value, ok := cc.mutation.FromAccount(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeBool,
-			Value:  *value,
+			Value:  value,
 			Column: contact.FieldFromAccount,
 		})
-		c.FromAccount = *value
+		c.FromAccount = value
 	}
-	if nodes := cc.owner; len(nodes) > 0 {
+	if nodes := cc.mutation.OwnerIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -222,7 +237,7 @@ func (cc *ContactCreate) sqlSave(ctx context.Context) (*Contact, error) {
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)

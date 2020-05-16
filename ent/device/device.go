@@ -6,8 +6,7 @@ const (
 	// Label holds the string label denoting the device type in the database.
 	Label = "device"
 	// FieldID holds the string denoting the id field in the database.
-	FieldID = "id"
-	// FieldDevice holds the string denoting the device vertex property in the database.
+	FieldID     = "id" // FieldDevice holds the string denoting the device vertex property in the database.
 	FieldDevice = "device"
 
 	// Table holds the table name of the device in the database.

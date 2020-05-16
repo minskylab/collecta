@@ -9,6 +9,6 @@ type Survey {
     done: Boolean
     isPublic: Boolean
     flow: Flow
-    for: User
+    for: Person
     owner: Domain!
 }

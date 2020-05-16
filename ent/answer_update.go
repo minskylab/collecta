@@ -5,6 +5,7 @@ package ent
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -18,12 +19,9 @@ import (
 // AnswerUpdate is the builder for updating Answer entities.
 type AnswerUpdate struct {
 	config
-
-	valid           *bool
-	clearvalid      bool
-	question        map[uuid.UUID]struct{}
-	clearedQuestion bool
-	predicates      []predicate.Answer
+	hooks      []Hook
+	mutation   *AnswerMutation
+	predicates []predicate.Answer
 }
 
 // Where adds a new predicate for the builder.
@@ -34,7 +32,7 @@ func (au *AnswerUpdate) Where(ps ...predicate.Answer) *AnswerUpdate {
 
 // SetValid sets the valid field.
 func (au *AnswerUpdate) SetValid(b bool) *AnswerUpdate {
-	au.valid = &b
+	au.mutation.SetValid(b)
 	return au
 }
 
@@ -48,17 +46,13 @@ func (au *AnswerUpdate) SetNillableValid(b *bool) *AnswerUpdate {
 
 // ClearValid clears the value of valid.
 func (au *AnswerUpdate) ClearValid() *AnswerUpdate {
-	au.valid = nil
-	au.clearvalid = true
+	au.mutation.ClearValid()
 	return au
 }
 
 // SetQuestionID sets the question edge to Question by id.
 func (au *AnswerUpdate) SetQuestionID(id uuid.UUID) *AnswerUpdate {
-	if au.question == nil {
-		au.question = make(map[uuid.UUID]struct{})
-	}
-	au.question[id] = struct{}{}
+	au.mutation.SetQuestionID(id)
 	return au
 }
 
@@ -69,19 +63,40 @@ func (au *AnswerUpdate) SetQuestion(q *Question) *AnswerUpdate {
 
 // ClearQuestion clears the question edge to Question.
 func (au *AnswerUpdate) ClearQuestion() *AnswerUpdate {
-	au.clearedQuestion = true
+	au.mutation.ClearQuestion()
 	return au
 }
 
 // Save executes the query and returns the number of rows/vertices matched by this operation.
 func (au *AnswerUpdate) Save(ctx context.Context) (int, error) {
-	if len(au.question) > 1 {
-		return 0, errors.New("ent: multiple assignments on a unique edge \"question\"")
-	}
-	if au.clearedQuestion && au.question == nil {
+
+	if _, ok := au.mutation.QuestionID(); au.mutation.QuestionCleared() && !ok {
 		return 0, errors.New("ent: clearing a unique edge \"question\"")
 	}
-	return au.sqlSave(ctx)
+	var (
+		err      error
+		affected int
+	)
+	if len(au.hooks) == 0 {
+		affected, err = au.sqlSave(ctx)
+	} else {
+		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
+			mutation, ok := m.(*AnswerMutation)
+			if !ok {
+				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			au.mutation = mutation
+			affected, err = au.sqlSave(ctx)
+			return affected, err
+		})
+		for i := len(au.hooks) - 1; i >= 0; i-- {
+			mut = au.hooks[i](mut)
+		}
+		if _, err := mut.Mutate(ctx, au.mutation); err != nil {
+			return 0, err
+		}
+	}
+	return affected, err
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -124,20 +139,20 @@ func (au *AnswerUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 		}
 	}
-	if value := au.valid; value != nil {
+	if value, ok := au.mutation.Valid(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeBool,
-			Value:  *value,
+			Value:  value,
 			Column: answer.FieldValid,
 		})
 	}
-	if au.clearvalid {
+	if au.mutation.ValidCleared() {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeBool,
 			Column: answer.FieldValid,
 		})
 	}
-	if au.clearedQuestion {
+	if au.mutation.QuestionCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -153,7 +168,7 @@ func (au *AnswerUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := au.question; len(nodes) > 0 {
+	if nodes := au.mutation.QuestionIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -167,7 +182,7 @@ func (au *AnswerUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
@@ -186,17 +201,13 @@ func (au *AnswerUpdate) sqlSave(ctx context.Context) (n int, err error) {
 // AnswerUpdateOne is the builder for updating a single Answer entity.
 type AnswerUpdateOne struct {
 	config
-	id uuid.UUID
-
-	valid           *bool
-	clearvalid      bool
-	question        map[uuid.UUID]struct{}
-	clearedQuestion bool
+	hooks    []Hook
+	mutation *AnswerMutation
 }
 
 // SetValid sets the valid field.
 func (auo *AnswerUpdateOne) SetValid(b bool) *AnswerUpdateOne {
-	auo.valid = &b
+	auo.mutation.SetValid(b)
 	return auo
 }
 
@@ -210,17 +221,13 @@ func (auo *AnswerUpdateOne) SetNillableValid(b *bool) *AnswerUpdateOne {
 
 // ClearValid clears the value of valid.
 func (auo *AnswerUpdateOne) ClearValid() *AnswerUpdateOne {
-	auo.valid = nil
-	auo.clearvalid = true
+	auo.mutation.ClearValid()
 	return auo
 }
 
 // SetQuestionID sets the question edge to Question by id.
 func (auo *AnswerUpdateOne) SetQuestionID(id uuid.UUID) *AnswerUpdateOne {
-	if auo.question == nil {
-		auo.question = make(map[uuid.UUID]struct{})
-	}
-	auo.question[id] = struct{}{}
+	auo.mutation.SetQuestionID(id)
 	return auo
 }
 
@@ -231,19 +238,40 @@ func (auo *AnswerUpdateOne) SetQuestion(q *Question) *AnswerUpdateOne {
 
 // ClearQuestion clears the question edge to Question.
 func (auo *AnswerUpdateOne) ClearQuestion() *AnswerUpdateOne {
-	auo.clearedQuestion = true
+	auo.mutation.ClearQuestion()
 	return auo
 }
 
 // Save executes the query and returns the updated entity.
 func (auo *AnswerUpdateOne) Save(ctx context.Context) (*Answer, error) {
-	if len(auo.question) > 1 {
-		return nil, errors.New("ent: multiple assignments on a unique edge \"question\"")
-	}
-	if auo.clearedQuestion && auo.question == nil {
+
+	if _, ok := auo.mutation.QuestionID(); auo.mutation.QuestionCleared() && !ok {
 		return nil, errors.New("ent: clearing a unique edge \"question\"")
 	}
-	return auo.sqlSave(ctx)
+	var (
+		err  error
+		node *Answer
+	)
+	if len(auo.hooks) == 0 {
+		node, err = auo.sqlSave(ctx)
+	} else {
+		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
+			mutation, ok := m.(*AnswerMutation)
+			if !ok {
+				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			auo.mutation = mutation
+			node, err = auo.sqlSave(ctx)
+			return node, err
+		})
+		for i := len(auo.hooks) - 1; i >= 0; i-- {
+			mut = auo.hooks[i](mut)
+		}
+		if _, err := mut.Mutate(ctx, auo.mutation); err != nil {
+			return nil, err
+		}
+	}
+	return node, err
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -274,26 +302,30 @@ func (auo *AnswerUpdateOne) sqlSave(ctx context.Context) (a *Answer, err error) 
 			Table:   answer.Table,
 			Columns: answer.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Value:  auo.id,
 				Type:   field.TypeUUID,
 				Column: answer.FieldID,
 			},
 		},
 	}
-	if value := auo.valid; value != nil {
+	id, ok := auo.mutation.ID()
+	if !ok {
+		return nil, fmt.Errorf("missing Answer.ID for update")
+	}
+	_spec.Node.ID.Value = id
+	if value, ok := auo.mutation.Valid(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeBool,
-			Value:  *value,
+			Value:  value,
 			Column: answer.FieldValid,
 		})
 	}
-	if auo.clearvalid {
+	if auo.mutation.ValidCleared() {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeBool,
 			Column: answer.FieldValid,
 		})
 	}
-	if auo.clearedQuestion {
+	if auo.mutation.QuestionCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -309,7 +341,7 @@ func (auo *AnswerUpdateOne) sqlSave(ctx context.Context) (a *Answer, err error) 
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := auo.question; len(nodes) > 0 {
+	if nodes := auo.mutation.QuestionIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -323,7 +355,7 @@ func (auo *AnswerUpdateOne) sqlSave(ctx context.Context) (a *Answer, err error) 
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)

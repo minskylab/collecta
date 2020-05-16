@@ -16,8 +16,8 @@ func DomainToGQL(e *ent.Domain) *model.Domain {
 	}
 }
 
-func PersonToGQL(e *ent.Person) *model.User {
-	return &model.User{
+func PersonToGQL(e *ent.Person) *model.Person {
+	return &model.Person{
 		ID:           e.ID.String(),
 		Name:         e.Name,
 		Username:     &e.Username,

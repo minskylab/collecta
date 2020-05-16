@@ -17,35 +17,31 @@ import (
 // AccountCreate is the builder for creating a Account entity.
 type AccountCreate struct {
 	config
-	id       *uuid.UUID
-	_type    *account.Type
-	sub      *string
-	remoteID *string
-	secret   *string
-	owner    map[uuid.UUID]struct{}
+	mutation *AccountMutation
+	hooks    []Hook
 }
 
 // SetType sets the type field.
 func (ac *AccountCreate) SetType(a account.Type) *AccountCreate {
-	ac._type = &a
+	ac.mutation.SetType(a)
 	return ac
 }
 
 // SetSub sets the sub field.
 func (ac *AccountCreate) SetSub(s string) *AccountCreate {
-	ac.sub = &s
+	ac.mutation.SetSub(s)
 	return ac
 }
 
 // SetRemoteID sets the remoteID field.
 func (ac *AccountCreate) SetRemoteID(s string) *AccountCreate {
-	ac.remoteID = &s
+	ac.mutation.SetRemoteID(s)
 	return ac
 }
 
 // SetSecret sets the secret field.
 func (ac *AccountCreate) SetSecret(s string) *AccountCreate {
-	ac.secret = &s
+	ac.mutation.SetSecret(s)
 	return ac
 }
 
@@ -59,16 +55,13 @@ func (ac *AccountCreate) SetNillableSecret(s *string) *AccountCreate {
 
 // SetID sets the id field.
 func (ac *AccountCreate) SetID(u uuid.UUID) *AccountCreate {
-	ac.id = &u
+	ac.mutation.SetID(u)
 	return ac
 }
 
 // SetOwnerID sets the owner edge to Person by id.
 func (ac *AccountCreate) SetOwnerID(id uuid.UUID) *AccountCreate {
-	if ac.owner == nil {
-		ac.owner = make(map[uuid.UUID]struct{})
-	}
-	ac.owner[id] = struct{}{}
+	ac.mutation.SetOwnerID(id)
 	return ac
 }
 
@@ -87,25 +80,49 @@ func (ac *AccountCreate) SetOwner(p *Person) *AccountCreate {
 
 // Save creates the Account in the database.
 func (ac *AccountCreate) Save(ctx context.Context) (*Account, error) {
-	if ac._type == nil {
+	if _, ok := ac.mutation.GetType(); !ok {
 		return nil, errors.New("ent: missing required field \"type\"")
 	}
-	if err := account.TypeValidator(*ac._type); err != nil {
-		return nil, fmt.Errorf("ent: validator failed for field \"type\": %v", err)
+	if v, ok := ac.mutation.GetType(); ok {
+		if err := account.TypeValidator(v); err != nil {
+			return nil, fmt.Errorf("ent: validator failed for field \"type\": %v", err)
+		}
 	}
-	if ac.sub == nil {
+	if _, ok := ac.mutation.Sub(); !ok {
 		return nil, errors.New("ent: missing required field \"sub\"")
 	}
-	if err := account.SubValidator(*ac.sub); err != nil {
-		return nil, fmt.Errorf("ent: validator failed for field \"sub\": %v", err)
+	if v, ok := ac.mutation.Sub(); ok {
+		if err := account.SubValidator(v); err != nil {
+			return nil, fmt.Errorf("ent: validator failed for field \"sub\": %v", err)
+		}
 	}
-	if ac.remoteID == nil {
+	if _, ok := ac.mutation.RemoteID(); !ok {
 		return nil, errors.New("ent: missing required field \"remoteID\"")
 	}
-	if len(ac.owner) > 1 {
-		return nil, errors.New("ent: multiple assignments on a unique edge \"owner\"")
+	var (
+		err  error
+		node *Account
+	)
+	if len(ac.hooks) == 0 {
+		node, err = ac.sqlSave(ctx)
+	} else {
+		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
+			mutation, ok := m.(*AccountMutation)
+			if !ok {
+				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			ac.mutation = mutation
+			node, err = ac.sqlSave(ctx)
+			return node, err
+		})
+		for i := len(ac.hooks) - 1; i >= 0; i-- {
+			mut = ac.hooks[i](mut)
+		}
+		if _, err := mut.Mutate(ctx, ac.mutation); err != nil {
+			return nil, err
+		}
 	}
-	return ac.sqlSave(ctx)
+	return node, err
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -128,43 +145,43 @@ func (ac *AccountCreate) sqlSave(ctx context.Context) (*Account, error) {
 			},
 		}
 	)
-	if value := ac.id; value != nil {
-		a.ID = *value
-		_spec.ID.Value = *value
+	if id, ok := ac.mutation.ID(); ok {
+		a.ID = id
+		_spec.ID.Value = id
 	}
-	if value := ac._type; value != nil {
+	if value, ok := ac.mutation.GetType(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeEnum,
-			Value:  *value,
+			Value:  value,
 			Column: account.FieldType,
 		})
-		a.Type = *value
+		a.Type = value
 	}
-	if value := ac.sub; value != nil {
+	if value, ok := ac.mutation.Sub(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: account.FieldSub,
 		})
-		a.Sub = *value
+		a.Sub = value
 	}
-	if value := ac.remoteID; value != nil {
+	if value, ok := ac.mutation.RemoteID(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: account.FieldRemoteID,
 		})
-		a.RemoteID = *value
+		a.RemoteID = value
 	}
-	if value := ac.secret; value != nil {
+	if value, ok := ac.mutation.Secret(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: account.FieldSecret,
 		})
-		a.Secret = *value
+		a.Secret = value
 	}
-	if nodes := ac.owner; len(nodes) > 0 {
+	if nodes := ac.mutation.OwnerIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -178,7 +195,7 @@ func (ac *AccountCreate) sqlSave(ctx context.Context) (*Account, error) {
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)

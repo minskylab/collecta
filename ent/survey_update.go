@@ -22,25 +22,9 @@ import (
 // SurveyUpdate is the builder for updating Survey entities.
 type SurveyUpdate struct {
 	config
-	tags            *[]string
-	lastInteraction *time.Time
-
-	title            *string
-	description      *string
-	cleardescription bool
-	metadata         *map[string]string
-	clearmetadata    bool
-	done             *bool
-	cleardone        bool
-	isPublic         *bool
-	clearisPublic    bool
-	flow             map[uuid.UUID]struct{}
-	_for             map[uuid.UUID]struct{}
-	owner            map[uuid.UUID]struct{}
-	clearedFlow      bool
-	clearedFor       bool
-	clearedOwner     bool
-	predicates       []predicate.Survey
+	hooks      []Hook
+	mutation   *SurveyMutation
+	predicates []predicate.Survey
 }
 
 // Where adds a new predicate for the builder.
@@ -51,25 +35,25 @@ func (su *SurveyUpdate) Where(ps ...predicate.Survey) *SurveyUpdate {
 
 // SetTags sets the tags field.
 func (su *SurveyUpdate) SetTags(s []string) *SurveyUpdate {
-	su.tags = &s
+	su.mutation.SetTags(s)
 	return su
 }
 
 // SetLastInteraction sets the lastInteraction field.
 func (su *SurveyUpdate) SetLastInteraction(t time.Time) *SurveyUpdate {
-	su.lastInteraction = &t
+	su.mutation.SetLastInteraction(t)
 	return su
 }
 
 // SetTitle sets the title field.
 func (su *SurveyUpdate) SetTitle(s string) *SurveyUpdate {
-	su.title = &s
+	su.mutation.SetTitle(s)
 	return su
 }
 
 // SetDescription sets the description field.
 func (su *SurveyUpdate) SetDescription(s string) *SurveyUpdate {
-	su.description = &s
+	su.mutation.SetDescription(s)
 	return su
 }
 
@@ -83,27 +67,25 @@ func (su *SurveyUpdate) SetNillableDescription(s *string) *SurveyUpdate {
 
 // ClearDescription clears the value of description.
 func (su *SurveyUpdate) ClearDescription() *SurveyUpdate {
-	su.description = nil
-	su.cleardescription = true
+	su.mutation.ClearDescription()
 	return su
 }
 
 // SetMetadata sets the metadata field.
 func (su *SurveyUpdate) SetMetadata(m map[string]string) *SurveyUpdate {
-	su.metadata = &m
+	su.mutation.SetMetadata(m)
 	return su
 }
 
 // ClearMetadata clears the value of metadata.
 func (su *SurveyUpdate) ClearMetadata() *SurveyUpdate {
-	su.metadata = nil
-	su.clearmetadata = true
+	su.mutation.ClearMetadata()
 	return su
 }
 
 // SetDone sets the done field.
 func (su *SurveyUpdate) SetDone(b bool) *SurveyUpdate {
-	su.done = &b
+	su.mutation.SetDone(b)
 	return su
 }
 
@@ -117,14 +99,13 @@ func (su *SurveyUpdate) SetNillableDone(b *bool) *SurveyUpdate {
 
 // ClearDone clears the value of done.
 func (su *SurveyUpdate) ClearDone() *SurveyUpdate {
-	su.done = nil
-	su.cleardone = true
+	su.mutation.ClearDone()
 	return su
 }
 
 // SetIsPublic sets the isPublic field.
 func (su *SurveyUpdate) SetIsPublic(b bool) *SurveyUpdate {
-	su.isPublic = &b
+	su.mutation.SetIsPublic(b)
 	return su
 }
 
@@ -138,17 +119,13 @@ func (su *SurveyUpdate) SetNillableIsPublic(b *bool) *SurveyUpdate {
 
 // ClearIsPublic clears the value of isPublic.
 func (su *SurveyUpdate) ClearIsPublic() *SurveyUpdate {
-	su.isPublic = nil
-	su.clearisPublic = true
+	su.mutation.ClearIsPublic()
 	return su
 }
 
 // SetFlowID sets the flow edge to Flow by id.
 func (su *SurveyUpdate) SetFlowID(id uuid.UUID) *SurveyUpdate {
-	if su.flow == nil {
-		su.flow = make(map[uuid.UUID]struct{})
-	}
-	su.flow[id] = struct{}{}
+	su.mutation.SetFlowID(id)
 	return su
 }
 
@@ -159,10 +136,7 @@ func (su *SurveyUpdate) SetFlow(f *Flow) *SurveyUpdate {
 
 // SetForID sets the for edge to Person by id.
 func (su *SurveyUpdate) SetForID(id uuid.UUID) *SurveyUpdate {
-	if su._for == nil {
-		su._for = make(map[uuid.UUID]struct{})
-	}
-	su._for[id] = struct{}{}
+	su.mutation.SetForID(id)
 	return su
 }
 
@@ -173,10 +147,7 @@ func (su *SurveyUpdate) SetFor(p *Person) *SurveyUpdate {
 
 // SetOwnerID sets the owner edge to Domain by id.
 func (su *SurveyUpdate) SetOwnerID(id uuid.UUID) *SurveyUpdate {
-	if su.owner == nil {
-		su.owner = make(map[uuid.UUID]struct{})
-	}
-	su.owner[id] = struct{}{}
+	su.mutation.SetOwnerID(id)
 	return su
 }
 
@@ -195,45 +166,62 @@ func (su *SurveyUpdate) SetOwner(d *Domain) *SurveyUpdate {
 
 // ClearFlow clears the flow edge to Flow.
 func (su *SurveyUpdate) ClearFlow() *SurveyUpdate {
-	su.clearedFlow = true
+	su.mutation.ClearFlow()
 	return su
 }
 
 // ClearFor clears the for edge to Person.
 func (su *SurveyUpdate) ClearFor() *SurveyUpdate {
-	su.clearedFor = true
+	su.mutation.ClearFor()
 	return su
 }
 
 // ClearOwner clears the owner edge to Domain.
 func (su *SurveyUpdate) ClearOwner() *SurveyUpdate {
-	su.clearedOwner = true
+	su.mutation.ClearOwner()
 	return su
 }
 
 // Save executes the query and returns the number of rows/vertices matched by this operation.
 func (su *SurveyUpdate) Save(ctx context.Context) (int, error) {
-	if su.title != nil {
-		if err := survey.TitleValidator(*su.title); err != nil {
+	if v, ok := su.mutation.Title(); ok {
+		if err := survey.TitleValidator(v); err != nil {
 			return 0, fmt.Errorf("ent: validator failed for field \"title\": %v", err)
 		}
 	}
-	if len(su.flow) > 1 {
-		return 0, errors.New("ent: multiple assignments on a unique edge \"flow\"")
-	}
-	if su.clearedFlow && su.flow == nil {
+
+	if _, ok := su.mutation.FlowID(); su.mutation.FlowCleared() && !ok {
 		return 0, errors.New("ent: clearing a unique edge \"flow\"")
 	}
-	if len(su._for) > 1 {
-		return 0, errors.New("ent: multiple assignments on a unique edge \"for\"")
-	}
-	if su.clearedFor && su._for == nil {
+
+	if _, ok := su.mutation.ForID(); su.mutation.ForCleared() && !ok {
 		return 0, errors.New("ent: clearing a unique edge \"for\"")
 	}
-	if len(su.owner) > 1 {
-		return 0, errors.New("ent: multiple assignments on a unique edge \"owner\"")
+
+	var (
+		err      error
+		affected int
+	)
+	if len(su.hooks) == 0 {
+		affected, err = su.sqlSave(ctx)
+	} else {
+		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
+			mutation, ok := m.(*SurveyMutation)
+			if !ok {
+				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			su.mutation = mutation
+			affected, err = su.sqlSave(ctx)
+			return affected, err
+		})
+		for i := len(su.hooks) - 1; i >= 0; i-- {
+			mut = su.hooks[i](mut)
+		}
+		if _, err := mut.Mutate(ctx, su.mutation); err != nil {
+			return 0, err
+		}
 	}
-	return su.sqlSave(ctx)
+	return affected, err
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -276,80 +264,80 @@ func (su *SurveyUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 		}
 	}
-	if value := su.tags; value != nil {
+	if value, ok := su.mutation.Tags(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeJSON,
-			Value:  *value,
+			Value:  value,
 			Column: survey.FieldTags,
 		})
 	}
-	if value := su.lastInteraction; value != nil {
+	if value, ok := su.mutation.LastInteraction(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  *value,
+			Value:  value,
 			Column: survey.FieldLastInteraction,
 		})
 	}
-	if value := su.title; value != nil {
+	if value, ok := su.mutation.Title(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: survey.FieldTitle,
 		})
 	}
-	if value := su.description; value != nil {
+	if value, ok := su.mutation.Description(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: survey.FieldDescription,
 		})
 	}
-	if su.cleardescription {
+	if su.mutation.DescriptionCleared() {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: survey.FieldDescription,
 		})
 	}
-	if value := su.metadata; value != nil {
+	if value, ok := su.mutation.Metadata(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeJSON,
-			Value:  *value,
+			Value:  value,
 			Column: survey.FieldMetadata,
 		})
 	}
-	if su.clearmetadata {
+	if su.mutation.MetadataCleared() {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeJSON,
 			Column: survey.FieldMetadata,
 		})
 	}
-	if value := su.done; value != nil {
+	if value, ok := su.mutation.Done(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeBool,
-			Value:  *value,
+			Value:  value,
 			Column: survey.FieldDone,
 		})
 	}
-	if su.cleardone {
+	if su.mutation.DoneCleared() {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeBool,
 			Column: survey.FieldDone,
 		})
 	}
-	if value := su.isPublic; value != nil {
+	if value, ok := su.mutation.IsPublic(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeBool,
-			Value:  *value,
+			Value:  value,
 			Column: survey.FieldIsPublic,
 		})
 	}
-	if su.clearisPublic {
+	if su.mutation.IsPublicCleared() {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeBool,
 			Column: survey.FieldIsPublic,
 		})
 	}
-	if su.clearedFlow {
+	if su.mutation.FlowCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2O,
 			Inverse: false,
@@ -365,7 +353,7 @@ func (su *SurveyUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := su.flow; len(nodes) > 0 {
+	if nodes := su.mutation.FlowIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2O,
 			Inverse: false,
@@ -379,12 +367,12 @@ func (su *SurveyUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if su.clearedFor {
+	if su.mutation.ForCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -400,7 +388,7 @@ func (su *SurveyUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := su._for; len(nodes) > 0 {
+	if nodes := su.mutation.ForIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -414,12 +402,12 @@ func (su *SurveyUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if su.clearedOwner {
+	if su.mutation.OwnerCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -435,7 +423,7 @@ func (su *SurveyUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := su.owner; len(nodes) > 0 {
+	if nodes := su.mutation.OwnerIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -449,7 +437,7 @@ func (su *SurveyUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
@@ -468,48 +456,31 @@ func (su *SurveyUpdate) sqlSave(ctx context.Context) (n int, err error) {
 // SurveyUpdateOne is the builder for updating a single Survey entity.
 type SurveyUpdateOne struct {
 	config
-	id              uuid.UUID
-	tags            *[]string
-	lastInteraction *time.Time
-
-	title            *string
-	description      *string
-	cleardescription bool
-	metadata         *map[string]string
-	clearmetadata    bool
-	done             *bool
-	cleardone        bool
-	isPublic         *bool
-	clearisPublic    bool
-	flow             map[uuid.UUID]struct{}
-	_for             map[uuid.UUID]struct{}
-	owner            map[uuid.UUID]struct{}
-	clearedFlow      bool
-	clearedFor       bool
-	clearedOwner     bool
+	hooks    []Hook
+	mutation *SurveyMutation
 }
 
 // SetTags sets the tags field.
 func (suo *SurveyUpdateOne) SetTags(s []string) *SurveyUpdateOne {
-	suo.tags = &s
+	suo.mutation.SetTags(s)
 	return suo
 }
 
 // SetLastInteraction sets the lastInteraction field.
 func (suo *SurveyUpdateOne) SetLastInteraction(t time.Time) *SurveyUpdateOne {
-	suo.lastInteraction = &t
+	suo.mutation.SetLastInteraction(t)
 	return suo
 }
 
 // SetTitle sets the title field.
 func (suo *SurveyUpdateOne) SetTitle(s string) *SurveyUpdateOne {
-	suo.title = &s
+	suo.mutation.SetTitle(s)
 	return suo
 }
 
 // SetDescription sets the description field.
 func (suo *SurveyUpdateOne) SetDescription(s string) *SurveyUpdateOne {
-	suo.description = &s
+	suo.mutation.SetDescription(s)
 	return suo
 }
 
@@ -523,27 +494,25 @@ func (suo *SurveyUpdateOne) SetNillableDescription(s *string) *SurveyUpdateOne {
 
 // ClearDescription clears the value of description.
 func (suo *SurveyUpdateOne) ClearDescription() *SurveyUpdateOne {
-	suo.description = nil
-	suo.cleardescription = true
+	suo.mutation.ClearDescription()
 	return suo
 }
 
 // SetMetadata sets the metadata field.
 func (suo *SurveyUpdateOne) SetMetadata(m map[string]string) *SurveyUpdateOne {
-	suo.metadata = &m
+	suo.mutation.SetMetadata(m)
 	return suo
 }
 
 // ClearMetadata clears the value of metadata.
 func (suo *SurveyUpdateOne) ClearMetadata() *SurveyUpdateOne {
-	suo.metadata = nil
-	suo.clearmetadata = true
+	suo.mutation.ClearMetadata()
 	return suo
 }
 
 // SetDone sets the done field.
 func (suo *SurveyUpdateOne) SetDone(b bool) *SurveyUpdateOne {
-	suo.done = &b
+	suo.mutation.SetDone(b)
 	return suo
 }
 
@@ -557,14 +526,13 @@ func (suo *SurveyUpdateOne) SetNillableDone(b *bool) *SurveyUpdateOne {
 
 // ClearDone clears the value of done.
 func (suo *SurveyUpdateOne) ClearDone() *SurveyUpdateOne {
-	suo.done = nil
-	suo.cleardone = true
+	suo.mutation.ClearDone()
 	return suo
 }
 
 // SetIsPublic sets the isPublic field.
 func (suo *SurveyUpdateOne) SetIsPublic(b bool) *SurveyUpdateOne {
-	suo.isPublic = &b
+	suo.mutation.SetIsPublic(b)
 	return suo
 }
 
@@ -578,17 +546,13 @@ func (suo *SurveyUpdateOne) SetNillableIsPublic(b *bool) *SurveyUpdateOne {
 
 // ClearIsPublic clears the value of isPublic.
 func (suo *SurveyUpdateOne) ClearIsPublic() *SurveyUpdateOne {
-	suo.isPublic = nil
-	suo.clearisPublic = true
+	suo.mutation.ClearIsPublic()
 	return suo
 }
 
 // SetFlowID sets the flow edge to Flow by id.
 func (suo *SurveyUpdateOne) SetFlowID(id uuid.UUID) *SurveyUpdateOne {
-	if suo.flow == nil {
-		suo.flow = make(map[uuid.UUID]struct{})
-	}
-	suo.flow[id] = struct{}{}
+	suo.mutation.SetFlowID(id)
 	return suo
 }
 
@@ -599,10 +563,7 @@ func (suo *SurveyUpdateOne) SetFlow(f *Flow) *SurveyUpdateOne {
 
 // SetForID sets the for edge to Person by id.
 func (suo *SurveyUpdateOne) SetForID(id uuid.UUID) *SurveyUpdateOne {
-	if suo._for == nil {
-		suo._for = make(map[uuid.UUID]struct{})
-	}
-	suo._for[id] = struct{}{}
+	suo.mutation.SetForID(id)
 	return suo
 }
 
@@ -613,10 +574,7 @@ func (suo *SurveyUpdateOne) SetFor(p *Person) *SurveyUpdateOne {
 
 // SetOwnerID sets the owner edge to Domain by id.
 func (suo *SurveyUpdateOne) SetOwnerID(id uuid.UUID) *SurveyUpdateOne {
-	if suo.owner == nil {
-		suo.owner = make(map[uuid.UUID]struct{})
-	}
-	suo.owner[id] = struct{}{}
+	suo.mutation.SetOwnerID(id)
 	return suo
 }
 
@@ -635,45 +593,62 @@ func (suo *SurveyUpdateOne) SetOwner(d *Domain) *SurveyUpdateOne {
 
 // ClearFlow clears the flow edge to Flow.
 func (suo *SurveyUpdateOne) ClearFlow() *SurveyUpdateOne {
-	suo.clearedFlow = true
+	suo.mutation.ClearFlow()
 	return suo
 }
 
 // ClearFor clears the for edge to Person.
 func (suo *SurveyUpdateOne) ClearFor() *SurveyUpdateOne {
-	suo.clearedFor = true
+	suo.mutation.ClearFor()
 	return suo
 }
 
 // ClearOwner clears the owner edge to Domain.
 func (suo *SurveyUpdateOne) ClearOwner() *SurveyUpdateOne {
-	suo.clearedOwner = true
+	suo.mutation.ClearOwner()
 	return suo
 }
 
 // Save executes the query and returns the updated entity.
 func (suo *SurveyUpdateOne) Save(ctx context.Context) (*Survey, error) {
-	if suo.title != nil {
-		if err := survey.TitleValidator(*suo.title); err != nil {
+	if v, ok := suo.mutation.Title(); ok {
+		if err := survey.TitleValidator(v); err != nil {
 			return nil, fmt.Errorf("ent: validator failed for field \"title\": %v", err)
 		}
 	}
-	if len(suo.flow) > 1 {
-		return nil, errors.New("ent: multiple assignments on a unique edge \"flow\"")
-	}
-	if suo.clearedFlow && suo.flow == nil {
+
+	if _, ok := suo.mutation.FlowID(); suo.mutation.FlowCleared() && !ok {
 		return nil, errors.New("ent: clearing a unique edge \"flow\"")
 	}
-	if len(suo._for) > 1 {
-		return nil, errors.New("ent: multiple assignments on a unique edge \"for\"")
-	}
-	if suo.clearedFor && suo._for == nil {
+
+	if _, ok := suo.mutation.ForID(); suo.mutation.ForCleared() && !ok {
 		return nil, errors.New("ent: clearing a unique edge \"for\"")
 	}
-	if len(suo.owner) > 1 {
-		return nil, errors.New("ent: multiple assignments on a unique edge \"owner\"")
+
+	var (
+		err  error
+		node *Survey
+	)
+	if len(suo.hooks) == 0 {
+		node, err = suo.sqlSave(ctx)
+	} else {
+		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
+			mutation, ok := m.(*SurveyMutation)
+			if !ok {
+				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			suo.mutation = mutation
+			node, err = suo.sqlSave(ctx)
+			return node, err
+		})
+		for i := len(suo.hooks) - 1; i >= 0; i-- {
+			mut = suo.hooks[i](mut)
+		}
+		if _, err := mut.Mutate(ctx, suo.mutation); err != nil {
+			return nil, err
+		}
 	}
-	return suo.sqlSave(ctx)
+	return node, err
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -704,86 +679,90 @@ func (suo *SurveyUpdateOne) sqlSave(ctx context.Context) (s *Survey, err error) 
 			Table:   survey.Table,
 			Columns: survey.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Value:  suo.id,
 				Type:   field.TypeUUID,
 				Column: survey.FieldID,
 			},
 		},
 	}
-	if value := suo.tags; value != nil {
+	id, ok := suo.mutation.ID()
+	if !ok {
+		return nil, fmt.Errorf("missing Survey.ID for update")
+	}
+	_spec.Node.ID.Value = id
+	if value, ok := suo.mutation.Tags(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeJSON,
-			Value:  *value,
+			Value:  value,
 			Column: survey.FieldTags,
 		})
 	}
-	if value := suo.lastInteraction; value != nil {
+	if value, ok := suo.mutation.LastInteraction(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
-			Value:  *value,
+			Value:  value,
 			Column: survey.FieldLastInteraction,
 		})
 	}
-	if value := suo.title; value != nil {
+	if value, ok := suo.mutation.Title(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: survey.FieldTitle,
 		})
 	}
-	if value := suo.description; value != nil {
+	if value, ok := suo.mutation.Description(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: survey.FieldDescription,
 		})
 	}
-	if suo.cleardescription {
+	if suo.mutation.DescriptionCleared() {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: survey.FieldDescription,
 		})
 	}
-	if value := suo.metadata; value != nil {
+	if value, ok := suo.mutation.Metadata(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeJSON,
-			Value:  *value,
+			Value:  value,
 			Column: survey.FieldMetadata,
 		})
 	}
-	if suo.clearmetadata {
+	if suo.mutation.MetadataCleared() {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeJSON,
 			Column: survey.FieldMetadata,
 		})
 	}
-	if value := suo.done; value != nil {
+	if value, ok := suo.mutation.Done(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeBool,
-			Value:  *value,
+			Value:  value,
 			Column: survey.FieldDone,
 		})
 	}
-	if suo.cleardone {
+	if suo.mutation.DoneCleared() {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeBool,
 			Column: survey.FieldDone,
 		})
 	}
-	if value := suo.isPublic; value != nil {
+	if value, ok := suo.mutation.IsPublic(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeBool,
-			Value:  *value,
+			Value:  value,
 			Column: survey.FieldIsPublic,
 		})
 	}
-	if suo.clearisPublic {
+	if suo.mutation.IsPublicCleared() {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeBool,
 			Column: survey.FieldIsPublic,
 		})
 	}
-	if suo.clearedFlow {
+	if suo.mutation.FlowCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2O,
 			Inverse: false,
@@ -799,7 +778,7 @@ func (suo *SurveyUpdateOne) sqlSave(ctx context.Context) (s *Survey, err error) 
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := suo.flow; len(nodes) > 0 {
+	if nodes := suo.mutation.FlowIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2O,
 			Inverse: false,
@@ -813,12 +792,12 @@ func (suo *SurveyUpdateOne) sqlSave(ctx context.Context) (s *Survey, err error) 
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if suo.clearedFor {
+	if suo.mutation.ForCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -834,7 +813,7 @@ func (suo *SurveyUpdateOne) sqlSave(ctx context.Context) (s *Survey, err error) 
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := suo._for; len(nodes) > 0 {
+	if nodes := suo.mutation.ForIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -848,12 +827,12 @@ func (suo *SurveyUpdateOne) sqlSave(ctx context.Context) (s *Survey, err error) 
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if suo.clearedOwner {
+	if suo.mutation.OwnerCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -869,7 +848,7 @@ func (suo *SurveyUpdateOne) sqlSave(ctx context.Context) (s *Survey, err error) 
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := suo.owner; len(nodes) > 0 {
+	if nodes := suo.mutation.OwnerIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -883,7 +862,7 @@ func (suo *SurveyUpdateOne) sqlSave(ctx context.Context) (s *Survey, err error) 
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)

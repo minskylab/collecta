@@ -4,7 +4,6 @@ package ent
 
 import (
 	"context"
-	"errors"
 	"fmt"
 
 	"github.com/facebookincubator/ent/dialect/sql"
@@ -19,14 +18,9 @@ import (
 // AccountUpdate is the builder for updating Account entities.
 type AccountUpdate struct {
 	config
-	_type        *account.Type
-	sub          *string
-	remoteID     *string
-	secret       *string
-	clearsecret  bool
-	owner        map[uuid.UUID]struct{}
-	clearedOwner bool
-	predicates   []predicate.Account
+	hooks      []Hook
+	mutation   *AccountMutation
+	predicates []predicate.Account
 }
 
 // Where adds a new predicate for the builder.
@@ -37,25 +31,25 @@ func (au *AccountUpdate) Where(ps ...predicate.Account) *AccountUpdate {
 
 // SetType sets the type field.
 func (au *AccountUpdate) SetType(a account.Type) *AccountUpdate {
-	au._type = &a
+	au.mutation.SetType(a)
 	return au
 }
 
 // SetSub sets the sub field.
 func (au *AccountUpdate) SetSub(s string) *AccountUpdate {
-	au.sub = &s
+	au.mutation.SetSub(s)
 	return au
 }
 
 // SetRemoteID sets the remoteID field.
 func (au *AccountUpdate) SetRemoteID(s string) *AccountUpdate {
-	au.remoteID = &s
+	au.mutation.SetRemoteID(s)
 	return au
 }
 
 // SetSecret sets the secret field.
 func (au *AccountUpdate) SetSecret(s string) *AccountUpdate {
-	au.secret = &s
+	au.mutation.SetSecret(s)
 	return au
 }
 
@@ -69,17 +63,13 @@ func (au *AccountUpdate) SetNillableSecret(s *string) *AccountUpdate {
 
 // ClearSecret clears the value of secret.
 func (au *AccountUpdate) ClearSecret() *AccountUpdate {
-	au.secret = nil
-	au.clearsecret = true
+	au.mutation.ClearSecret()
 	return au
 }
 
 // SetOwnerID sets the owner edge to Person by id.
 func (au *AccountUpdate) SetOwnerID(id uuid.UUID) *AccountUpdate {
-	if au.owner == nil {
-		au.owner = make(map[uuid.UUID]struct{})
-	}
-	au.owner[id] = struct{}{}
+	au.mutation.SetOwnerID(id)
 	return au
 }
 
@@ -98,26 +88,47 @@ func (au *AccountUpdate) SetOwner(p *Person) *AccountUpdate {
 
 // ClearOwner clears the owner edge to Person.
 func (au *AccountUpdate) ClearOwner() *AccountUpdate {
-	au.clearedOwner = true
+	au.mutation.ClearOwner()
 	return au
 }
 
 // Save executes the query and returns the number of rows/vertices matched by this operation.
 func (au *AccountUpdate) Save(ctx context.Context) (int, error) {
-	if au._type != nil {
-		if err := account.TypeValidator(*au._type); err != nil {
+	if v, ok := au.mutation.GetType(); ok {
+		if err := account.TypeValidator(v); err != nil {
 			return 0, fmt.Errorf("ent: validator failed for field \"type\": %v", err)
 		}
 	}
-	if au.sub != nil {
-		if err := account.SubValidator(*au.sub); err != nil {
+	if v, ok := au.mutation.Sub(); ok {
+		if err := account.SubValidator(v); err != nil {
 			return 0, fmt.Errorf("ent: validator failed for field \"sub\": %v", err)
 		}
 	}
-	if len(au.owner) > 1 {
-		return 0, errors.New("ent: multiple assignments on a unique edge \"owner\"")
+
+	var (
+		err      error
+		affected int
+	)
+	if len(au.hooks) == 0 {
+		affected, err = au.sqlSave(ctx)
+	} else {
+		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
+			mutation, ok := m.(*AccountMutation)
+			if !ok {
+				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			au.mutation = mutation
+			affected, err = au.sqlSave(ctx)
+			return affected, err
+		})
+		for i := len(au.hooks) - 1; i >= 0; i-- {
+			mut = au.hooks[i](mut)
+		}
+		if _, err := mut.Mutate(ctx, au.mutation); err != nil {
+			return 0, err
+		}
 	}
-	return au.sqlSave(ctx)
+	return affected, err
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -160,41 +171,41 @@ func (au *AccountUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 		}
 	}
-	if value := au._type; value != nil {
+	if value, ok := au.mutation.GetType(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeEnum,
-			Value:  *value,
+			Value:  value,
 			Column: account.FieldType,
 		})
 	}
-	if value := au.sub; value != nil {
+	if value, ok := au.mutation.Sub(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: account.FieldSub,
 		})
 	}
-	if value := au.remoteID; value != nil {
+	if value, ok := au.mutation.RemoteID(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: account.FieldRemoteID,
 		})
 	}
-	if value := au.secret; value != nil {
+	if value, ok := au.mutation.Secret(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: account.FieldSecret,
 		})
 	}
-	if au.clearsecret {
+	if au.mutation.SecretCleared() {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: account.FieldSecret,
 		})
 	}
-	if au.clearedOwner {
+	if au.mutation.OwnerCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -210,7 +221,7 @@ func (au *AccountUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := au.owner; len(nodes) > 0 {
+	if nodes := au.mutation.OwnerIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -224,7 +235,7 @@ func (au *AccountUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
@@ -243,37 +254,31 @@ func (au *AccountUpdate) sqlSave(ctx context.Context) (n int, err error) {
 // AccountUpdateOne is the builder for updating a single Account entity.
 type AccountUpdateOne struct {
 	config
-	id           uuid.UUID
-	_type        *account.Type
-	sub          *string
-	remoteID     *string
-	secret       *string
-	clearsecret  bool
-	owner        map[uuid.UUID]struct{}
-	clearedOwner bool
+	hooks    []Hook
+	mutation *AccountMutation
 }
 
 // SetType sets the type field.
 func (auo *AccountUpdateOne) SetType(a account.Type) *AccountUpdateOne {
-	auo._type = &a
+	auo.mutation.SetType(a)
 	return auo
 }
 
 // SetSub sets the sub field.
 func (auo *AccountUpdateOne) SetSub(s string) *AccountUpdateOne {
-	auo.sub = &s
+	auo.mutation.SetSub(s)
 	return auo
 }
 
 // SetRemoteID sets the remoteID field.
 func (auo *AccountUpdateOne) SetRemoteID(s string) *AccountUpdateOne {
-	auo.remoteID = &s
+	auo.mutation.SetRemoteID(s)
 	return auo
 }
 
 // SetSecret sets the secret field.
 func (auo *AccountUpdateOne) SetSecret(s string) *AccountUpdateOne {
-	auo.secret = &s
+	auo.mutation.SetSecret(s)
 	return auo
 }
 
@@ -287,17 +292,13 @@ func (auo *AccountUpdateOne) SetNillableSecret(s *string) *AccountUpdateOne {
 
 // ClearSecret clears the value of secret.
 func (auo *AccountUpdateOne) ClearSecret() *AccountUpdateOne {
-	auo.secret = nil
-	auo.clearsecret = true
+	auo.mutation.ClearSecret()
 	return auo
 }
 
 // SetOwnerID sets the owner edge to Person by id.
 func (auo *AccountUpdateOne) SetOwnerID(id uuid.UUID) *AccountUpdateOne {
-	if auo.owner == nil {
-		auo.owner = make(map[uuid.UUID]struct{})
-	}
-	auo.owner[id] = struct{}{}
+	auo.mutation.SetOwnerID(id)
 	return auo
 }
 
@@ -316,26 +317,47 @@ func (auo *AccountUpdateOne) SetOwner(p *Person) *AccountUpdateOne {
 
 // ClearOwner clears the owner edge to Person.
 func (auo *AccountUpdateOne) ClearOwner() *AccountUpdateOne {
-	auo.clearedOwner = true
+	auo.mutation.ClearOwner()
 	return auo
 }
 
 // Save executes the query and returns the updated entity.
 func (auo *AccountUpdateOne) Save(ctx context.Context) (*Account, error) {
-	if auo._type != nil {
-		if err := account.TypeValidator(*auo._type); err != nil {
+	if v, ok := auo.mutation.GetType(); ok {
+		if err := account.TypeValidator(v); err != nil {
 			return nil, fmt.Errorf("ent: validator failed for field \"type\": %v", err)
 		}
 	}
-	if auo.sub != nil {
-		if err := account.SubValidator(*auo.sub); err != nil {
+	if v, ok := auo.mutation.Sub(); ok {
+		if err := account.SubValidator(v); err != nil {
 			return nil, fmt.Errorf("ent: validator failed for field \"sub\": %v", err)
 		}
 	}
-	if len(auo.owner) > 1 {
-		return nil, errors.New("ent: multiple assignments on a unique edge \"owner\"")
+
+	var (
+		err  error
+		node *Account
+	)
+	if len(auo.hooks) == 0 {
+		node, err = auo.sqlSave(ctx)
+	} else {
+		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
+			mutation, ok := m.(*AccountMutation)
+			if !ok {
+				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			auo.mutation = mutation
+			node, err = auo.sqlSave(ctx)
+			return node, err
+		})
+		for i := len(auo.hooks) - 1; i >= 0; i-- {
+			mut = auo.hooks[i](mut)
+		}
+		if _, err := mut.Mutate(ctx, auo.mutation); err != nil {
+			return nil, err
+		}
 	}
-	return auo.sqlSave(ctx)
+	return node, err
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -366,47 +388,51 @@ func (auo *AccountUpdateOne) sqlSave(ctx context.Context) (a *Account, err error
 			Table:   account.Table,
 			Columns: account.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Value:  auo.id,
 				Type:   field.TypeUUID,
 				Column: account.FieldID,
 			},
 		},
 	}
-	if value := auo._type; value != nil {
+	id, ok := auo.mutation.ID()
+	if !ok {
+		return nil, fmt.Errorf("missing Account.ID for update")
+	}
+	_spec.Node.ID.Value = id
+	if value, ok := auo.mutation.GetType(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeEnum,
-			Value:  *value,
+			Value:  value,
 			Column: account.FieldType,
 		})
 	}
-	if value := auo.sub; value != nil {
+	if value, ok := auo.mutation.Sub(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: account.FieldSub,
 		})
 	}
-	if value := auo.remoteID; value != nil {
+	if value, ok := auo.mutation.RemoteID(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: account.FieldRemoteID,
 		})
 	}
-	if value := auo.secret; value != nil {
+	if value, ok := auo.mutation.Secret(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: account.FieldSecret,
 		})
 	}
-	if auo.clearsecret {
+	if auo.mutation.SecretCleared() {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: account.FieldSecret,
 		})
 	}
-	if auo.clearedOwner {
+	if auo.mutation.OwnerCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -422,7 +448,7 @@ func (auo *AccountUpdateOne) sqlSave(ctx context.Context) (a *Account, err error
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := auo.owner; len(nodes) > 0 {
+	if nodes := auo.mutation.OwnerIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -436,7 +462,7 @@ func (auo *AccountUpdateOne) sqlSave(ctx context.Context) (a *Account, err error
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)

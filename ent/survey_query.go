@@ -13,7 +13,9 @@ import (
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
 	"github.com/facebookincubator/ent/schema/field"
 	"github.com/google/uuid"
+	"github.com/minskylab/collecta/ent/domain"
 	"github.com/minskylab/collecta/ent/flow"
+	"github.com/minskylab/collecta/ent/person"
 	"github.com/minskylab/collecta/ent/predicate"
 	"github.com/minskylab/collecta/ent/survey"
 )
@@ -31,8 +33,9 @@ type SurveyQuery struct {
 	withFor   *PersonQuery
 	withOwner *DomainQuery
 	withFKs   bool
-	// intermediate query.
-	sql *sql.Selector
+	// intermediate query (i.e. traversal path).
+	sql  *sql.Selector
+	path func(context.Context) (*sql.Selector, error)
 }
 
 // Where adds a new predicate for the builder.
@@ -62,36 +65,54 @@ func (sq *SurveyQuery) Order(o ...Order) *SurveyQuery {
 // QueryFlow chains the current query on the flow edge.
 func (sq *SurveyQuery) QueryFlow() *FlowQuery {
 	query := &FlowQuery{config: sq.config}
-	step := sqlgraph.NewStep(
-		sqlgraph.From(survey.Table, survey.FieldID, sq.sqlQuery()),
-		sqlgraph.To(flow.Table, flow.FieldID),
-		sqlgraph.Edge(sqlgraph.O2O, false, survey.FlowTable, survey.FlowColumn),
-	)
-	query.sql = sqlgraph.SetNeighbors(sq.driver.Dialect(), step)
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := sq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(survey.Table, survey.FieldID, sq.sqlQuery()),
+			sqlgraph.To(flow.Table, flow.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, false, survey.FlowTable, survey.FlowColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(sq.driver.Dialect(), step)
+		return fromU, nil
+	}
 	return query
 }
 
 // QueryFor chains the current query on the for edge.
 func (sq *SurveyQuery) QueryFor() *PersonQuery {
 	query := &PersonQuery{config: sq.config}
-	step := sqlgraph.NewStep(
-		sqlgraph.From(survey.Table, survey.FieldID, sq.sqlQuery()),
-		sqlgraph.To(person.Table, person.FieldID),
-		sqlgraph.Edge(sqlgraph.M2O, true, survey.ForTable, survey.ForColumn),
-	)
-	query.sql = sqlgraph.SetNeighbors(sq.driver.Dialect(), step)
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := sq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(survey.Table, survey.FieldID, sq.sqlQuery()),
+			sqlgraph.To(person.Table, person.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, survey.ForTable, survey.ForColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(sq.driver.Dialect(), step)
+		return fromU, nil
+	}
 	return query
 }
 
 // QueryOwner chains the current query on the owner edge.
 func (sq *SurveyQuery) QueryOwner() *DomainQuery {
 	query := &DomainQuery{config: sq.config}
-	step := sqlgraph.NewStep(
-		sqlgraph.From(survey.Table, survey.FieldID, sq.sqlQuery()),
-		sqlgraph.To(domain.Table, domain.FieldID),
-		sqlgraph.Edge(sqlgraph.M2O, true, survey.OwnerTable, survey.OwnerColumn),
-	)
-	query.sql = sqlgraph.SetNeighbors(sq.driver.Dialect(), step)
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := sq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(survey.Table, survey.FieldID, sq.sqlQuery()),
+			sqlgraph.To(domain.Table, domain.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, survey.OwnerTable, survey.OwnerColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(sq.driver.Dialect(), step)
+		return fromU, nil
+	}
 	return query
 }
 
@@ -191,6 +212,9 @@ func (sq *SurveyQuery) OnlyXID(ctx context.Context) uuid.UUID {
 
 // All executes the query and returns a list of Surveys.
 func (sq *SurveyQuery) All(ctx context.Context) ([]*Survey, error) {
+	if err := sq.prepareQuery(ctx); err != nil {
+		return nil, err
+	}
 	return sq.sqlAll(ctx)
 }
 
@@ -223,6 +247,9 @@ func (sq *SurveyQuery) IDsX(ctx context.Context) []uuid.UUID {
 
 // Count returns the count of the given query.
 func (sq *SurveyQuery) Count(ctx context.Context) (int, error) {
+	if err := sq.prepareQuery(ctx); err != nil {
+		return 0, err
+	}
 	return sq.sqlCount(ctx)
 }
 
@@ -237,6 +264,9 @@ func (sq *SurveyQuery) CountX(ctx context.Context) int {
 
 // Exist returns true if the query has elements in the graph.
 func (sq *SurveyQuery) Exist(ctx context.Context) (bool, error) {
+	if err := sq.prepareQuery(ctx); err != nil {
+		return false, err
+	}
 	return sq.sqlExist(ctx)
 }
 
@@ -260,7 +290,8 @@ func (sq *SurveyQuery) Clone() *SurveyQuery {
 		unique:     append([]string{}, sq.unique...),
 		predicates: append([]predicate.Survey{}, sq.predicates...),
 		// clone intermediate query.
-		sql: sq.sql.Clone(),
+		sql:  sq.sql.Clone(),
+		path: sq.path,
 	}
 }
 
@@ -315,7 +346,12 @@ func (sq *SurveyQuery) WithOwner(opts ...func(*DomainQuery)) *SurveyQuery {
 func (sq *SurveyQuery) GroupBy(field string, fields ...string) *SurveyGroupBy {
 	group := &SurveyGroupBy{config: sq.config}
 	group.fields = append([]string{field}, fields...)
-	group.sql = sq.sqlQuery()
+	group.path = func(ctx context.Context) (prev *sql.Selector, err error) {
+		if err := sq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		return sq.sqlQuery(), nil
+	}
 	return group
 }
 
@@ -334,8 +370,24 @@ func (sq *SurveyQuery) GroupBy(field string, fields ...string) *SurveyGroupBy {
 func (sq *SurveyQuery) Select(field string, fields ...string) *SurveySelect {
 	selector := &SurveySelect{config: sq.config}
 	selector.fields = append([]string{field}, fields...)
-	selector.sql = sq.sqlQuery()
+	selector.path = func(ctx context.Context) (prev *sql.Selector, err error) {
+		if err := sq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		return sq.sqlQuery(), nil
+	}
 	return selector
+}
+
+func (sq *SurveyQuery) prepareQuery(ctx context.Context) error {
+	if sq.path != nil {
+		prev, err := sq.path(ctx)
+		if err != nil {
+			return err
+		}
+		sq.sql = prev
+	}
+	return nil
 }
 
 func (sq *SurveyQuery) sqlAll(ctx context.Context) ([]*Survey, error) {
@@ -539,8 +591,9 @@ type SurveyGroupBy struct {
 	config
 	fields []string
 	fns    []Aggregate
-	// intermediate query.
-	sql *sql.Selector
+	// intermediate query (i.e. traversal path).
+	sql  *sql.Selector
+	path func(context.Context) (*sql.Selector, error)
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
@@ -551,6 +604,11 @@ func (sgb *SurveyGroupBy) Aggregate(fns ...Aggregate) *SurveyGroupBy {
 
 // Scan applies the group-by query and scan the result into the given value.
 func (sgb *SurveyGroupBy) Scan(ctx context.Context, v interface{}) error {
+	query, err := sgb.path(ctx)
+	if err != nil {
+		return err
+	}
+	sgb.sql = query
 	return sgb.sqlScan(ctx, v)
 }
 
@@ -669,12 +727,18 @@ func (sgb *SurveyGroupBy) sqlQuery() *sql.Selector {
 type SurveySelect struct {
 	config
 	fields []string
-	// intermediate queries.
-	sql *sql.Selector
+	// intermediate query (i.e. traversal path).
+	sql  *sql.Selector
+	path func(context.Context) (*sql.Selector, error)
 }
 
 // Scan applies the selector query and scan the result into the given value.
 func (ss *SurveySelect) Scan(ctx context.Context, v interface{}) error {
+	query, err := ss.path(ctx)
+	if err != nil {
+		return err
+	}
+	ss.sql = query
 	return ss.sqlScan(ctx, v)
 }
 

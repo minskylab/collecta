@@ -5,6 +5,7 @@ package ent
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
 	"github.com/facebookincubator/ent/schema/field"
@@ -14,21 +15,45 @@ import (
 // IPCreate is the builder for creating a IP entity.
 type IPCreate struct {
 	config
-	ip *string
+	mutation *IPMutation
+	hooks    []Hook
 }
 
 // SetIP sets the ip field.
 func (ic *IPCreate) SetIP(s string) *IPCreate {
-	ic.ip = &s
+	ic.mutation.SetIP(s)
 	return ic
 }
 
 // Save creates the IP in the database.
 func (ic *IPCreate) Save(ctx context.Context) (*IP, error) {
-	if ic.ip == nil {
+	if _, ok := ic.mutation.IP(); !ok {
 		return nil, errors.New("ent: missing required field \"ip\"")
 	}
-	return ic.sqlSave(ctx)
+	var (
+		err  error
+		node *IP
+	)
+	if len(ic.hooks) == 0 {
+		node, err = ic.sqlSave(ctx)
+	} else {
+		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
+			mutation, ok := m.(*IPMutation)
+			if !ok {
+				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			ic.mutation = mutation
+			node, err = ic.sqlSave(ctx)
+			return node, err
+		})
+		for i := len(ic.hooks) - 1; i >= 0; i-- {
+			mut = ic.hooks[i](mut)
+		}
+		if _, err := mut.Mutate(ctx, ic.mutation); err != nil {
+			return nil, err
+		}
+	}
+	return node, err
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -51,13 +76,13 @@ func (ic *IPCreate) sqlSave(ctx context.Context) (*IP, error) {
 			},
 		}
 	)
-	if value := ic.ip; value != nil {
+	if value, ok := ic.mutation.IP(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: ip.FieldIP,
 		})
-		i.IP = *value
+		i.IP = value
 	}
 	if err := sqlgraph.CreateNode(ctx, ic.driver, _spec); err != nil {
 		if cerr, ok := isSQLConstraintError(err); ok {

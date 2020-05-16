@@ -19,45 +19,37 @@ import (
 // QuestionCreate is the builder for creating a Question entity.
 type QuestionCreate struct {
 	config
-	id          *uuid.UUID
-	hash        *string
-	title       *string
-	description *string
-	metadata    *map[string]string
-	validator   *string
-	anonymous   *bool
-	answers     map[uuid.UUID]struct{}
-	input       map[uuid.UUID]struct{}
-	flow        map[uuid.UUID]struct{}
+	mutation *QuestionMutation
+	hooks    []Hook
 }
 
 // SetHash sets the hash field.
 func (qc *QuestionCreate) SetHash(s string) *QuestionCreate {
-	qc.hash = &s
+	qc.mutation.SetHash(s)
 	return qc
 }
 
 // SetTitle sets the title field.
 func (qc *QuestionCreate) SetTitle(s string) *QuestionCreate {
-	qc.title = &s
+	qc.mutation.SetTitle(s)
 	return qc
 }
 
 // SetDescription sets the description field.
 func (qc *QuestionCreate) SetDescription(s string) *QuestionCreate {
-	qc.description = &s
+	qc.mutation.SetDescription(s)
 	return qc
 }
 
 // SetMetadata sets the metadata field.
 func (qc *QuestionCreate) SetMetadata(m map[string]string) *QuestionCreate {
-	qc.metadata = &m
+	qc.mutation.SetMetadata(m)
 	return qc
 }
 
 // SetValidator sets the validator field.
 func (qc *QuestionCreate) SetValidator(s string) *QuestionCreate {
-	qc.validator = &s
+	qc.mutation.SetValidator(s)
 	return qc
 }
 
@@ -71,7 +63,7 @@ func (qc *QuestionCreate) SetNillableValidator(s *string) *QuestionCreate {
 
 // SetAnonymous sets the anonymous field.
 func (qc *QuestionCreate) SetAnonymous(b bool) *QuestionCreate {
-	qc.anonymous = &b
+	qc.mutation.SetAnonymous(b)
 	return qc
 }
 
@@ -85,18 +77,13 @@ func (qc *QuestionCreate) SetNillableAnonymous(b *bool) *QuestionCreate {
 
 // SetID sets the id field.
 func (qc *QuestionCreate) SetID(u uuid.UUID) *QuestionCreate {
-	qc.id = &u
+	qc.mutation.SetID(u)
 	return qc
 }
 
 // AddAnswerIDs adds the answers edge to Answer by ids.
 func (qc *QuestionCreate) AddAnswerIDs(ids ...uuid.UUID) *QuestionCreate {
-	if qc.answers == nil {
-		qc.answers = make(map[uuid.UUID]struct{})
-	}
-	for i := range ids {
-		qc.answers[ids[i]] = struct{}{}
-	}
+	qc.mutation.AddAnswerIDs(ids...)
 	return qc
 }
 
@@ -111,10 +98,7 @@ func (qc *QuestionCreate) AddAnswers(a ...*Answer) *QuestionCreate {
 
 // SetInputID sets the input edge to Input by id.
 func (qc *QuestionCreate) SetInputID(id uuid.UUID) *QuestionCreate {
-	if qc.input == nil {
-		qc.input = make(map[uuid.UUID]struct{})
-	}
-	qc.input[id] = struct{}{}
+	qc.mutation.SetInputID(id)
 	return qc
 }
 
@@ -133,10 +117,7 @@ func (qc *QuestionCreate) SetInput(i *Input) *QuestionCreate {
 
 // SetFlowID sets the flow edge to Flow by id.
 func (qc *QuestionCreate) SetFlowID(id uuid.UUID) *QuestionCreate {
-	if qc.flow == nil {
-		qc.flow = make(map[uuid.UUID]struct{})
-	}
-	qc.flow[id] = struct{}{}
+	qc.mutation.SetFlowID(id)
 	return qc
 }
 
@@ -155,29 +136,48 @@ func (qc *QuestionCreate) SetFlow(f *Flow) *QuestionCreate {
 
 // Save creates the Question in the database.
 func (qc *QuestionCreate) Save(ctx context.Context) (*Question, error) {
-	if qc.hash == nil {
+	if _, ok := qc.mutation.Hash(); !ok {
 		return nil, errors.New("ent: missing required field \"hash\"")
 	}
-	if qc.title == nil {
+	if _, ok := qc.mutation.Title(); !ok {
 		return nil, errors.New("ent: missing required field \"title\"")
 	}
-	if err := question.TitleValidator(*qc.title); err != nil {
-		return nil, fmt.Errorf("ent: validator failed for field \"title\": %v", err)
+	if v, ok := qc.mutation.Title(); ok {
+		if err := question.TitleValidator(v); err != nil {
+			return nil, fmt.Errorf("ent: validator failed for field \"title\": %v", err)
+		}
 	}
-	if qc.description == nil {
+	if _, ok := qc.mutation.Description(); !ok {
 		return nil, errors.New("ent: missing required field \"description\"")
 	}
-	if qc.anonymous == nil {
+	if _, ok := qc.mutation.Anonymous(); !ok {
 		v := question.DefaultAnonymous
-		qc.anonymous = &v
+		qc.mutation.SetAnonymous(v)
 	}
-	if len(qc.input) > 1 {
-		return nil, errors.New("ent: multiple assignments on a unique edge \"input\"")
+	var (
+		err  error
+		node *Question
+	)
+	if len(qc.hooks) == 0 {
+		node, err = qc.sqlSave(ctx)
+	} else {
+		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
+			mutation, ok := m.(*QuestionMutation)
+			if !ok {
+				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			qc.mutation = mutation
+			node, err = qc.sqlSave(ctx)
+			return node, err
+		})
+		for i := len(qc.hooks) - 1; i >= 0; i-- {
+			mut = qc.hooks[i](mut)
+		}
+		if _, err := mut.Mutate(ctx, qc.mutation); err != nil {
+			return nil, err
+		}
 	}
-	if len(qc.flow) > 1 {
-		return nil, errors.New("ent: multiple assignments on a unique edge \"flow\"")
-	}
-	return qc.sqlSave(ctx)
+	return node, err
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -200,59 +200,59 @@ func (qc *QuestionCreate) sqlSave(ctx context.Context) (*Question, error) {
 			},
 		}
 	)
-	if value := qc.id; value != nil {
-		q.ID = *value
-		_spec.ID.Value = *value
+	if id, ok := qc.mutation.ID(); ok {
+		q.ID = id
+		_spec.ID.Value = id
 	}
-	if value := qc.hash; value != nil {
+	if value, ok := qc.mutation.Hash(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: question.FieldHash,
 		})
-		q.Hash = *value
+		q.Hash = value
 	}
-	if value := qc.title; value != nil {
+	if value, ok := qc.mutation.Title(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: question.FieldTitle,
 		})
-		q.Title = *value
+		q.Title = value
 	}
-	if value := qc.description; value != nil {
+	if value, ok := qc.mutation.Description(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: question.FieldDescription,
 		})
-		q.Description = *value
+		q.Description = value
 	}
-	if value := qc.metadata; value != nil {
+	if value, ok := qc.mutation.Metadata(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeJSON,
-			Value:  *value,
+			Value:  value,
 			Column: question.FieldMetadata,
 		})
-		q.Metadata = *value
+		q.Metadata = value
 	}
-	if value := qc.validator; value != nil {
+	if value, ok := qc.mutation.Validator(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: question.FieldValidator,
 		})
-		q.Validator = *value
+		q.Validator = value
 	}
-	if value := qc.anonymous; value != nil {
+	if value, ok := qc.mutation.Anonymous(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeBool,
-			Value:  *value,
+			Value:  value,
 			Column: question.FieldAnonymous,
 		})
-		q.Anonymous = *value
+		q.Anonymous = value
 	}
-	if nodes := qc.answers; len(nodes) > 0 {
+	if nodes := qc.mutation.AnswersIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -266,12 +266,12 @@ func (qc *QuestionCreate) sqlSave(ctx context.Context) (*Question, error) {
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := qc.input; len(nodes) > 0 {
+	if nodes := qc.mutation.InputIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2O,
 			Inverse: false,
@@ -285,12 +285,12 @@ func (qc *QuestionCreate) sqlSave(ctx context.Context) (*Question, error) {
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := qc.flow; len(nodes) > 0 {
+	if nodes := qc.mutation.FlowIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
@@ -304,7 +304,7 @@ func (qc *QuestionCreate) sqlSave(ctx context.Context) (*Question, error) {
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)

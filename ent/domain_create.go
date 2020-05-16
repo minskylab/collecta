@@ -18,68 +18,55 @@ import (
 // DomainCreate is the builder for creating a Domain entity.
 type DomainCreate struct {
 	config
-	id                     *uuid.UUID
-	name                   *string
-	email                  *string
-	domain                 *string
-	collectaDomain         *string
-	collectaClientCallback *string
-	tags                   *[]string
-	surveys                map[uuid.UUID]struct{}
-	users                  map[uuid.UUID]struct{}
-	admins                 map[uuid.UUID]struct{}
+	mutation *DomainMutation
+	hooks    []Hook
 }
 
 // SetName sets the name field.
 func (dc *DomainCreate) SetName(s string) *DomainCreate {
-	dc.name = &s
+	dc.mutation.SetName(s)
 	return dc
 }
 
 // SetEmail sets the email field.
 func (dc *DomainCreate) SetEmail(s string) *DomainCreate {
-	dc.email = &s
+	dc.mutation.SetEmail(s)
 	return dc
 }
 
 // SetDomain sets the domain field.
 func (dc *DomainCreate) SetDomain(s string) *DomainCreate {
-	dc.domain = &s
+	dc.mutation.SetDomain(s)
 	return dc
 }
 
 // SetCollectaDomain sets the collectaDomain field.
 func (dc *DomainCreate) SetCollectaDomain(s string) *DomainCreate {
-	dc.collectaDomain = &s
+	dc.mutation.SetCollectaDomain(s)
 	return dc
 }
 
 // SetCollectaClientCallback sets the collectaClientCallback field.
 func (dc *DomainCreate) SetCollectaClientCallback(s string) *DomainCreate {
-	dc.collectaClientCallback = &s
+	dc.mutation.SetCollectaClientCallback(s)
 	return dc
 }
 
 // SetTags sets the tags field.
 func (dc *DomainCreate) SetTags(s []string) *DomainCreate {
-	dc.tags = &s
+	dc.mutation.SetTags(s)
 	return dc
 }
 
 // SetID sets the id field.
 func (dc *DomainCreate) SetID(u uuid.UUID) *DomainCreate {
-	dc.id = &u
+	dc.mutation.SetID(u)
 	return dc
 }
 
 // AddSurveyIDs adds the surveys edge to Survey by ids.
 func (dc *DomainCreate) AddSurveyIDs(ids ...uuid.UUID) *DomainCreate {
-	if dc.surveys == nil {
-		dc.surveys = make(map[uuid.UUID]struct{})
-	}
-	for i := range ids {
-		dc.surveys[ids[i]] = struct{}{}
-	}
+	dc.mutation.AddSurveyIDs(ids...)
 	return dc
 }
 
@@ -94,12 +81,7 @@ func (dc *DomainCreate) AddSurveys(s ...*Survey) *DomainCreate {
 
 // AddUserIDs adds the users edge to Person by ids.
 func (dc *DomainCreate) AddUserIDs(ids ...uuid.UUID) *DomainCreate {
-	if dc.users == nil {
-		dc.users = make(map[uuid.UUID]struct{})
-	}
-	for i := range ids {
-		dc.users[ids[i]] = struct{}{}
-	}
+	dc.mutation.AddUserIDs(ids...)
 	return dc
 }
 
@@ -114,12 +96,7 @@ func (dc *DomainCreate) AddUsers(p ...*Person) *DomainCreate {
 
 // AddAdminIDs adds the admins edge to Person by ids.
 func (dc *DomainCreate) AddAdminIDs(ids ...uuid.UUID) *DomainCreate {
-	if dc.admins == nil {
-		dc.admins = make(map[uuid.UUID]struct{})
-	}
-	for i := range ids {
-		dc.admins[ids[i]] = struct{}{}
-	}
+	dc.mutation.AddAdminIDs(ids...)
 	return dc
 }
 
@@ -134,31 +111,58 @@ func (dc *DomainCreate) AddAdmins(p ...*Person) *DomainCreate {
 
 // Save creates the Domain in the database.
 func (dc *DomainCreate) Save(ctx context.Context) (*Domain, error) {
-	if dc.name == nil {
+	if _, ok := dc.mutation.Name(); !ok {
 		return nil, errors.New("ent: missing required field \"name\"")
 	}
-	if err := domain.NameValidator(*dc.name); err != nil {
-		return nil, fmt.Errorf("ent: validator failed for field \"name\": %v", err)
+	if v, ok := dc.mutation.Name(); ok {
+		if err := domain.NameValidator(v); err != nil {
+			return nil, fmt.Errorf("ent: validator failed for field \"name\": %v", err)
+		}
 	}
-	if dc.email == nil {
+	if _, ok := dc.mutation.Email(); !ok {
 		return nil, errors.New("ent: missing required field \"email\"")
 	}
-	if err := domain.EmailValidator(*dc.email); err != nil {
-		return nil, fmt.Errorf("ent: validator failed for field \"email\": %v", err)
+	if v, ok := dc.mutation.Email(); ok {
+		if err := domain.EmailValidator(v); err != nil {
+			return nil, fmt.Errorf("ent: validator failed for field \"email\": %v", err)
+		}
 	}
-	if dc.domain == nil {
+	if _, ok := dc.mutation.Domain(); !ok {
 		return nil, errors.New("ent: missing required field \"domain\"")
 	}
-	if dc.collectaDomain == nil {
+	if _, ok := dc.mutation.CollectaDomain(); !ok {
 		return nil, errors.New("ent: missing required field \"collectaDomain\"")
 	}
-	if dc.collectaClientCallback == nil {
+	if _, ok := dc.mutation.CollectaClientCallback(); !ok {
 		return nil, errors.New("ent: missing required field \"collectaClientCallback\"")
 	}
-	if dc.tags == nil {
+	if _, ok := dc.mutation.Tags(); !ok {
 		return nil, errors.New("ent: missing required field \"tags\"")
 	}
-	return dc.sqlSave(ctx)
+	var (
+		err  error
+		node *Domain
+	)
+	if len(dc.hooks) == 0 {
+		node, err = dc.sqlSave(ctx)
+	} else {
+		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
+			mutation, ok := m.(*DomainMutation)
+			if !ok {
+				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			dc.mutation = mutation
+			node, err = dc.sqlSave(ctx)
+			return node, err
+		})
+		for i := len(dc.hooks) - 1; i >= 0; i-- {
+			mut = dc.hooks[i](mut)
+		}
+		if _, err := mut.Mutate(ctx, dc.mutation); err != nil {
+			return nil, err
+		}
+	}
+	return node, err
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -181,59 +185,59 @@ func (dc *DomainCreate) sqlSave(ctx context.Context) (*Domain, error) {
 			},
 		}
 	)
-	if value := dc.id; value != nil {
-		d.ID = *value
-		_spec.ID.Value = *value
+	if id, ok := dc.mutation.ID(); ok {
+		d.ID = id
+		_spec.ID.Value = id
 	}
-	if value := dc.name; value != nil {
+	if value, ok := dc.mutation.Name(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: domain.FieldName,
 		})
-		d.Name = *value
+		d.Name = value
 	}
-	if value := dc.email; value != nil {
+	if value, ok := dc.mutation.Email(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: domain.FieldEmail,
 		})
-		d.Email = *value
+		d.Email = value
 	}
-	if value := dc.domain; value != nil {
+	if value, ok := dc.mutation.Domain(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: domain.FieldDomain,
 		})
-		d.Domain = *value
+		d.Domain = value
 	}
-	if value := dc.collectaDomain; value != nil {
+	if value, ok := dc.mutation.CollectaDomain(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: domain.FieldCollectaDomain,
 		})
-		d.CollectaDomain = *value
+		d.CollectaDomain = value
 	}
-	if value := dc.collectaClientCallback; value != nil {
+	if value, ok := dc.mutation.CollectaClientCallback(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: domain.FieldCollectaClientCallback,
 		})
-		d.CollectaClientCallback = *value
+		d.CollectaClientCallback = value
 	}
-	if value := dc.tags; value != nil {
+	if value, ok := dc.mutation.Tags(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeJSON,
-			Value:  *value,
+			Value:  value,
 			Column: domain.FieldTags,
 		})
-		d.Tags = *value
+		d.Tags = value
 	}
-	if nodes := dc.surveys; len(nodes) > 0 {
+	if nodes := dc.mutation.SurveysIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -247,12 +251,12 @@ func (dc *DomainCreate) sqlSave(ctx context.Context) (*Domain, error) {
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := dc.users; len(nodes) > 0 {
+	if nodes := dc.mutation.UsersIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
 			Inverse: false,
@@ -266,12 +270,12 @@ func (dc *DomainCreate) sqlSave(ctx context.Context) (*Domain, error) {
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := dc.admins; len(nodes) > 0 {
+	if nodes := dc.mutation.AdminsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
 			Inverse: false,
@@ -285,7 +289,7 @@ func (dc *DomainCreate) sqlSave(ctx context.Context) (*Domain, error) {
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges = append(_spec.Edges, edge)

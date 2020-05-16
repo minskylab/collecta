@@ -4,23 +4,20 @@ package account
 
 import (
 	"fmt"
-
-	"github.com/minskylab/collecta/ent/schema"
 )
 
 const (
 	// Label holds the string label denoting the account type in the database.
 	Label = "account"
 	// FieldID holds the string denoting the id field in the database.
-	FieldID = "id"
-	// FieldType holds the string denoting the type vertex property in the database.
-	FieldType = "type"
-	// FieldSub holds the string denoting the sub vertex property in the database.
-	FieldSub = "sub"
-	// FieldRemoteID holds the string denoting the remoteid vertex property in the database.
-	FieldRemoteID = "remote_id"
-	// FieldSecret holds the string denoting the secret vertex property in the database.
-	FieldSecret = "secret"
+	FieldID       = "id"        // FieldType holds the string denoting the type vertex property in the database.
+	FieldType     = "type"      // FieldSub holds the string denoting the sub vertex property in the database.
+	FieldSub      = "sub"       // FieldRemoteID holds the string denoting the remoteid vertex property in the database.
+	FieldRemoteID = "remote_id" // FieldSecret holds the string denoting the secret vertex property in the database.
+	FieldSecret   = "secret"
+
+	// EdgeOwner holds the string denoting the owner edge name in mutations.
+	EdgeOwner = "owner"
 
 	// Table holds the table name of the account in the database.
 	Table = "accounts"
@@ -48,12 +45,8 @@ var ForeignKeys = []string{
 }
 
 var (
-	fields = schema.Account{}.Fields()
-
-	// descSub is the schema descriptor for sub field.
-	descSub = fields[2].Descriptor()
 	// SubValidator is a validator for the "sub" field. It is called by the builders before save.
-	SubValidator = descSub.Validators[0].(func(string) error)
+	SubValidator func(string) error
 )
 
 // Type defines the type for the type enum field.

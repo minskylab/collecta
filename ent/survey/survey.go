@@ -4,31 +4,28 @@ package survey
 
 import (
 	"time"
-
-	"github.com/minskylab/collecta/ent/schema"
 )
 
 const (
 	// Label holds the string label denoting the survey type in the database.
 	Label = "survey"
 	// FieldID holds the string denoting the id field in the database.
-	FieldID = "id"
-	// FieldTags holds the string denoting the tags vertex property in the database.
-	FieldTags = "tags"
-	// FieldLastInteraction holds the string denoting the lastinteraction vertex property in the database.
-	FieldLastInteraction = "last_interaction"
-	// FieldDueDate holds the string denoting the duedate vertex property in the database.
-	FieldDueDate = "due_date"
-	// FieldTitle holds the string denoting the title vertex property in the database.
-	FieldTitle = "title"
-	// FieldDescription holds the string denoting the description vertex property in the database.
-	FieldDescription = "description"
-	// FieldMetadata holds the string denoting the metadata vertex property in the database.
-	FieldMetadata = "metadata"
-	// FieldDone holds the string denoting the done vertex property in the database.
-	FieldDone = "done"
-	// FieldIsPublic holds the string denoting the ispublic vertex property in the database.
-	FieldIsPublic = "is_public"
+	FieldID              = "id"               // FieldTags holds the string denoting the tags vertex property in the database.
+	FieldTags            = "tags"             // FieldLastInteraction holds the string denoting the lastinteraction vertex property in the database.
+	FieldLastInteraction = "last_interaction" // FieldDueDate holds the string denoting the duedate vertex property in the database.
+	FieldDueDate         = "due_date"         // FieldTitle holds the string denoting the title vertex property in the database.
+	FieldTitle           = "title"            // FieldDescription holds the string denoting the description vertex property in the database.
+	FieldDescription     = "description"      // FieldMetadata holds the string denoting the metadata vertex property in the database.
+	FieldMetadata        = "metadata"         // FieldDone holds the string denoting the done vertex property in the database.
+	FieldDone            = "done"             // FieldIsPublic holds the string denoting the ispublic vertex property in the database.
+	FieldIsPublic        = "is_public"
+
+	// EdgeFlow holds the string denoting the flow edge name in mutations.
+	EdgeFlow = "flow"
+	// EdgeFor holds the string denoting the for edge name in mutations.
+	EdgeFor = "for"
+	// EdgeOwner holds the string denoting the owner edge name in mutations.
+	EdgeOwner = "owner"
 
 	// Table holds the table name of the survey in the database.
 	Table = "surveys"
@@ -75,25 +72,12 @@ var ForeignKeys = []string{
 }
 
 var (
-	fields = schema.Survey{}.Fields()
-
-	// descDueDate is the schema descriptor for dueDate field.
-	descDueDate = fields[3].Descriptor()
 	// DefaultDueDate holds the default value on creation for the dueDate field.
-	DefaultDueDate = descDueDate.Default.(func() time.Time)
-
-	// descTitle is the schema descriptor for title field.
-	descTitle = fields[4].Descriptor()
+	DefaultDueDate func() time.Time
 	// TitleValidator is a validator for the "title" field. It is called by the builders before save.
-	TitleValidator = descTitle.Validators[0].(func(string) error)
-
-	// descDone is the schema descriptor for done field.
-	descDone = fields[7].Descriptor()
+	TitleValidator func(string) error
 	// DefaultDone holds the default value on creation for the done field.
-	DefaultDone = descDone.Default.(bool)
-
-	// descIsPublic is the schema descriptor for isPublic field.
-	descIsPublic = fields[8].Descriptor()
+	DefaultDone bool
 	// DefaultIsPublic holds the default value on creation for the isPublic field.
-	DefaultIsPublic = descIsPublic.Default.(bool)
+	DefaultIsPublic bool
 )

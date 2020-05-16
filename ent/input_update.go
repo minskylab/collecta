@@ -5,6 +5,7 @@ package ent
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -18,16 +19,9 @@ import (
 // InputUpdate is the builder for updating Input entities.
 type InputUpdate struct {
 	config
-
-	multiple        *bool
-	clearmultiple   bool
-	defaults        *[]string
-	cleardefaults   bool
-	options         *map[string]string
-	clearoptions    bool
-	question        map[uuid.UUID]struct{}
-	clearedQuestion bool
-	predicates      []predicate.Input
+	hooks      []Hook
+	mutation   *InputMutation
+	predicates []predicate.Input
 }
 
 // Where adds a new predicate for the builder.
@@ -38,7 +32,7 @@ func (iu *InputUpdate) Where(ps ...predicate.Input) *InputUpdate {
 
 // SetMultiple sets the multiple field.
 func (iu *InputUpdate) SetMultiple(b bool) *InputUpdate {
-	iu.multiple = &b
+	iu.mutation.SetMultiple(b)
 	return iu
 }
 
@@ -52,43 +46,37 @@ func (iu *InputUpdate) SetNillableMultiple(b *bool) *InputUpdate {
 
 // ClearMultiple clears the value of multiple.
 func (iu *InputUpdate) ClearMultiple() *InputUpdate {
-	iu.multiple = nil
-	iu.clearmultiple = true
+	iu.mutation.ClearMultiple()
 	return iu
 }
 
 // SetDefaults sets the defaults field.
 func (iu *InputUpdate) SetDefaults(s []string) *InputUpdate {
-	iu.defaults = &s
+	iu.mutation.SetDefaults(s)
 	return iu
 }
 
 // ClearDefaults clears the value of defaults.
 func (iu *InputUpdate) ClearDefaults() *InputUpdate {
-	iu.defaults = nil
-	iu.cleardefaults = true
+	iu.mutation.ClearDefaults()
 	return iu
 }
 
 // SetOptions sets the options field.
 func (iu *InputUpdate) SetOptions(m map[string]string) *InputUpdate {
-	iu.options = &m
+	iu.mutation.SetOptions(m)
 	return iu
 }
 
 // ClearOptions clears the value of options.
 func (iu *InputUpdate) ClearOptions() *InputUpdate {
-	iu.options = nil
-	iu.clearoptions = true
+	iu.mutation.ClearOptions()
 	return iu
 }
 
 // SetQuestionID sets the question edge to Question by id.
 func (iu *InputUpdate) SetQuestionID(id uuid.UUID) *InputUpdate {
-	if iu.question == nil {
-		iu.question = make(map[uuid.UUID]struct{})
-	}
-	iu.question[id] = struct{}{}
+	iu.mutation.SetQuestionID(id)
 	return iu
 }
 
@@ -99,19 +87,40 @@ func (iu *InputUpdate) SetQuestion(q *Question) *InputUpdate {
 
 // ClearQuestion clears the question edge to Question.
 func (iu *InputUpdate) ClearQuestion() *InputUpdate {
-	iu.clearedQuestion = true
+	iu.mutation.ClearQuestion()
 	return iu
 }
 
 // Save executes the query and returns the number of rows/vertices matched by this operation.
 func (iu *InputUpdate) Save(ctx context.Context) (int, error) {
-	if len(iu.question) > 1 {
-		return 0, errors.New("ent: multiple assignments on a unique edge \"question\"")
-	}
-	if iu.clearedQuestion && iu.question == nil {
+
+	if _, ok := iu.mutation.QuestionID(); iu.mutation.QuestionCleared() && !ok {
 		return 0, errors.New("ent: clearing a unique edge \"question\"")
 	}
-	return iu.sqlSave(ctx)
+	var (
+		err      error
+		affected int
+	)
+	if len(iu.hooks) == 0 {
+		affected, err = iu.sqlSave(ctx)
+	} else {
+		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
+			mutation, ok := m.(*InputMutation)
+			if !ok {
+				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			iu.mutation = mutation
+			affected, err = iu.sqlSave(ctx)
+			return affected, err
+		})
+		for i := len(iu.hooks) - 1; i >= 0; i-- {
+			mut = iu.hooks[i](mut)
+		}
+		if _, err := mut.Mutate(ctx, iu.mutation); err != nil {
+			return 0, err
+		}
+	}
+	return affected, err
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -154,46 +163,46 @@ func (iu *InputUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 		}
 	}
-	if value := iu.multiple; value != nil {
+	if value, ok := iu.mutation.Multiple(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeBool,
-			Value:  *value,
+			Value:  value,
 			Column: input.FieldMultiple,
 		})
 	}
-	if iu.clearmultiple {
+	if iu.mutation.MultipleCleared() {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeBool,
 			Column: input.FieldMultiple,
 		})
 	}
-	if value := iu.defaults; value != nil {
+	if value, ok := iu.mutation.Defaults(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeJSON,
-			Value:  *value,
+			Value:  value,
 			Column: input.FieldDefaults,
 		})
 	}
-	if iu.cleardefaults {
+	if iu.mutation.DefaultsCleared() {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeJSON,
 			Column: input.FieldDefaults,
 		})
 	}
-	if value := iu.options; value != nil {
+	if value, ok := iu.mutation.Options(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeJSON,
-			Value:  *value,
+			Value:  value,
 			Column: input.FieldOptions,
 		})
 	}
-	if iu.clearoptions {
+	if iu.mutation.OptionsCleared() {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeJSON,
 			Column: input.FieldOptions,
 		})
 	}
-	if iu.clearedQuestion {
+	if iu.mutation.QuestionCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2O,
 			Inverse: true,
@@ -209,7 +218,7 @@ func (iu *InputUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := iu.question; len(nodes) > 0 {
+	if nodes := iu.mutation.QuestionIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2O,
 			Inverse: true,
@@ -223,7 +232,7 @@ func (iu *InputUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
@@ -242,21 +251,13 @@ func (iu *InputUpdate) sqlSave(ctx context.Context) (n int, err error) {
 // InputUpdateOne is the builder for updating a single Input entity.
 type InputUpdateOne struct {
 	config
-	id uuid.UUID
-
-	multiple        *bool
-	clearmultiple   bool
-	defaults        *[]string
-	cleardefaults   bool
-	options         *map[string]string
-	clearoptions    bool
-	question        map[uuid.UUID]struct{}
-	clearedQuestion bool
+	hooks    []Hook
+	mutation *InputMutation
 }
 
 // SetMultiple sets the multiple field.
 func (iuo *InputUpdateOne) SetMultiple(b bool) *InputUpdateOne {
-	iuo.multiple = &b
+	iuo.mutation.SetMultiple(b)
 	return iuo
 }
 
@@ -270,43 +271,37 @@ func (iuo *InputUpdateOne) SetNillableMultiple(b *bool) *InputUpdateOne {
 
 // ClearMultiple clears the value of multiple.
 func (iuo *InputUpdateOne) ClearMultiple() *InputUpdateOne {
-	iuo.multiple = nil
-	iuo.clearmultiple = true
+	iuo.mutation.ClearMultiple()
 	return iuo
 }
 
 // SetDefaults sets the defaults field.
 func (iuo *InputUpdateOne) SetDefaults(s []string) *InputUpdateOne {
-	iuo.defaults = &s
+	iuo.mutation.SetDefaults(s)
 	return iuo
 }
 
 // ClearDefaults clears the value of defaults.
 func (iuo *InputUpdateOne) ClearDefaults() *InputUpdateOne {
-	iuo.defaults = nil
-	iuo.cleardefaults = true
+	iuo.mutation.ClearDefaults()
 	return iuo
 }
 
 // SetOptions sets the options field.
 func (iuo *InputUpdateOne) SetOptions(m map[string]string) *InputUpdateOne {
-	iuo.options = &m
+	iuo.mutation.SetOptions(m)
 	return iuo
 }
 
 // ClearOptions clears the value of options.
 func (iuo *InputUpdateOne) ClearOptions() *InputUpdateOne {
-	iuo.options = nil
-	iuo.clearoptions = true
+	iuo.mutation.ClearOptions()
 	return iuo
 }
 
 // SetQuestionID sets the question edge to Question by id.
 func (iuo *InputUpdateOne) SetQuestionID(id uuid.UUID) *InputUpdateOne {
-	if iuo.question == nil {
-		iuo.question = make(map[uuid.UUID]struct{})
-	}
-	iuo.question[id] = struct{}{}
+	iuo.mutation.SetQuestionID(id)
 	return iuo
 }
 
@@ -317,19 +312,40 @@ func (iuo *InputUpdateOne) SetQuestion(q *Question) *InputUpdateOne {
 
 // ClearQuestion clears the question edge to Question.
 func (iuo *InputUpdateOne) ClearQuestion() *InputUpdateOne {
-	iuo.clearedQuestion = true
+	iuo.mutation.ClearQuestion()
 	return iuo
 }
 
 // Save executes the query and returns the updated entity.
 func (iuo *InputUpdateOne) Save(ctx context.Context) (*Input, error) {
-	if len(iuo.question) > 1 {
-		return nil, errors.New("ent: multiple assignments on a unique edge \"question\"")
-	}
-	if iuo.clearedQuestion && iuo.question == nil {
+
+	if _, ok := iuo.mutation.QuestionID(); iuo.mutation.QuestionCleared() && !ok {
 		return nil, errors.New("ent: clearing a unique edge \"question\"")
 	}
-	return iuo.sqlSave(ctx)
+	var (
+		err  error
+		node *Input
+	)
+	if len(iuo.hooks) == 0 {
+		node, err = iuo.sqlSave(ctx)
+	} else {
+		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
+			mutation, ok := m.(*InputMutation)
+			if !ok {
+				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			iuo.mutation = mutation
+			node, err = iuo.sqlSave(ctx)
+			return node, err
+		})
+		for i := len(iuo.hooks) - 1; i >= 0; i-- {
+			mut = iuo.hooks[i](mut)
+		}
+		if _, err := mut.Mutate(ctx, iuo.mutation); err != nil {
+			return nil, err
+		}
+	}
+	return node, err
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -360,52 +376,56 @@ func (iuo *InputUpdateOne) sqlSave(ctx context.Context) (i *Input, err error) {
 			Table:   input.Table,
 			Columns: input.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Value:  iuo.id,
 				Type:   field.TypeUUID,
 				Column: input.FieldID,
 			},
 		},
 	}
-	if value := iuo.multiple; value != nil {
+	id, ok := iuo.mutation.ID()
+	if !ok {
+		return nil, fmt.Errorf("missing Input.ID for update")
+	}
+	_spec.Node.ID.Value = id
+	if value, ok := iuo.mutation.Multiple(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeBool,
-			Value:  *value,
+			Value:  value,
 			Column: input.FieldMultiple,
 		})
 	}
-	if iuo.clearmultiple {
+	if iuo.mutation.MultipleCleared() {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeBool,
 			Column: input.FieldMultiple,
 		})
 	}
-	if value := iuo.defaults; value != nil {
+	if value, ok := iuo.mutation.Defaults(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeJSON,
-			Value:  *value,
+			Value:  value,
 			Column: input.FieldDefaults,
 		})
 	}
-	if iuo.cleardefaults {
+	if iuo.mutation.DefaultsCleared() {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeJSON,
 			Column: input.FieldDefaults,
 		})
 	}
-	if value := iuo.options; value != nil {
+	if value, ok := iuo.mutation.Options(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeJSON,
-			Value:  *value,
+			Value:  value,
 			Column: input.FieldOptions,
 		})
 	}
-	if iuo.clearoptions {
+	if iuo.mutation.OptionsCleared() {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeJSON,
 			Column: input.FieldOptions,
 		})
 	}
-	if iuo.clearedQuestion {
+	if iuo.mutation.QuestionCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2O,
 			Inverse: true,
@@ -421,7 +441,7 @@ func (iuo *InputUpdateOne) sqlSave(ctx context.Context) (i *Input, err error) {
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := iuo.question; len(nodes) > 0 {
+	if nodes := iuo.mutation.QuestionIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2O,
 			Inverse: true,
@@ -435,7 +455,7 @@ func (iuo *InputUpdateOne) sqlSave(ctx context.Context) (i *Input, err error) {
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)

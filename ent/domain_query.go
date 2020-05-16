@@ -14,6 +14,7 @@ import (
 	"github.com/facebookincubator/ent/schema/field"
 	"github.com/google/uuid"
 	"github.com/minskylab/collecta/ent/domain"
+	"github.com/minskylab/collecta/ent/person"
 	"github.com/minskylab/collecta/ent/predicate"
 	"github.com/minskylab/collecta/ent/survey"
 )
@@ -30,8 +31,9 @@ type DomainQuery struct {
 	withSurveys *SurveyQuery
 	withUsers   *PersonQuery
 	withAdmins  *PersonQuery
-	// intermediate query.
-	sql *sql.Selector
+	// intermediate query (i.e. traversal path).
+	sql  *sql.Selector
+	path func(context.Context) (*sql.Selector, error)
 }
 
 // Where adds a new predicate for the builder.
@@ -61,36 +63,54 @@ func (dq *DomainQuery) Order(o ...Order) *DomainQuery {
 // QuerySurveys chains the current query on the surveys edge.
 func (dq *DomainQuery) QuerySurveys() *SurveyQuery {
 	query := &SurveyQuery{config: dq.config}
-	step := sqlgraph.NewStep(
-		sqlgraph.From(domain.Table, domain.FieldID, dq.sqlQuery()),
-		sqlgraph.To(survey.Table, survey.FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, domain.SurveysTable, domain.SurveysColumn),
-	)
-	query.sql = sqlgraph.SetNeighbors(dq.driver.Dialect(), step)
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := dq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(domain.Table, domain.FieldID, dq.sqlQuery()),
+			sqlgraph.To(survey.Table, survey.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, domain.SurveysTable, domain.SurveysColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(dq.driver.Dialect(), step)
+		return fromU, nil
+	}
 	return query
 }
 
 // QueryUsers chains the current query on the users edge.
 func (dq *DomainQuery) QueryUsers() *PersonQuery {
 	query := &PersonQuery{config: dq.config}
-	step := sqlgraph.NewStep(
-		sqlgraph.From(domain.Table, domain.FieldID, dq.sqlQuery()),
-		sqlgraph.To(person.Table, person.FieldID),
-		sqlgraph.Edge(sqlgraph.M2M, false, domain.UsersTable, domain.UsersPrimaryKey...),
-	)
-	query.sql = sqlgraph.SetNeighbors(dq.driver.Dialect(), step)
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := dq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(domain.Table, domain.FieldID, dq.sqlQuery()),
+			sqlgraph.To(person.Table, person.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, domain.UsersTable, domain.UsersPrimaryKey...),
+		)
+		fromU = sqlgraph.SetNeighbors(dq.driver.Dialect(), step)
+		return fromU, nil
+	}
 	return query
 }
 
 // QueryAdmins chains the current query on the admins edge.
 func (dq *DomainQuery) QueryAdmins() *PersonQuery {
 	query := &PersonQuery{config: dq.config}
-	step := sqlgraph.NewStep(
-		sqlgraph.From(domain.Table, domain.FieldID, dq.sqlQuery()),
-		sqlgraph.To(person.Table, person.FieldID),
-		sqlgraph.Edge(sqlgraph.M2M, false, domain.AdminsTable, domain.AdminsPrimaryKey...),
-	)
-	query.sql = sqlgraph.SetNeighbors(dq.driver.Dialect(), step)
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := dq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(domain.Table, domain.FieldID, dq.sqlQuery()),
+			sqlgraph.To(person.Table, person.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, domain.AdminsTable, domain.AdminsPrimaryKey...),
+		)
+		fromU = sqlgraph.SetNeighbors(dq.driver.Dialect(), step)
+		return fromU, nil
+	}
 	return query
 }
 
@@ -190,6 +210,9 @@ func (dq *DomainQuery) OnlyXID(ctx context.Context) uuid.UUID {
 
 // All executes the query and returns a list of Domains.
 func (dq *DomainQuery) All(ctx context.Context) ([]*Domain, error) {
+	if err := dq.prepareQuery(ctx); err != nil {
+		return nil, err
+	}
 	return dq.sqlAll(ctx)
 }
 
@@ -222,6 +245,9 @@ func (dq *DomainQuery) IDsX(ctx context.Context) []uuid.UUID {
 
 // Count returns the count of the given query.
 func (dq *DomainQuery) Count(ctx context.Context) (int, error) {
+	if err := dq.prepareQuery(ctx); err != nil {
+		return 0, err
+	}
 	return dq.sqlCount(ctx)
 }
 
@@ -236,6 +262,9 @@ func (dq *DomainQuery) CountX(ctx context.Context) int {
 
 // Exist returns true if the query has elements in the graph.
 func (dq *DomainQuery) Exist(ctx context.Context) (bool, error) {
+	if err := dq.prepareQuery(ctx); err != nil {
+		return false, err
+	}
 	return dq.sqlExist(ctx)
 }
 
@@ -259,7 +288,8 @@ func (dq *DomainQuery) Clone() *DomainQuery {
 		unique:     append([]string{}, dq.unique...),
 		predicates: append([]predicate.Domain{}, dq.predicates...),
 		// clone intermediate query.
-		sql: dq.sql.Clone(),
+		sql:  dq.sql.Clone(),
+		path: dq.path,
 	}
 }
 
@@ -314,7 +344,12 @@ func (dq *DomainQuery) WithAdmins(opts ...func(*PersonQuery)) *DomainQuery {
 func (dq *DomainQuery) GroupBy(field string, fields ...string) *DomainGroupBy {
 	group := &DomainGroupBy{config: dq.config}
 	group.fields = append([]string{field}, fields...)
-	group.sql = dq.sqlQuery()
+	group.path = func(ctx context.Context) (prev *sql.Selector, err error) {
+		if err := dq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		return dq.sqlQuery(), nil
+	}
 	return group
 }
 
@@ -333,8 +368,24 @@ func (dq *DomainQuery) GroupBy(field string, fields ...string) *DomainGroupBy {
 func (dq *DomainQuery) Select(field string, fields ...string) *DomainSelect {
 	selector := &DomainSelect{config: dq.config}
 	selector.fields = append([]string{field}, fields...)
-	selector.sql = dq.sqlQuery()
+	selector.path = func(ctx context.Context) (prev *sql.Selector, err error) {
+		if err := dq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		return dq.sqlQuery(), nil
+	}
 	return selector
+}
+
+func (dq *DomainQuery) prepareQuery(ctx context.Context) error {
+	if dq.path != nil {
+		prev, err := dq.path(ctx)
+		if err != nil {
+			return err
+		}
+		dq.sql = prev
+	}
+	return nil
 }
 
 func (dq *DomainQuery) sqlAll(ctx context.Context) ([]*Domain, error) {
@@ -604,8 +655,9 @@ type DomainGroupBy struct {
 	config
 	fields []string
 	fns    []Aggregate
-	// intermediate query.
-	sql *sql.Selector
+	// intermediate query (i.e. traversal path).
+	sql  *sql.Selector
+	path func(context.Context) (*sql.Selector, error)
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
@@ -616,6 +668,11 @@ func (dgb *DomainGroupBy) Aggregate(fns ...Aggregate) *DomainGroupBy {
 
 // Scan applies the group-by query and scan the result into the given value.
 func (dgb *DomainGroupBy) Scan(ctx context.Context, v interface{}) error {
+	query, err := dgb.path(ctx)
+	if err != nil {
+		return err
+	}
+	dgb.sql = query
 	return dgb.sqlScan(ctx, v)
 }
 
@@ -734,12 +791,18 @@ func (dgb *DomainGroupBy) sqlQuery() *sql.Selector {
 type DomainSelect struct {
 	config
 	fields []string
-	// intermediate queries.
-	sql *sql.Selector
+	// intermediate query (i.e. traversal path).
+	sql  *sql.Selector
+	path func(context.Context) (*sql.Selector, error)
 }
 
 // Scan applies the selector query and scan the result into the given value.
 func (ds *DomainSelect) Scan(ctx context.Context, v interface{}) error {
+	query, err := ds.path(ctx)
+	if err != nil {
+		return err
+	}
+	ds.sql = query
 	return ds.sqlScan(ctx, v)
 }
 

@@ -4,6 +4,7 @@ package ent
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -15,6 +16,8 @@ import (
 // InputDelete is the builder for deleting a Input entity.
 type InputDelete struct {
 	config
+	hooks      []Hook
+	mutation   *InputMutation
 	predicates []predicate.Input
 }
 
@@ -26,7 +29,30 @@ func (id *InputDelete) Where(ps ...predicate.Input) *InputDelete {
 
 // Exec executes the deletion query and returns how many vertices were deleted.
 func (id *InputDelete) Exec(ctx context.Context) (int, error) {
-	return id.sqlExec(ctx)
+	var (
+		err      error
+		affected int
+	)
+	if len(id.hooks) == 0 {
+		affected, err = id.sqlExec(ctx)
+	} else {
+		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
+			mutation, ok := m.(*InputMutation)
+			if !ok {
+				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			id.mutation = mutation
+			affected, err = id.sqlExec(ctx)
+			return affected, err
+		})
+		for i := len(id.hooks) - 1; i >= 0; i-- {
+			mut = id.hooks[i](mut)
+		}
+		if _, err := mut.Mutate(ctx, id.mutation); err != nil {
+			return 0, err
+		}
+	}
+	return affected, err
 }
 
 // ExecX is like Exec, but panics if an error occurs.

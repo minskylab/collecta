@@ -3,6 +3,7 @@
 package ent
 
 import (
+	"github.com/facebookincubator/ent"
 	"github.com/facebookincubator/ent/dialect"
 )
 
@@ -17,6 +18,25 @@ type config struct {
 	debug bool
 	// log used for logging on debug mode.
 	log func(...interface{})
+	// hooks to execute on mutations.
+	hooks *hooks
+}
+
+// hooks per client, for fast access.
+type hooks struct {
+	Account  []ent.Hook
+	Answer   []ent.Hook
+	Contact  []ent.Hook
+	Datum    []ent.Hook
+	Device   []ent.Hook
+	Domain   []ent.Hook
+	Flow     []ent.Hook
+	IP       []ent.Hook
+	Input    []ent.Hook
+	Person   []ent.Hook
+	Question []ent.Hook
+	Short    []ent.Hook
+	Survey   []ent.Hook
 }
 
 // Options applies the options on the config object.

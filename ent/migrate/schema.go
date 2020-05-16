@@ -3,11 +3,6 @@
 package migrate
 
 import (
-	"github.com/minskylab/collecta/ent/contact"
-	"github.com/minskylab/collecta/ent/input"
-	"github.com/minskylab/collecta/ent/question"
-	"github.com/minskylab/collecta/ent/survey"
-
 	"github.com/facebookincubator/ent/dialect/sql/schema"
 	"github.com/facebookincubator/ent/schema/field"
 )
@@ -65,10 +60,10 @@ var (
 		{Name: "id", Type: field.TypeUUID},
 		{Name: "name", Type: field.TypeString},
 		{Name: "value", Type: field.TypeString},
-		{Name: "kind", Type: field.TypeEnum, Enums: []string{"Email", "Phone"}, Default: contact.DefaultKind},
+		{Name: "kind", Type: field.TypeEnum, Enums: []string{"Email", "Phone"}, Default: "Email"},
 		{Name: "principal", Type: field.TypeBool},
 		{Name: "validated", Type: field.TypeBool},
-		{Name: "from_account", Type: field.TypeBool, Default: contact.DefaultFromAccount},
+		{Name: "from_account", Type: field.TypeBool},
 		{Name: "person_contacts", Type: field.TypeUUID, Nullable: true},
 	}
 	// ContactsTable holds the schema information for the "contacts" table.
@@ -85,6 +80,17 @@ var (
 				OnDelete:   schema.SetNull,
 			},
 		},
+	}
+	// DataColumns holds the columns for the "data" table.
+	DataColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+	}
+	// DataTable holds the schema information for the "data" table.
+	DataTable = &schema.Table{
+		Name:        "data",
+		Columns:     DataColumns,
+		PrimaryKey:  []*schema.Column{DataColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{},
 	}
 	// DevicesColumns holds the columns for the "devices" table.
 	DevicesColumns = []*schema.Column{
@@ -157,7 +163,7 @@ var (
 	InputsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
 		{Name: "kind", Type: field.TypeEnum, Enums: []string{"Text", "Options", "Satisfaction", "Boolean"}},
-		{Name: "multiple", Type: field.TypeBool, Nullable: true, Default: input.DefaultMultiple},
+		{Name: "multiple", Type: field.TypeBool, Nullable: true},
 		{Name: "defaults", Type: field.TypeJSON, Nullable: true},
 		{Name: "options", Type: field.TypeJSON, Nullable: true},
 		{Name: "question_input", Type: field.TypeUUID, Unique: true, Nullable: true},
@@ -201,7 +207,7 @@ var (
 		{Name: "description", Type: field.TypeString},
 		{Name: "metadata", Type: field.TypeJSON, Nullable: true},
 		{Name: "validator", Type: field.TypeString, Nullable: true},
-		{Name: "anonymous", Type: field.TypeBool, Default: question.DefaultAnonymous},
+		{Name: "anonymous", Type: field.TypeBool},
 		{Name: "flow_questions", Type: field.TypeUUID, Nullable: true},
 	}
 	// QuestionsTable holds the schema information for the "questions" table.
@@ -241,8 +247,8 @@ var (
 		{Name: "title", Type: field.TypeString},
 		{Name: "description", Type: field.TypeString, Nullable: true},
 		{Name: "metadata", Type: field.TypeJSON, Nullable: true},
-		{Name: "done", Type: field.TypeBool, Nullable: true, Default: survey.DefaultDone},
-		{Name: "is_public", Type: field.TypeBool, Nullable: true, Default: survey.DefaultIsPublic},
+		{Name: "done", Type: field.TypeBool, Nullable: true},
+		{Name: "is_public", Type: field.TypeBool, Nullable: true},
 		{Name: "domain_surveys", Type: field.TypeUUID, Nullable: true},
 		{Name: "person_surveys", Type: field.TypeUUID, Nullable: true},
 	}
@@ -327,6 +333,7 @@ var (
 		AccountsTable,
 		AnswersTable,
 		ContactsTable,
+		DataTable,
 		DevicesTable,
 		DomainsTable,
 		FlowsTable,

@@ -16,6 +16,7 @@ import (
 	"github.com/minskylab/collecta/ent/flow"
 	"github.com/minskylab/collecta/ent/predicate"
 	"github.com/minskylab/collecta/ent/question"
+	"github.com/minskylab/collecta/ent/survey"
 )
 
 // FlowQuery is the builder for querying Flow entities.
@@ -30,8 +31,9 @@ type FlowQuery struct {
 	withSurvey    *SurveyQuery
 	withQuestions *QuestionQuery
 	withFKs       bool
-	// intermediate query.
-	sql *sql.Selector
+	// intermediate query (i.e. traversal path).
+	sql  *sql.Selector
+	path func(context.Context) (*sql.Selector, error)
 }
 
 // Where adds a new predicate for the builder.
@@ -61,24 +63,36 @@ func (fq *FlowQuery) Order(o ...Order) *FlowQuery {
 // QuerySurvey chains the current query on the survey edge.
 func (fq *FlowQuery) QuerySurvey() *SurveyQuery {
 	query := &SurveyQuery{config: fq.config}
-	step := sqlgraph.NewStep(
-		sqlgraph.From(flow.Table, flow.FieldID, fq.sqlQuery()),
-		sqlgraph.To(survey.Table, survey.FieldID),
-		sqlgraph.Edge(sqlgraph.O2O, true, flow.SurveyTable, flow.SurveyColumn),
-	)
-	query.sql = sqlgraph.SetNeighbors(fq.driver.Dialect(), step)
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := fq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(flow.Table, flow.FieldID, fq.sqlQuery()),
+			sqlgraph.To(survey.Table, survey.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, true, flow.SurveyTable, flow.SurveyColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(fq.driver.Dialect(), step)
+		return fromU, nil
+	}
 	return query
 }
 
 // QueryQuestions chains the current query on the questions edge.
 func (fq *FlowQuery) QueryQuestions() *QuestionQuery {
 	query := &QuestionQuery{config: fq.config}
-	step := sqlgraph.NewStep(
-		sqlgraph.From(flow.Table, flow.FieldID, fq.sqlQuery()),
-		sqlgraph.To(question.Table, question.FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, flow.QuestionsTable, flow.QuestionsColumn),
-	)
-	query.sql = sqlgraph.SetNeighbors(fq.driver.Dialect(), step)
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := fq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(flow.Table, flow.FieldID, fq.sqlQuery()),
+			sqlgraph.To(question.Table, question.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, flow.QuestionsTable, flow.QuestionsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(fq.driver.Dialect(), step)
+		return fromU, nil
+	}
 	return query
 }
 
@@ -178,6 +192,9 @@ func (fq *FlowQuery) OnlyXID(ctx context.Context) uuid.UUID {
 
 // All executes the query and returns a list of Flows.
 func (fq *FlowQuery) All(ctx context.Context) ([]*Flow, error) {
+	if err := fq.prepareQuery(ctx); err != nil {
+		return nil, err
+	}
 	return fq.sqlAll(ctx)
 }
 
@@ -210,6 +227,9 @@ func (fq *FlowQuery) IDsX(ctx context.Context) []uuid.UUID {
 
 // Count returns the count of the given query.
 func (fq *FlowQuery) Count(ctx context.Context) (int, error) {
+	if err := fq.prepareQuery(ctx); err != nil {
+		return 0, err
+	}
 	return fq.sqlCount(ctx)
 }
 
@@ -224,6 +244,9 @@ func (fq *FlowQuery) CountX(ctx context.Context) int {
 
 // Exist returns true if the query has elements in the graph.
 func (fq *FlowQuery) Exist(ctx context.Context) (bool, error) {
+	if err := fq.prepareQuery(ctx); err != nil {
+		return false, err
+	}
 	return fq.sqlExist(ctx)
 }
 
@@ -247,7 +270,8 @@ func (fq *FlowQuery) Clone() *FlowQuery {
 		unique:     append([]string{}, fq.unique...),
 		predicates: append([]predicate.Flow{}, fq.predicates...),
 		// clone intermediate query.
-		sql: fq.sql.Clone(),
+		sql:  fq.sql.Clone(),
+		path: fq.path,
 	}
 }
 
@@ -291,7 +315,12 @@ func (fq *FlowQuery) WithQuestions(opts ...func(*QuestionQuery)) *FlowQuery {
 func (fq *FlowQuery) GroupBy(field string, fields ...string) *FlowGroupBy {
 	group := &FlowGroupBy{config: fq.config}
 	group.fields = append([]string{field}, fields...)
-	group.sql = fq.sqlQuery()
+	group.path = func(ctx context.Context) (prev *sql.Selector, err error) {
+		if err := fq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		return fq.sqlQuery(), nil
+	}
 	return group
 }
 
@@ -310,8 +339,24 @@ func (fq *FlowQuery) GroupBy(field string, fields ...string) *FlowGroupBy {
 func (fq *FlowQuery) Select(field string, fields ...string) *FlowSelect {
 	selector := &FlowSelect{config: fq.config}
 	selector.fields = append([]string{field}, fields...)
-	selector.sql = fq.sqlQuery()
+	selector.path = func(ctx context.Context) (prev *sql.Selector, err error) {
+		if err := fq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		return fq.sqlQuery(), nil
+	}
 	return selector
+}
+
+func (fq *FlowQuery) prepareQuery(ctx context.Context) error {
+	if fq.path != nil {
+		prev, err := fq.path(ctx)
+		if err != nil {
+			return err
+		}
+		fq.sql = prev
+	}
+	return nil
 }
 
 func (fq *FlowQuery) sqlAll(ctx context.Context) ([]*Flow, error) {
@@ -489,8 +534,9 @@ type FlowGroupBy struct {
 	config
 	fields []string
 	fns    []Aggregate
-	// intermediate query.
-	sql *sql.Selector
+	// intermediate query (i.e. traversal path).
+	sql  *sql.Selector
+	path func(context.Context) (*sql.Selector, error)
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
@@ -501,6 +547,11 @@ func (fgb *FlowGroupBy) Aggregate(fns ...Aggregate) *FlowGroupBy {
 
 // Scan applies the group-by query and scan the result into the given value.
 func (fgb *FlowGroupBy) Scan(ctx context.Context, v interface{}) error {
+	query, err := fgb.path(ctx)
+	if err != nil {
+		return err
+	}
+	fgb.sql = query
 	return fgb.sqlScan(ctx, v)
 }
 
@@ -619,12 +670,18 @@ func (fgb *FlowGroupBy) sqlQuery() *sql.Selector {
 type FlowSelect struct {
 	config
 	fields []string
-	// intermediate queries.
-	sql *sql.Selector
+	// intermediate query (i.e. traversal path).
+	sql  *sql.Selector
+	path func(context.Context) (*sql.Selector, error)
 }
 
 // Scan applies the selector query and scan the result into the given value.
 func (fs *FlowSelect) Scan(ctx context.Context, v interface{}) error {
+	query, err := fs.path(ctx)
+	if err != nil {
+		return err
+	}
+	fs.sql = query
 	return fs.sqlScan(ctx, v)
 }
 

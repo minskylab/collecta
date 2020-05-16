@@ -16,34 +16,59 @@ import (
 // ShortCreate is the builder for creating a Short entity.
 type ShortCreate struct {
 	config
-	key   *string
-	value *uuid.UUID
+	mutation *ShortMutation
+	hooks    []Hook
 }
 
 // SetKey sets the key field.
 func (sc *ShortCreate) SetKey(s string) *ShortCreate {
-	sc.key = &s
+	sc.mutation.SetKey(s)
 	return sc
 }
 
 // SetValue sets the value field.
 func (sc *ShortCreate) SetValue(u uuid.UUID) *ShortCreate {
-	sc.value = &u
+	sc.mutation.SetValue(u)
 	return sc
 }
 
 // Save creates the Short in the database.
 func (sc *ShortCreate) Save(ctx context.Context) (*Short, error) {
-	if sc.key == nil {
+	if _, ok := sc.mutation.Key(); !ok {
 		return nil, errors.New("ent: missing required field \"key\"")
 	}
-	if err := short.KeyValidator(*sc.key); err != nil {
-		return nil, fmt.Errorf("ent: validator failed for field \"key\": %v", err)
+	if v, ok := sc.mutation.Key(); ok {
+		if err := short.KeyValidator(v); err != nil {
+			return nil, fmt.Errorf("ent: validator failed for field \"key\": %v", err)
+		}
 	}
-	if sc.value == nil {
+	if _, ok := sc.mutation.Value(); !ok {
 		return nil, errors.New("ent: missing required field \"value\"")
 	}
-	return sc.sqlSave(ctx)
+	var (
+		err  error
+		node *Short
+	)
+	if len(sc.hooks) == 0 {
+		node, err = sc.sqlSave(ctx)
+	} else {
+		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
+			mutation, ok := m.(*ShortMutation)
+			if !ok {
+				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			sc.mutation = mutation
+			node, err = sc.sqlSave(ctx)
+			return node, err
+		})
+		for i := len(sc.hooks) - 1; i >= 0; i-- {
+			mut = sc.hooks[i](mut)
+		}
+		if _, err := mut.Mutate(ctx, sc.mutation); err != nil {
+			return nil, err
+		}
+	}
+	return node, err
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -66,21 +91,21 @@ func (sc *ShortCreate) sqlSave(ctx context.Context) (*Short, error) {
 			},
 		}
 	)
-	if value := sc.key; value != nil {
+	if value, ok := sc.mutation.Key(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: short.FieldKey,
 		})
-		s.Key = *value
+		s.Key = value
 	}
-	if value := sc.value; value != nil {
+	if value, ok := sc.mutation.Value(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeUUID,
-			Value:  *value,
+			Value:  value,
 			Column: short.FieldValue,
 		})
-		s.Value = *value
+		s.Value = value
 	}
 	if err := sqlgraph.CreateNode(ctx, sc.driver, _spec); err != nil {
 		if cerr, ok := isSQLConstraintError(err); ok {

@@ -2,18 +2,12 @@
 
 package short
 
-import (
-	"github.com/minskylab/collecta/ent/schema"
-)
-
 const (
 	// Label holds the string label denoting the short type in the database.
 	Label = "short"
 	// FieldID holds the string denoting the id field in the database.
-	FieldID = "id"
-	// FieldKey holds the string denoting the key vertex property in the database.
-	FieldKey = "key"
-	// FieldValue holds the string denoting the value vertex property in the database.
+	FieldID    = "id"  // FieldKey holds the string denoting the key vertex property in the database.
+	FieldKey   = "key" // FieldValue holds the string denoting the value vertex property in the database.
 	FieldValue = "value"
 
 	// Table holds the table name of the short in the database.
@@ -28,10 +22,6 @@ var Columns = []string{
 }
 
 var (
-	fields = schema.Short{}.Fields()
-
-	// descKey is the schema descriptor for key field.
-	descKey = fields[0].Descriptor()
 	// KeyValidator is a validator for the "key" field. It is called by the builders before save.
-	KeyValidator = descKey.Validators[0].(func(string) error)
+	KeyValidator func(string) error
 )

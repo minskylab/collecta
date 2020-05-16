@@ -4,6 +4,7 @@ package ent
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -15,6 +16,8 @@ import (
 // FlowDelete is the builder for deleting a Flow entity.
 type FlowDelete struct {
 	config
+	hooks      []Hook
+	mutation   *FlowMutation
 	predicates []predicate.Flow
 }
 
@@ -26,7 +29,30 @@ func (fd *FlowDelete) Where(ps ...predicate.Flow) *FlowDelete {
 
 // Exec executes the deletion query and returns how many vertices were deleted.
 func (fd *FlowDelete) Exec(ctx context.Context) (int, error) {
-	return fd.sqlExec(ctx)
+	var (
+		err      error
+		affected int
+	)
+	if len(fd.hooks) == 0 {
+		affected, err = fd.sqlExec(ctx)
+	} else {
+		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
+			mutation, ok := m.(*FlowMutation)
+			if !ok {
+				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			fd.mutation = mutation
+			affected, err = fd.sqlExec(ctx)
+			return affected, err
+		})
+		for i := len(fd.hooks) - 1; i >= 0; i-- {
+			mut = fd.hooks[i](mut)
+		}
+		if _, err := mut.Mutate(ctx, fd.mutation); err != nil {
+			return 0, err
+		}
+	}
+	return affected, err
 }
 
 // ExecX is like Exec, but panics if an error occurs.

@@ -1,0 +1,13 @@
+type Person {
+    id: ID!
+    name: String!
+    lastActivity: Time!
+    username: String
+    picture: String
+    roles: [String!]
+    accounts: [Account!]!
+    contacts: [Contact!]!
+    surveys: [Survey!]!
+    domains: [Domain!]!
+    adminOf: [Domain!]!
+}

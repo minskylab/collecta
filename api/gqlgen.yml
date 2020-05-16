@@ -80,6 +80,18 @@ models:
     fields:
       question:
         resolver: true
+  Person:
+    fields:
+      accounts:
+        resolver: true
+      contacts:
+        resolver: true
+      surveys:
+        resolver: true
+      domains:
+        resolver: true
+      adminOf:
+        resolver: true
   Question:
     fields:
       answers:
@@ -97,17 +109,5 @@ models:
       for:
         resolver: true
       owner:
-        resolver: true
-  User:
-    fields:
-      accounts:
-        resolver: true
-      contacts:
-        resolver: true
-      surveys:
-        resolver: true
-      domains:
-        resolver: true
-      adminOf:
         resolver: true
 

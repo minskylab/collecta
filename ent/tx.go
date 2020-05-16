@@ -4,9 +4,9 @@ package ent
 
 import (
 	"context"
+	"sync"
 
 	"github.com/facebookincubator/ent/dialect"
-	"github.com/minskylab/collecta/ent/migrate"
 )
 
 // Tx is a transactional client that is created by calling Client.Tx().
@@ -18,6 +18,8 @@ type Tx struct {
 	Answer *AnswerClient
 	// Contact is the client for interacting with the Contact builders.
 	Contact *ContactClient
+	// Datum is the client for interacting with the Datum builders.
+	Datum *DatumClient
 	// Device is the client for interacting with the Device builders.
 	Device *DeviceClient
 	// Domain is the client for interacting with the Domain builders.
@@ -36,36 +38,76 @@ type Tx struct {
 	Short *ShortClient
 	// Survey is the client for interacting with the Survey builders.
 	Survey *SurveyClient
+
+	// lazily loaded.
+	client     *Client
+	clientOnce sync.Once
+
+	// completion callbacks.
+	mu         sync.Mutex
+	onCommit   []func(error)
+	onRollback []func(error)
 }
 
 // Commit commits the transaction.
 func (tx *Tx) Commit() error {
-	return tx.config.driver.(*txDriver).tx.Commit()
+	err := tx.config.driver.(*txDriver).tx.Commit()
+	tx.mu.Lock()
+	defer tx.mu.Unlock()
+	for _, f := range tx.onCommit {
+		f(err)
+	}
+	return err
+}
+
+// OnCommit adds a function to call on commit.
+func (tx *Tx) OnCommit(f func(error)) {
+	tx.mu.Lock()
+	defer tx.mu.Unlock()
+	tx.onCommit = append(tx.onCommit, f)
 }
 
 // Rollback rollbacks the transaction.
 func (tx *Tx) Rollback() error {
-	return tx.config.driver.(*txDriver).tx.Rollback()
+	err := tx.config.driver.(*txDriver).tx.Rollback()
+	tx.mu.Lock()
+	defer tx.mu.Unlock()
+	for _, f := range tx.onRollback {
+		f(err)
+	}
+	return err
+}
+
+// OnRollback adds a function to call on rollback.
+func (tx *Tx) OnRollback(f func(error)) {
+	tx.mu.Lock()
+	defer tx.mu.Unlock()
+	tx.onRollback = append(tx.onRollback, f)
 }
 
 // Client returns a Client that binds to current transaction.
 func (tx *Tx) Client() *Client {
-	return &Client{
-		config:   tx.config,
-		Schema:   migrate.NewSchema(tx.driver),
-		Account:  NewAccountClient(tx.config),
-		Answer:   NewAnswerClient(tx.config),
-		Contact:  NewContactClient(tx.config),
-		Device:   NewDeviceClient(tx.config),
-		Domain:   NewDomainClient(tx.config),
-		Flow:     NewFlowClient(tx.config),
-		IP:       NewIPClient(tx.config),
-		Input:    NewInputClient(tx.config),
-		Person:   NewPersonClient(tx.config),
-		Question: NewQuestionClient(tx.config),
-		Short:    NewShortClient(tx.config),
-		Survey:   NewSurveyClient(tx.config),
-	}
+	tx.clientOnce.Do(func() {
+		tx.client = &Client{config: tx.config}
+		tx.client.init()
+	})
+	return tx.client
+}
+
+func (tx *Tx) init() {
+	tx.Account = NewAccountClient(tx.config)
+	tx.Answer = NewAnswerClient(tx.config)
+	tx.Contact = NewContactClient(tx.config)
+	tx.Datum = NewDatumClient(tx.config)
+	tx.Device = NewDeviceClient(tx.config)
+	tx.Domain = NewDomainClient(tx.config)
+	tx.Flow = NewFlowClient(tx.config)
+	tx.IP = NewIPClient(tx.config)
+	tx.Input = NewInputClient(tx.config)
+	tx.Person = NewPersonClient(tx.config)
+	tx.Question = NewQuestionClient(tx.config)
+	tx.Short = NewShortClient(tx.config)
+	tx.Survey = NewSurveyClient(tx.config)
 }
 
 // txDriver wraps the given dialect.Tx with a nop dialect.Driver implementation.

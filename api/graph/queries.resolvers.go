@@ -14,9 +14,9 @@ import (
 	"github.com/minskylab/collecta/api/graph/model"
 	"github.com/minskylab/collecta/ent/domain"
 	"github.com/minskylab/collecta/ent/flow"
+	"github.com/minskylab/collecta/ent/person"
 	"github.com/minskylab/collecta/ent/question"
 	"github.com/minskylab/collecta/ent/survey"
-	"github.com/minskylab/collecta/ent/person"
 )
 
 func (r *queryResolver) Domain(ctx context.Context, id string) (*model.Domain, error) {
@@ -125,7 +125,7 @@ func (r *queryResolver) Question(ctx context.Context, id string) (*model.Questio
 	return commons.QuestionToGQL(e), nil
 }
 
-func (r *queryResolver) User(ctx context.Context, id string) (*model.User, error) {
+func (r *queryResolver) User(ctx context.Context, id string) (*model.Person, error) {
 	userRequester := r.Auth.UserOfContext(ctx)
 	if userRequester == nil {
 		return nil, errors.New("unauthorized, please include a valid token in your header")
@@ -154,7 +154,7 @@ func (r *queryResolver) User(ctx context.Context, id string) (*model.User, error
 	return commons.PersonToGQL(e), nil
 }
 
-func (r *queryResolver) Profile(ctx context.Context) (*model.User, error) {
+func (r *queryResolver) Profile(ctx context.Context) (*model.Person, error) {
 	userRequester := r.Auth.UserOfContext(ctx)
 	if userRequester == nil {
 		return nil, errors.New("unauthorized, please include a valid token in your header")

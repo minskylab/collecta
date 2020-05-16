@@ -44,7 +44,7 @@ func (r *domainResolver) Surveys(ctx context.Context, obj *model.Domain) ([]*mod
 	return arr, nil
 }
 
-func (r *domainResolver) Users(ctx context.Context, obj *model.Domain) ([]*model.User, error) {
+func (r *domainResolver) Users(ctx context.Context, obj *model.Domain) ([]*model.Person, error) {
 	ownerResID, err := commons.OwnerOfDomain(ctx, r.DB, obj)
 	if err != nil {
 		return nil, errors.Wrap(err, "error at extract owner of resource")
@@ -63,7 +63,7 @@ func (r *domainResolver) Users(ctx context.Context, obj *model.Domain) ([]*model
 		return nil, errors.Wrap(err, "error at ent query")
 	}
 
-	arr := make([]*model.User, 0)
+	arr := make([]*model.Person, 0)
 	for _, a := range e {
 		if a != nil {
 			arr = append(arr, commons.PersonToGQL(a))
@@ -73,7 +73,7 @@ func (r *domainResolver) Users(ctx context.Context, obj *model.Domain) ([]*model
 	return arr, nil
 }
 
-func (r *domainResolver) Admins(ctx context.Context, obj *model.Domain) ([]*model.User, error) {
+func (r *domainResolver) Admins(ctx context.Context, obj *model.Domain) ([]*model.Person, error) {
 	ownerResID, err := commons.OwnerOfDomain(ctx, r.DB, obj)
 	if err != nil {
 		return nil, errors.Wrap(err, "error at extract owner of resource")
@@ -92,7 +92,7 @@ func (r *domainResolver) Admins(ctx context.Context, obj *model.Domain) ([]*mode
 		return nil, errors.Wrap(err, "error at ent query")
 	}
 
-	arr := make([]*model.User, 0)
+	arr := make([]*model.Person, 0)
 	for _, a := range e {
 		if a != nil {
 			arr = append(arr, commons.PersonToGQL(a))

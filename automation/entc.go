@@ -41,7 +41,7 @@ func main() {
 		api.AddPlugin(&p),
 	)
 	if err != nil {
-		fmt.Fprintln(os.Stderr, err.Error())
+		_, _ = fmt.Fprintln(os.Stderr, err.Error())
 		os.Exit(3)
 	}
 

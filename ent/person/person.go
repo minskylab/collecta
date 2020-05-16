@@ -4,25 +4,29 @@ package person
 
 import (
 	"time"
-
-	"github.com/minskylab/collecta/ent/schema"
 )
 
 const (
 	// Label holds the string label denoting the person type in the database.
 	Label = "person"
 	// FieldID holds the string denoting the id field in the database.
-	FieldID = "id"
-	// FieldName holds the string denoting the name vertex property in the database.
-	FieldName = "name"
-	// FieldLastActivity holds the string denoting the lastactivity vertex property in the database.
-	FieldLastActivity = "last_activity"
-	// FieldUsername holds the string denoting the username vertex property in the database.
-	FieldUsername = "username"
-	// FieldPicture holds the string denoting the picture vertex property in the database.
-	FieldPicture = "picture"
-	// FieldRoles holds the string denoting the roles vertex property in the database.
-	FieldRoles = "roles"
+	FieldID           = "id"            // FieldName holds the string denoting the name vertex property in the database.
+	FieldName         = "name"          // FieldLastActivity holds the string denoting the lastactivity vertex property in the database.
+	FieldLastActivity = "last_activity" // FieldUsername holds the string denoting the username vertex property in the database.
+	FieldUsername     = "username"      // FieldPicture holds the string denoting the picture vertex property in the database.
+	FieldPicture      = "picture"       // FieldRoles holds the string denoting the roles vertex property in the database.
+	FieldRoles        = "roles"
+
+	// EdgeAccounts holds the string denoting the accounts edge name in mutations.
+	EdgeAccounts = "accounts"
+	// EdgeContacts holds the string denoting the contacts edge name in mutations.
+	EdgeContacts = "contacts"
+	// EdgeSurveys holds the string denoting the surveys edge name in mutations.
+	EdgeSurveys = "surveys"
+	// EdgeDomains holds the string denoting the domains edge name in mutations.
+	EdgeDomains = "domains"
+	// EdgeAdminOf holds the string denoting the adminof edge name in mutations.
+	EdgeAdminOf = "adminOf"
 
 	// Table holds the table name of the person in the database.
 	Table = "persons"
@@ -79,15 +83,8 @@ var (
 )
 
 var (
-	fields = schema.Person{}.Fields()
-
-	// descName is the schema descriptor for name field.
-	descName = fields[1].Descriptor()
 	// NameValidator is a validator for the "name" field. It is called by the builders before save.
-	NameValidator = descName.Validators[0].(func(string) error)
-
-	// descLastActivity is the schema descriptor for lastActivity field.
-	descLastActivity = fields[2].Descriptor()
+	NameValidator func(string) error
 	// DefaultLastActivity holds the default value on creation for the lastActivity field.
-	DefaultLastActivity = descLastActivity.Default.(func() time.Time)
+	DefaultLastActivity func() time.Time
 )

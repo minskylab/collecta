@@ -4,21 +4,19 @@ package answer
 
 import (
 	"time"
-
-	"github.com/minskylab/collecta/ent/schema"
 )
 
 const (
 	// Label holds the string label denoting the answer type in the database.
 	Label = "answer"
 	// FieldID holds the string denoting the id field in the database.
-	FieldID = "id"
-	// FieldAt holds the string denoting the at vertex property in the database.
-	FieldAt = "at"
-	// FieldResponses holds the string denoting the responses vertex property in the database.
-	FieldResponses = "responses"
-	// FieldValid holds the string denoting the valid vertex property in the database.
-	FieldValid = "valid"
+	FieldID        = "id"        // FieldAt holds the string denoting the at vertex property in the database.
+	FieldAt        = "at"        // FieldResponses holds the string denoting the responses vertex property in the database.
+	FieldResponses = "responses" // FieldValid holds the string denoting the valid vertex property in the database.
+	FieldValid     = "valid"
+
+	// EdgeQuestion holds the string denoting the question edge name in mutations.
+	EdgeQuestion = "question"
 
 	// Table holds the table name of the answer in the database.
 	Table = "answers"
@@ -45,10 +43,6 @@ var ForeignKeys = []string{
 }
 
 var (
-	fields = schema.Answer{}.Fields()
-
-	// descAt is the schema descriptor for at field.
-	descAt = fields[1].Descriptor()
 	// DefaultAt holds the default value on creation for the at field.
-	DefaultAt = descAt.Default.(func() time.Time)
+	DefaultAt func() time.Time
 )

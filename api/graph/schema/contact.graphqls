@@ -11,5 +11,5 @@ type Contact {
     principal: Boolean!
     validated: Boolean!
     fromAccount: Boolean!
-    owner: User
+    owner: Person
 }

@@ -14,6 +14,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/minskylab/collecta/ent/answer"
 	"github.com/minskylab/collecta/ent/predicate"
+	"github.com/minskylab/collecta/ent/question"
 )
 
 // AnswerQuery is the builder for querying Answer entities.
@@ -27,8 +28,9 @@ type AnswerQuery struct {
 	// eager-loading edges.
 	withQuestion *QuestionQuery
 	withFKs      bool
-	// intermediate query.
-	sql *sql.Selector
+	// intermediate query (i.e. traversal path).
+	sql  *sql.Selector
+	path func(context.Context) (*sql.Selector, error)
 }
 
 // Where adds a new predicate for the builder.
@@ -58,12 +60,18 @@ func (aq *AnswerQuery) Order(o ...Order) *AnswerQuery {
 // QueryQuestion chains the current query on the question edge.
 func (aq *AnswerQuery) QueryQuestion() *QuestionQuery {
 	query := &QuestionQuery{config: aq.config}
-	step := sqlgraph.NewStep(
-		sqlgraph.From(answer.Table, answer.FieldID, aq.sqlQuery()),
-		sqlgraph.To(question.Table, question.FieldID),
-		sqlgraph.Edge(sqlgraph.M2O, true, answer.QuestionTable, answer.QuestionColumn),
-	)
-	query.sql = sqlgraph.SetNeighbors(aq.driver.Dialect(), step)
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := aq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(answer.Table, answer.FieldID, aq.sqlQuery()),
+			sqlgraph.To(question.Table, question.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, answer.QuestionTable, answer.QuestionColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(aq.driver.Dialect(), step)
+		return fromU, nil
+	}
 	return query
 }
 
@@ -163,6 +171,9 @@ func (aq *AnswerQuery) OnlyXID(ctx context.Context) uuid.UUID {
 
 // All executes the query and returns a list of Answers.
 func (aq *AnswerQuery) All(ctx context.Context) ([]*Answer, error) {
+	if err := aq.prepareQuery(ctx); err != nil {
+		return nil, err
+	}
 	return aq.sqlAll(ctx)
 }
 
@@ -195,6 +206,9 @@ func (aq *AnswerQuery) IDsX(ctx context.Context) []uuid.UUID {
 
 // Count returns the count of the given query.
 func (aq *AnswerQuery) Count(ctx context.Context) (int, error) {
+	if err := aq.prepareQuery(ctx); err != nil {
+		return 0, err
+	}
 	return aq.sqlCount(ctx)
 }
 
@@ -209,6 +223,9 @@ func (aq *AnswerQuery) CountX(ctx context.Context) int {
 
 // Exist returns true if the query has elements in the graph.
 func (aq *AnswerQuery) Exist(ctx context.Context) (bool, error) {
+	if err := aq.prepareQuery(ctx); err != nil {
+		return false, err
+	}
 	return aq.sqlExist(ctx)
 }
 
@@ -232,7 +249,8 @@ func (aq *AnswerQuery) Clone() *AnswerQuery {
 		unique:     append([]string{}, aq.unique...),
 		predicates: append([]predicate.Answer{}, aq.predicates...),
 		// clone intermediate query.
-		sql: aq.sql.Clone(),
+		sql:  aq.sql.Clone(),
+		path: aq.path,
 	}
 }
 
@@ -265,7 +283,12 @@ func (aq *AnswerQuery) WithQuestion(opts ...func(*QuestionQuery)) *AnswerQuery {
 func (aq *AnswerQuery) GroupBy(field string, fields ...string) *AnswerGroupBy {
 	group := &AnswerGroupBy{config: aq.config}
 	group.fields = append([]string{field}, fields...)
-	group.sql = aq.sqlQuery()
+	group.path = func(ctx context.Context) (prev *sql.Selector, err error) {
+		if err := aq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		return aq.sqlQuery(), nil
+	}
 	return group
 }
 
@@ -284,8 +307,24 @@ func (aq *AnswerQuery) GroupBy(field string, fields ...string) *AnswerGroupBy {
 func (aq *AnswerQuery) Select(field string, fields ...string) *AnswerSelect {
 	selector := &AnswerSelect{config: aq.config}
 	selector.fields = append([]string{field}, fields...)
-	selector.sql = aq.sqlQuery()
+	selector.path = func(ctx context.Context) (prev *sql.Selector, err error) {
+		if err := aq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		return aq.sqlQuery(), nil
+	}
 	return selector
+}
+
+func (aq *AnswerQuery) prepareQuery(ctx context.Context) error {
+	if aq.path != nil {
+		prev, err := aq.path(ctx)
+		if err != nil {
+			return err
+		}
+		aq.sql = prev
+	}
+	return nil
 }
 
 func (aq *AnswerQuery) sqlAll(ctx context.Context) ([]*Answer, error) {
@@ -434,8 +473,9 @@ type AnswerGroupBy struct {
 	config
 	fields []string
 	fns    []Aggregate
-	// intermediate query.
-	sql *sql.Selector
+	// intermediate query (i.e. traversal path).
+	sql  *sql.Selector
+	path func(context.Context) (*sql.Selector, error)
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
@@ -446,6 +486,11 @@ func (agb *AnswerGroupBy) Aggregate(fns ...Aggregate) *AnswerGroupBy {
 
 // Scan applies the group-by query and scan the result into the given value.
 func (agb *AnswerGroupBy) Scan(ctx context.Context, v interface{}) error {
+	query, err := agb.path(ctx)
+	if err != nil {
+		return err
+	}
+	agb.sql = query
 	return agb.sqlScan(ctx, v)
 }
 
@@ -564,12 +609,18 @@ func (agb *AnswerGroupBy) sqlQuery() *sql.Selector {
 type AnswerSelect struct {
 	config
 	fields []string
-	// intermediate queries.
-	sql *sql.Selector
+	// intermediate query (i.e. traversal path).
+	sql  *sql.Selector
+	path func(context.Context) (*sql.Selector, error)
 }
 
 // Scan applies the selector query and scan the result into the given value.
 func (as *AnswerSelect) Scan(ctx context.Context, v interface{}) error {
+	query, err := as.path(ctx)
+	if err != nil {
+		return err
+	}
+	as.sql = query
 	return as.sqlScan(ctx, v)
 }
 

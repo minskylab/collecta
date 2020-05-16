@@ -10,5 +10,5 @@ type Account {
     sub: String!
     remoteID: String!
     secret: String
-    owner: User!
+    owner: Person!
 }

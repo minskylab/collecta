@@ -4,6 +4,7 @@ package ent
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -15,6 +16,8 @@ import (
 // DomainDelete is the builder for deleting a Domain entity.
 type DomainDelete struct {
 	config
+	hooks      []Hook
+	mutation   *DomainMutation
 	predicates []predicate.Domain
 }
 
@@ -26,7 +29,30 @@ func (dd *DomainDelete) Where(ps ...predicate.Domain) *DomainDelete {
 
 // Exec executes the deletion query and returns how many vertices were deleted.
 func (dd *DomainDelete) Exec(ctx context.Context) (int, error) {
-	return dd.sqlExec(ctx)
+	var (
+		err      error
+		affected int
+	)
+	if len(dd.hooks) == 0 {
+		affected, err = dd.sqlExec(ctx)
+	} else {
+		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
+			mutation, ok := m.(*DomainMutation)
+			if !ok {
+				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			dd.mutation = mutation
+			affected, err = dd.sqlExec(ctx)
+			return affected, err
+		})
+		for i := len(dd.hooks) - 1; i >= 0; i-- {
+			mut = dd.hooks[i](mut)
+		}
+		if _, err := mut.Mutate(ctx, dd.mutation); err != nil {
+			return 0, err
+		}
+	}
+	return affected, err
 }
 
 // ExecX is like Exec, but panics if an error occurs.

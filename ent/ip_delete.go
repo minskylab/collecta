@@ -4,6 +4,7 @@ package ent
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -15,6 +16,8 @@ import (
 // IPDelete is the builder for deleting a IP entity.
 type IPDelete struct {
 	config
+	hooks      []Hook
+	mutation   *IPMutation
 	predicates []predicate.IP
 }
 
@@ -26,7 +29,30 @@ func (id *IPDelete) Where(ps ...predicate.IP) *IPDelete {
 
 // Exec executes the deletion query and returns how many vertices were deleted.
 func (id *IPDelete) Exec(ctx context.Context) (int, error) {
-	return id.sqlExec(ctx)
+	var (
+		err      error
+		affected int
+	)
+	if len(id.hooks) == 0 {
+		affected, err = id.sqlExec(ctx)
+	} else {
+		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
+			mutation, ok := m.(*IPMutation)
+			if !ok {
+				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			id.mutation = mutation
+			affected, err = id.sqlExec(ctx)
+			return affected, err
+		})
+		for i := len(id.hooks) - 1; i >= 0; i-- {
+			mut = id.hooks[i](mut)
+		}
+		if _, err := mut.Mutate(ctx, id.mutation); err != nil {
+			return 0, err
+		}
+	}
+	return affected, err
 }
 
 // ExecX is like Exec, but panics if an error occurs.

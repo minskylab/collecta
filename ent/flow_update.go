@@ -4,7 +4,6 @@ package ent
 
 import (
 	"context"
-	"errors"
 	"fmt"
 
 	"github.com/facebookincubator/ent/dialect/sql"
@@ -20,19 +19,9 @@ import (
 // FlowUpdate is the builder for updating Flow entities.
 type FlowUpdate struct {
 	config
-	state            *uuid.UUID
-	stateTable       *string
-	initialState     *uuid.UUID
-	terminationState *uuid.UUID
-	pastState        *uuid.UUID
-	clearpastState   bool
-
-	clearinputs      bool
-	survey           map[uuid.UUID]struct{}
-	questions        map[uuid.UUID]struct{}
-	clearedSurvey    bool
-	removedQuestions map[uuid.UUID]struct{}
-	predicates       []predicate.Flow
+	hooks      []Hook
+	mutation   *FlowMutation
+	predicates []predicate.Flow
 }
 
 // Where adds a new predicate for the builder.
@@ -43,47 +32,43 @@ func (fu *FlowUpdate) Where(ps ...predicate.Flow) *FlowUpdate {
 
 // SetState sets the state field.
 func (fu *FlowUpdate) SetState(u uuid.UUID) *FlowUpdate {
-	fu.state = &u
+	fu.mutation.SetState(u)
 	return fu
 }
 
 // SetStateTable sets the stateTable field.
 func (fu *FlowUpdate) SetStateTable(s string) *FlowUpdate {
-	fu.stateTable = &s
+	fu.mutation.SetStateTable(s)
 	return fu
 }
 
 // SetInitialState sets the initialState field.
 func (fu *FlowUpdate) SetInitialState(u uuid.UUID) *FlowUpdate {
-	fu.initialState = &u
+	fu.mutation.SetInitialState(u)
 	return fu
 }
 
 // SetTerminationState sets the terminationState field.
 func (fu *FlowUpdate) SetTerminationState(u uuid.UUID) *FlowUpdate {
-	fu.terminationState = &u
+	fu.mutation.SetTerminationState(u)
 	return fu
 }
 
 // SetPastState sets the pastState field.
 func (fu *FlowUpdate) SetPastState(u uuid.UUID) *FlowUpdate {
-	fu.pastState = &u
+	fu.mutation.SetPastState(u)
 	return fu
 }
 
 // ClearPastState clears the value of pastState.
 func (fu *FlowUpdate) ClearPastState() *FlowUpdate {
-	fu.pastState = nil
-	fu.clearpastState = true
+	fu.mutation.ClearPastState()
 	return fu
 }
 
 // SetSurveyID sets the survey edge to Survey by id.
 func (fu *FlowUpdate) SetSurveyID(id uuid.UUID) *FlowUpdate {
-	if fu.survey == nil {
-		fu.survey = make(map[uuid.UUID]struct{})
-	}
-	fu.survey[id] = struct{}{}
+	fu.mutation.SetSurveyID(id)
 	return fu
 }
 
@@ -102,12 +87,7 @@ func (fu *FlowUpdate) SetSurvey(s *Survey) *FlowUpdate {
 
 // AddQuestionIDs adds the questions edge to Question by ids.
 func (fu *FlowUpdate) AddQuestionIDs(ids ...uuid.UUID) *FlowUpdate {
-	if fu.questions == nil {
-		fu.questions = make(map[uuid.UUID]struct{})
-	}
-	for i := range ids {
-		fu.questions[ids[i]] = struct{}{}
-	}
+	fu.mutation.AddQuestionIDs(ids...)
 	return fu
 }
 
@@ -122,18 +102,13 @@ func (fu *FlowUpdate) AddQuestions(q ...*Question) *FlowUpdate {
 
 // ClearSurvey clears the survey edge to Survey.
 func (fu *FlowUpdate) ClearSurvey() *FlowUpdate {
-	fu.clearedSurvey = true
+	fu.mutation.ClearSurvey()
 	return fu
 }
 
 // RemoveQuestionIDs removes the questions edge to Question by ids.
 func (fu *FlowUpdate) RemoveQuestionIDs(ids ...uuid.UUID) *FlowUpdate {
-	if fu.removedQuestions == nil {
-		fu.removedQuestions = make(map[uuid.UUID]struct{})
-	}
-	for i := range ids {
-		fu.removedQuestions[ids[i]] = struct{}{}
-	}
+	fu.mutation.RemoveQuestionIDs(ids...)
 	return fu
 }
 
@@ -148,15 +123,36 @@ func (fu *FlowUpdate) RemoveQuestions(q ...*Question) *FlowUpdate {
 
 // Save executes the query and returns the number of rows/vertices matched by this operation.
 func (fu *FlowUpdate) Save(ctx context.Context) (int, error) {
-	if fu.stateTable != nil {
-		if err := flow.StateTableValidator(*fu.stateTable); err != nil {
+	if v, ok := fu.mutation.StateTable(); ok {
+		if err := flow.StateTableValidator(v); err != nil {
 			return 0, fmt.Errorf("ent: validator failed for field \"stateTable\": %v", err)
 		}
 	}
-	if len(fu.survey) > 1 {
-		return 0, errors.New("ent: multiple assignments on a unique edge \"survey\"")
+
+	var (
+		err      error
+		affected int
+	)
+	if len(fu.hooks) == 0 {
+		affected, err = fu.sqlSave(ctx)
+	} else {
+		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
+			mutation, ok := m.(*FlowMutation)
+			if !ok {
+				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			fu.mutation = mutation
+			affected, err = fu.sqlSave(ctx)
+			return affected, err
+		})
+		for i := len(fu.hooks) - 1; i >= 0; i-- {
+			mut = fu.hooks[i](mut)
+		}
+		if _, err := mut.Mutate(ctx, fu.mutation); err != nil {
+			return 0, err
+		}
 	}
-	return fu.sqlSave(ctx)
+	return affected, err
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -199,54 +195,54 @@ func (fu *FlowUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 		}
 	}
-	if value := fu.state; value != nil {
+	if value, ok := fu.mutation.State(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeUUID,
-			Value:  *value,
+			Value:  value,
 			Column: flow.FieldState,
 		})
 	}
-	if value := fu.stateTable; value != nil {
+	if value, ok := fu.mutation.StateTable(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: flow.FieldStateTable,
 		})
 	}
-	if value := fu.initialState; value != nil {
+	if value, ok := fu.mutation.InitialState(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeUUID,
-			Value:  *value,
+			Value:  value,
 			Column: flow.FieldInitialState,
 		})
 	}
-	if value := fu.terminationState; value != nil {
+	if value, ok := fu.mutation.TerminationState(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeUUID,
-			Value:  *value,
+			Value:  value,
 			Column: flow.FieldTerminationState,
 		})
 	}
-	if value := fu.pastState; value != nil {
+	if value, ok := fu.mutation.PastState(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeUUID,
-			Value:  *value,
+			Value:  value,
 			Column: flow.FieldPastState,
 		})
 	}
-	if fu.clearpastState {
+	if fu.mutation.PastStateCleared() {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeUUID,
 			Column: flow.FieldPastState,
 		})
 	}
-	if fu.clearinputs {
+	if fu.mutation.InputsCleared() {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeJSON,
 			Column: flow.FieldInputs,
 		})
 	}
-	if fu.clearedSurvey {
+	if fu.mutation.SurveyCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2O,
 			Inverse: true,
@@ -262,7 +258,7 @@ func (fu *FlowUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := fu.survey; len(nodes) > 0 {
+	if nodes := fu.mutation.SurveyIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2O,
 			Inverse: true,
@@ -276,12 +272,12 @@ func (fu *FlowUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if nodes := fu.removedQuestions; len(nodes) > 0 {
+	if nodes := fu.mutation.RemovedQuestionsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -295,12 +291,12 @@ func (fu *FlowUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := fu.questions; len(nodes) > 0 {
+	if nodes := fu.mutation.QuestionsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -314,7 +310,7 @@ func (fu *FlowUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
@@ -333,64 +329,49 @@ func (fu *FlowUpdate) sqlSave(ctx context.Context) (n int, err error) {
 // FlowUpdateOne is the builder for updating a single Flow entity.
 type FlowUpdateOne struct {
 	config
-	id               uuid.UUID
-	state            *uuid.UUID
-	stateTable       *string
-	initialState     *uuid.UUID
-	terminationState *uuid.UUID
-	pastState        *uuid.UUID
-	clearpastState   bool
-
-	clearinputs      bool
-	survey           map[uuid.UUID]struct{}
-	questions        map[uuid.UUID]struct{}
-	clearedSurvey    bool
-	removedQuestions map[uuid.UUID]struct{}
+	hooks    []Hook
+	mutation *FlowMutation
 }
 
 // SetState sets the state field.
 func (fuo *FlowUpdateOne) SetState(u uuid.UUID) *FlowUpdateOne {
-	fuo.state = &u
+	fuo.mutation.SetState(u)
 	return fuo
 }
 
 // SetStateTable sets the stateTable field.
 func (fuo *FlowUpdateOne) SetStateTable(s string) *FlowUpdateOne {
-	fuo.stateTable = &s
+	fuo.mutation.SetStateTable(s)
 	return fuo
 }
 
 // SetInitialState sets the initialState field.
 func (fuo *FlowUpdateOne) SetInitialState(u uuid.UUID) *FlowUpdateOne {
-	fuo.initialState = &u
+	fuo.mutation.SetInitialState(u)
 	return fuo
 }
 
 // SetTerminationState sets the terminationState field.
 func (fuo *FlowUpdateOne) SetTerminationState(u uuid.UUID) *FlowUpdateOne {
-	fuo.terminationState = &u
+	fuo.mutation.SetTerminationState(u)
 	return fuo
 }
 
 // SetPastState sets the pastState field.
 func (fuo *FlowUpdateOne) SetPastState(u uuid.UUID) *FlowUpdateOne {
-	fuo.pastState = &u
+	fuo.mutation.SetPastState(u)
 	return fuo
 }
 
 // ClearPastState clears the value of pastState.
 func (fuo *FlowUpdateOne) ClearPastState() *FlowUpdateOne {
-	fuo.pastState = nil
-	fuo.clearpastState = true
+	fuo.mutation.ClearPastState()
 	return fuo
 }
 
 // SetSurveyID sets the survey edge to Survey by id.
 func (fuo *FlowUpdateOne) SetSurveyID(id uuid.UUID) *FlowUpdateOne {
-	if fuo.survey == nil {
-		fuo.survey = make(map[uuid.UUID]struct{})
-	}
-	fuo.survey[id] = struct{}{}
+	fuo.mutation.SetSurveyID(id)
 	return fuo
 }
 
@@ -409,12 +390,7 @@ func (fuo *FlowUpdateOne) SetSurvey(s *Survey) *FlowUpdateOne {
 
 // AddQuestionIDs adds the questions edge to Question by ids.
 func (fuo *FlowUpdateOne) AddQuestionIDs(ids ...uuid.UUID) *FlowUpdateOne {
-	if fuo.questions == nil {
-		fuo.questions = make(map[uuid.UUID]struct{})
-	}
-	for i := range ids {
-		fuo.questions[ids[i]] = struct{}{}
-	}
+	fuo.mutation.AddQuestionIDs(ids...)
 	return fuo
 }
 
@@ -429,18 +405,13 @@ func (fuo *FlowUpdateOne) AddQuestions(q ...*Question) *FlowUpdateOne {
 
 // ClearSurvey clears the survey edge to Survey.
 func (fuo *FlowUpdateOne) ClearSurvey() *FlowUpdateOne {
-	fuo.clearedSurvey = true
+	fuo.mutation.ClearSurvey()
 	return fuo
 }
 
 // RemoveQuestionIDs removes the questions edge to Question by ids.
 func (fuo *FlowUpdateOne) RemoveQuestionIDs(ids ...uuid.UUID) *FlowUpdateOne {
-	if fuo.removedQuestions == nil {
-		fuo.removedQuestions = make(map[uuid.UUID]struct{})
-	}
-	for i := range ids {
-		fuo.removedQuestions[ids[i]] = struct{}{}
-	}
+	fuo.mutation.RemoveQuestionIDs(ids...)
 	return fuo
 }
 
@@ -455,15 +426,36 @@ func (fuo *FlowUpdateOne) RemoveQuestions(q ...*Question) *FlowUpdateOne {
 
 // Save executes the query and returns the updated entity.
 func (fuo *FlowUpdateOne) Save(ctx context.Context) (*Flow, error) {
-	if fuo.stateTable != nil {
-		if err := flow.StateTableValidator(*fuo.stateTable); err != nil {
+	if v, ok := fuo.mutation.StateTable(); ok {
+		if err := flow.StateTableValidator(v); err != nil {
 			return nil, fmt.Errorf("ent: validator failed for field \"stateTable\": %v", err)
 		}
 	}
-	if len(fuo.survey) > 1 {
-		return nil, errors.New("ent: multiple assignments on a unique edge \"survey\"")
+
+	var (
+		err  error
+		node *Flow
+	)
+	if len(fuo.hooks) == 0 {
+		node, err = fuo.sqlSave(ctx)
+	} else {
+		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
+			mutation, ok := m.(*FlowMutation)
+			if !ok {
+				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			fuo.mutation = mutation
+			node, err = fuo.sqlSave(ctx)
+			return node, err
+		})
+		for i := len(fuo.hooks) - 1; i >= 0; i-- {
+			mut = fuo.hooks[i](mut)
+		}
+		if _, err := mut.Mutate(ctx, fuo.mutation); err != nil {
+			return nil, err
+		}
 	}
-	return fuo.sqlSave(ctx)
+	return node, err
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -494,60 +486,64 @@ func (fuo *FlowUpdateOne) sqlSave(ctx context.Context) (f *Flow, err error) {
 			Table:   flow.Table,
 			Columns: flow.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Value:  fuo.id,
 				Type:   field.TypeUUID,
 				Column: flow.FieldID,
 			},
 		},
 	}
-	if value := fuo.state; value != nil {
+	id, ok := fuo.mutation.ID()
+	if !ok {
+		return nil, fmt.Errorf("missing Flow.ID for update")
+	}
+	_spec.Node.ID.Value = id
+	if value, ok := fuo.mutation.State(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeUUID,
-			Value:  *value,
+			Value:  value,
 			Column: flow.FieldState,
 		})
 	}
-	if value := fuo.stateTable; value != nil {
+	if value, ok := fuo.mutation.StateTable(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: flow.FieldStateTable,
 		})
 	}
-	if value := fuo.initialState; value != nil {
+	if value, ok := fuo.mutation.InitialState(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeUUID,
-			Value:  *value,
+			Value:  value,
 			Column: flow.FieldInitialState,
 		})
 	}
-	if value := fuo.terminationState; value != nil {
+	if value, ok := fuo.mutation.TerminationState(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeUUID,
-			Value:  *value,
+			Value:  value,
 			Column: flow.FieldTerminationState,
 		})
 	}
-	if value := fuo.pastState; value != nil {
+	if value, ok := fuo.mutation.PastState(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeUUID,
-			Value:  *value,
+			Value:  value,
 			Column: flow.FieldPastState,
 		})
 	}
-	if fuo.clearpastState {
+	if fuo.mutation.PastStateCleared() {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeUUID,
 			Column: flow.FieldPastState,
 		})
 	}
-	if fuo.clearinputs {
+	if fuo.mutation.InputsCleared() {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeJSON,
 			Column: flow.FieldInputs,
 		})
 	}
-	if fuo.clearedSurvey {
+	if fuo.mutation.SurveyCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2O,
 			Inverse: true,
@@ -563,7 +559,7 @@ func (fuo *FlowUpdateOne) sqlSave(ctx context.Context) (f *Flow, err error) {
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := fuo.survey; len(nodes) > 0 {
+	if nodes := fuo.mutation.SurveyIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2O,
 			Inverse: true,
@@ -577,12 +573,12 @@ func (fuo *FlowUpdateOne) sqlSave(ctx context.Context) (f *Flow, err error) {
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if nodes := fuo.removedQuestions; len(nodes) > 0 {
+	if nodes := fuo.mutation.RemovedQuestionsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -596,12 +592,12 @@ func (fuo *FlowUpdateOne) sqlSave(ctx context.Context) (f *Flow, err error) {
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := fuo.questions; len(nodes) > 0 {
+	if nodes := fuo.mutation.QuestionsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
@@ -615,7 +611,7 @@ func (fuo *FlowUpdateOne) sqlSave(ctx context.Context) (f *Flow, err error) {
 				},
 			},
 		}
-		for k, _ := range nodes {
+		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)

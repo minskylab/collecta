@@ -5,6 +5,7 @@ package ent
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
 	"github.com/facebookincubator/ent/schema/field"
@@ -14,21 +15,45 @@ import (
 // DeviceCreate is the builder for creating a Device entity.
 type DeviceCreate struct {
 	config
-	device *string
+	mutation *DeviceMutation
+	hooks    []Hook
 }
 
 // SetDevice sets the device field.
 func (dc *DeviceCreate) SetDevice(s string) *DeviceCreate {
-	dc.device = &s
+	dc.mutation.SetDevice(s)
 	return dc
 }
 
 // Save creates the Device in the database.
 func (dc *DeviceCreate) Save(ctx context.Context) (*Device, error) {
-	if dc.device == nil {
+	if _, ok := dc.mutation.Device(); !ok {
 		return nil, errors.New("ent: missing required field \"device\"")
 	}
-	return dc.sqlSave(ctx)
+	var (
+		err  error
+		node *Device
+	)
+	if len(dc.hooks) == 0 {
+		node, err = dc.sqlSave(ctx)
+	} else {
+		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
+			mutation, ok := m.(*DeviceMutation)
+			if !ok {
+				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			dc.mutation = mutation
+			node, err = dc.sqlSave(ctx)
+			return node, err
+		})
+		for i := len(dc.hooks) - 1; i >= 0; i-- {
+			mut = dc.hooks[i](mut)
+		}
+		if _, err := mut.Mutate(ctx, dc.mutation); err != nil {
+			return nil, err
+		}
+	}
+	return node, err
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -51,13 +76,13 @@ func (dc *DeviceCreate) sqlSave(ctx context.Context) (*Device, error) {
 			},
 		}
 	)
-	if value := dc.device; value != nil {
+	if value, ok := dc.mutation.Device(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: device.FieldDevice,
 		})
-		d.Device = *value
+		d.Device = value
 	}
 	if err := sqlgraph.CreateNode(ctx, dc.driver, _spec); err != nil {
 		if cerr, ok := isSQLConstraintError(err); ok {

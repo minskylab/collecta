@@ -2,27 +2,24 @@
 
 package question
 
-import (
-	"github.com/minskylab/collecta/ent/schema"
-)
-
 const (
 	// Label holds the string label denoting the question type in the database.
 	Label = "question"
 	// FieldID holds the string denoting the id field in the database.
-	FieldID = "id"
-	// FieldHash holds the string denoting the hash vertex property in the database.
-	FieldHash = "hash"
-	// FieldTitle holds the string denoting the title vertex property in the database.
-	FieldTitle = "title"
-	// FieldDescription holds the string denoting the description vertex property in the database.
-	FieldDescription = "description"
-	// FieldMetadata holds the string denoting the metadata vertex property in the database.
-	FieldMetadata = "metadata"
-	// FieldValidator holds the string denoting the validator vertex property in the database.
-	FieldValidator = "validator"
-	// FieldAnonymous holds the string denoting the anonymous vertex property in the database.
-	FieldAnonymous = "anonymous"
+	FieldID          = "id"          // FieldHash holds the string denoting the hash vertex property in the database.
+	FieldHash        = "hash"        // FieldTitle holds the string denoting the title vertex property in the database.
+	FieldTitle       = "title"       // FieldDescription holds the string denoting the description vertex property in the database.
+	FieldDescription = "description" // FieldMetadata holds the string denoting the metadata vertex property in the database.
+	FieldMetadata    = "metadata"    // FieldValidator holds the string denoting the validator vertex property in the database.
+	FieldValidator   = "validator"   // FieldAnonymous holds the string denoting the anonymous vertex property in the database.
+	FieldAnonymous   = "anonymous"
+
+	// EdgeAnswers holds the string denoting the answers edge name in mutations.
+	EdgeAnswers = "answers"
+	// EdgeInput holds the string denoting the input edge name in mutations.
+	EdgeInput = "input"
+	// EdgeFlow holds the string denoting the flow edge name in mutations.
+	EdgeFlow = "flow"
 
 	// Table holds the table name of the question in the database.
 	Table = "questions"
@@ -66,15 +63,8 @@ var ForeignKeys = []string{
 }
 
 var (
-	fields = schema.Question{}.Fields()
-
-	// descTitle is the schema descriptor for title field.
-	descTitle = fields[2].Descriptor()
 	// TitleValidator is a validator for the "title" field. It is called by the builders before save.
-	TitleValidator = descTitle.Validators[0].(func(string) error)
-
-	// descAnonymous is the schema descriptor for anonymous field.
-	descAnonymous = fields[6].Descriptor()
+	TitleValidator func(string) error
 	// DefaultAnonymous holds the default value on creation for the anonymous field.
-	DefaultAnonymous = descAnonymous.Default.(bool)
+	DefaultAnonymous bool
 )

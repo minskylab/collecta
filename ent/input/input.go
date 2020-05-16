@@ -4,23 +4,20 @@ package input
 
 import (
 	"fmt"
-
-	"github.com/minskylab/collecta/ent/schema"
 )
 
 const (
 	// Label holds the string label denoting the input type in the database.
 	Label = "input"
 	// FieldID holds the string denoting the id field in the database.
-	FieldID = "id"
-	// FieldKind holds the string denoting the kind vertex property in the database.
-	FieldKind = "kind"
-	// FieldMultiple holds the string denoting the multiple vertex property in the database.
-	FieldMultiple = "multiple"
-	// FieldDefaults holds the string denoting the defaults vertex property in the database.
-	FieldDefaults = "defaults"
-	// FieldOptions holds the string denoting the options vertex property in the database.
-	FieldOptions = "options"
+	FieldID       = "id"       // FieldKind holds the string denoting the kind vertex property in the database.
+	FieldKind     = "kind"     // FieldMultiple holds the string denoting the multiple vertex property in the database.
+	FieldMultiple = "multiple" // FieldDefaults holds the string denoting the defaults vertex property in the database.
+	FieldDefaults = "defaults" // FieldOptions holds the string denoting the options vertex property in the database.
+	FieldOptions  = "options"
+
+	// EdgeQuestion holds the string denoting the question edge name in mutations.
+	EdgeQuestion = "question"
 
 	// Table holds the table name of the input in the database.
 	Table = "inputs"
@@ -48,12 +45,8 @@ var ForeignKeys = []string{
 }
 
 var (
-	fields = schema.Input{}.Fields()
-
-	// descMultiple is the schema descriptor for multiple field.
-	descMultiple = fields[2].Descriptor()
 	// DefaultMultiple holds the default value on creation for the multiple field.
-	DefaultMultiple = descMultiple.Default.(bool)
+	DefaultMultiple bool
 )
 
 // Kind defines the type for the kind enum field.

@@ -15,7 +15,7 @@ type Account struct {
 	Sub      string      `json:"sub"`
 	RemoteID string      `json:"remoteID"`
 	Secret   *string     `json:"secret"`
-	Owner    *User       `json:"owner"`
+	Owner    *Person     `json:"owner"`
 }
 
 type Answer struct {
@@ -34,7 +34,7 @@ type Contact struct {
 	Principal   bool        `json:"principal"`
 	Validated   bool        `json:"validated"`
 	FromAccount bool        `json:"fromAccount"`
-	Owner       *User       `json:"owner"`
+	Owner       *Person     `json:"owner"`
 }
 
 type Device struct {
@@ -50,8 +50,8 @@ type Domain struct {
 	CollectaClientCallback string    `json:"collectaClientCallback"`
 	Tags                   []string  `json:"tags"`
 	Surveys                []*Survey `json:"surveys"`
-	Users                  []*User   `json:"users"`
-	Admins                 []*User   `json:"admins"`
+	Users                  []*Person `json:"users"`
+	Admins                 []*Person `json:"admins"`
 }
 
 type DomainCreator struct {
@@ -110,6 +110,20 @@ type PairMap struct {
 	Value string `json:"value"`
 }
 
+type Person struct {
+	ID           string     `json:"id"`
+	Name         string     `json:"name"`
+	LastActivity time.Time  `json:"lastActivity"`
+	Username     *string    `json:"username"`
+	Picture      *string    `json:"picture"`
+	Roles        []string   `json:"roles"`
+	Accounts     []*Account `json:"accounts"`
+	Contacts     []*Contact `json:"contacts"`
+	Surveys      []*Survey  `json:"surveys"`
+	Domains      []*Domain  `json:"domains"`
+	AdminOf      []*Domain  `json:"adminOf"`
+}
+
 type Question struct {
 	ID          string    `json:"id"`
 	Hash        string    `json:"hash"`
@@ -148,7 +162,7 @@ type Survey struct {
 	Done            *bool     `json:"done"`
 	IsPublic        *bool     `json:"isPublic"`
 	Flow            *Flow     `json:"flow"`
-	For             *User     `json:"for"`
+	For             *Person   `json:"for"`
 	Owner           *Domain   `json:"owner"`
 }
 
@@ -176,20 +190,6 @@ type SurveyTargetUsers struct {
 type SuveyGenerationResult struct {
 	How     int       `json:"how"`
 	Surveys []*Survey `json:"surveys"`
-}
-
-type User struct {
-	ID           string     `json:"id"`
-	Name         string     `json:"name"`
-	LastActivity time.Time  `json:"lastActivity"`
-	Username     *string    `json:"username"`
-	Picture      *string    `json:"picture"`
-	Roles        []string   `json:"roles"`
-	Accounts     []*Account `json:"accounts"`
-	Contacts     []*Contact `json:"contacts"`
-	Surveys      []*Survey  `json:"surveys"`
-	Domains      []*Domain  `json:"domains"`
-	AdminOf      []*Domain  `json:"adminOf"`
 }
 
 type AccountType string

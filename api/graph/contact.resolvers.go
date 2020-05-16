@@ -16,7 +16,7 @@ import (
 	"github.com/minskylab/collecta/ent/person"
 )
 
-func (r *contactResolver) Owner(ctx context.Context, obj *model.Contact) (*model.User, error) {
+func (r *contactResolver) Owner(ctx context.Context, obj *model.Contact) (*model.Person, error) {
 	ownerResID, err := commons.OwnerOfContact(ctx, r.DB, obj)
 	if err != nil {
 		return nil, errors.Wrap(err, "error at extract owner of resource")

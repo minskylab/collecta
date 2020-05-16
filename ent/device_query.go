@@ -23,8 +23,9 @@ type DeviceQuery struct {
 	order      []Order
 	unique     []string
 	predicates []predicate.Device
-	// intermediate query.
-	sql *sql.Selector
+	// intermediate query (i.e. traversal path).
+	sql  *sql.Selector
+	path func(context.Context) (*sql.Selector, error)
 }
 
 // Where adds a new predicate for the builder.
@@ -147,6 +148,9 @@ func (dq *DeviceQuery) OnlyXID(ctx context.Context) int {
 
 // All executes the query and returns a list of Devices.
 func (dq *DeviceQuery) All(ctx context.Context) ([]*Device, error) {
+	if err := dq.prepareQuery(ctx); err != nil {
+		return nil, err
+	}
 	return dq.sqlAll(ctx)
 }
 
@@ -179,6 +183,9 @@ func (dq *DeviceQuery) IDsX(ctx context.Context) []int {
 
 // Count returns the count of the given query.
 func (dq *DeviceQuery) Count(ctx context.Context) (int, error) {
+	if err := dq.prepareQuery(ctx); err != nil {
+		return 0, err
+	}
 	return dq.sqlCount(ctx)
 }
 
@@ -193,6 +200,9 @@ func (dq *DeviceQuery) CountX(ctx context.Context) int {
 
 // Exist returns true if the query has elements in the graph.
 func (dq *DeviceQuery) Exist(ctx context.Context) (bool, error) {
+	if err := dq.prepareQuery(ctx); err != nil {
+		return false, err
+	}
 	return dq.sqlExist(ctx)
 }
 
@@ -216,7 +226,8 @@ func (dq *DeviceQuery) Clone() *DeviceQuery {
 		unique:     append([]string{}, dq.unique...),
 		predicates: append([]predicate.Device{}, dq.predicates...),
 		// clone intermediate query.
-		sql: dq.sql.Clone(),
+		sql:  dq.sql.Clone(),
+		path: dq.path,
 	}
 }
 
@@ -238,7 +249,12 @@ func (dq *DeviceQuery) Clone() *DeviceQuery {
 func (dq *DeviceQuery) GroupBy(field string, fields ...string) *DeviceGroupBy {
 	group := &DeviceGroupBy{config: dq.config}
 	group.fields = append([]string{field}, fields...)
-	group.sql = dq.sqlQuery()
+	group.path = func(ctx context.Context) (prev *sql.Selector, err error) {
+		if err := dq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		return dq.sqlQuery(), nil
+	}
 	return group
 }
 
@@ -257,8 +273,24 @@ func (dq *DeviceQuery) GroupBy(field string, fields ...string) *DeviceGroupBy {
 func (dq *DeviceQuery) Select(field string, fields ...string) *DeviceSelect {
 	selector := &DeviceSelect{config: dq.config}
 	selector.fields = append([]string{field}, fields...)
-	selector.sql = dq.sqlQuery()
+	selector.path = func(ctx context.Context) (prev *sql.Selector, err error) {
+		if err := dq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		return dq.sqlQuery(), nil
+	}
 	return selector
+}
+
+func (dq *DeviceQuery) prepareQuery(ctx context.Context) error {
+	if dq.path != nil {
+		prev, err := dq.path(ctx)
+		if err != nil {
+			return err
+		}
+		dq.sql = prev
+	}
+	return nil
 }
 
 func (dq *DeviceQuery) sqlAll(ctx context.Context) ([]*Device, error) {
@@ -367,8 +399,9 @@ type DeviceGroupBy struct {
 	config
 	fields []string
 	fns    []Aggregate
-	// intermediate query.
-	sql *sql.Selector
+	// intermediate query (i.e. traversal path).
+	sql  *sql.Selector
+	path func(context.Context) (*sql.Selector, error)
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
@@ -379,6 +412,11 @@ func (dgb *DeviceGroupBy) Aggregate(fns ...Aggregate) *DeviceGroupBy {
 
 // Scan applies the group-by query and scan the result into the given value.
 func (dgb *DeviceGroupBy) Scan(ctx context.Context, v interface{}) error {
+	query, err := dgb.path(ctx)
+	if err != nil {
+		return err
+	}
+	dgb.sql = query
 	return dgb.sqlScan(ctx, v)
 }
 
@@ -497,12 +535,18 @@ func (dgb *DeviceGroupBy) sqlQuery() *sql.Selector {
 type DeviceSelect struct {
 	config
 	fields []string
-	// intermediate queries.
-	sql *sql.Selector
+	// intermediate query (i.e. traversal path).
+	sql  *sql.Selector
+	path func(context.Context) (*sql.Selector, error)
 }
 
 // Scan applies the selector query and scan the result into the given value.
 func (ds *DeviceSelect) Scan(ctx context.Context, v interface{}) error {
+	query, err := ds.path(ctx)
+	if err != nil {
+		return err
+	}
+	ds.sql = query
 	return ds.sqlScan(ctx, v)
 }
 

@@ -4,27 +4,22 @@ package contact
 
 import (
 	"fmt"
-
-	"github.com/minskylab/collecta/ent/schema"
 )
 
 const (
 	// Label holds the string label denoting the contact type in the database.
 	Label = "contact"
 	// FieldID holds the string denoting the id field in the database.
-	FieldID = "id"
-	// FieldName holds the string denoting the name vertex property in the database.
-	FieldName = "name"
-	// FieldValue holds the string denoting the value vertex property in the database.
-	FieldValue = "value"
-	// FieldKind holds the string denoting the kind vertex property in the database.
-	FieldKind = "kind"
-	// FieldPrincipal holds the string denoting the principal vertex property in the database.
-	FieldPrincipal = "principal"
-	// FieldValidated holds the string denoting the validated vertex property in the database.
-	FieldValidated = "validated"
-	// FieldFromAccount holds the string denoting the fromaccount vertex property in the database.
+	FieldID          = "id"        // FieldName holds the string denoting the name vertex property in the database.
+	FieldName        = "name"      // FieldValue holds the string denoting the value vertex property in the database.
+	FieldValue       = "value"     // FieldKind holds the string denoting the kind vertex property in the database.
+	FieldKind        = "kind"      // FieldPrincipal holds the string denoting the principal vertex property in the database.
+	FieldPrincipal   = "principal" // FieldValidated holds the string denoting the validated vertex property in the database.
+	FieldValidated   = "validated" // FieldFromAccount holds the string denoting the fromaccount vertex property in the database.
 	FieldFromAccount = "from_account"
+
+	// EdgeOwner holds the string denoting the owner edge name in mutations.
+	EdgeOwner = "owner"
 
 	// Table holds the table name of the contact in the database.
 	Table = "contacts"
@@ -54,17 +49,10 @@ var ForeignKeys = []string{
 }
 
 var (
-	fields = schema.Contact{}.Fields()
-
-	// descValue is the schema descriptor for value field.
-	descValue = fields[2].Descriptor()
 	// ValueValidator is a validator for the "value" field. It is called by the builders before save.
-	ValueValidator = descValue.Validators[0].(func(string) error)
-
-	// descFromAccount is the schema descriptor for fromAccount field.
-	descFromAccount = fields[6].Descriptor()
+	ValueValidator func(string) error
 	// DefaultFromAccount holds the default value on creation for the fromAccount field.
-	DefaultFromAccount = descFromAccount.Default.(bool)
+	DefaultFromAccount bool
 )
 
 // Kind defines the type for the kind enum field.

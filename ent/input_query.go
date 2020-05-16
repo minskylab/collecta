@@ -14,6 +14,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/minskylab/collecta/ent/input"
 	"github.com/minskylab/collecta/ent/predicate"
+	"github.com/minskylab/collecta/ent/question"
 )
 
 // InputQuery is the builder for querying Input entities.
@@ -27,8 +28,9 @@ type InputQuery struct {
 	// eager-loading edges.
 	withQuestion *QuestionQuery
 	withFKs      bool
-	// intermediate query.
-	sql *sql.Selector
+	// intermediate query (i.e. traversal path).
+	sql  *sql.Selector
+	path func(context.Context) (*sql.Selector, error)
 }
 
 // Where adds a new predicate for the builder.
@@ -58,12 +60,18 @@ func (iq *InputQuery) Order(o ...Order) *InputQuery {
 // QueryQuestion chains the current query on the question edge.
 func (iq *InputQuery) QueryQuestion() *QuestionQuery {
 	query := &QuestionQuery{config: iq.config}
-	step := sqlgraph.NewStep(
-		sqlgraph.From(input.Table, input.FieldID, iq.sqlQuery()),
-		sqlgraph.To(question.Table, question.FieldID),
-		sqlgraph.Edge(sqlgraph.O2O, true, input.QuestionTable, input.QuestionColumn),
-	)
-	query.sql = sqlgraph.SetNeighbors(iq.driver.Dialect(), step)
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := iq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(input.Table, input.FieldID, iq.sqlQuery()),
+			sqlgraph.To(question.Table, question.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, true, input.QuestionTable, input.QuestionColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(iq.driver.Dialect(), step)
+		return fromU, nil
+	}
 	return query
 }
 
@@ -163,6 +171,9 @@ func (iq *InputQuery) OnlyXID(ctx context.Context) uuid.UUID {
 
 // All executes the query and returns a list of Inputs.
 func (iq *InputQuery) All(ctx context.Context) ([]*Input, error) {
+	if err := iq.prepareQuery(ctx); err != nil {
+		return nil, err
+	}
 	return iq.sqlAll(ctx)
 }
 
@@ -195,6 +206,9 @@ func (iq *InputQuery) IDsX(ctx context.Context) []uuid.UUID {
 
 // Count returns the count of the given query.
 func (iq *InputQuery) Count(ctx context.Context) (int, error) {
+	if err := iq.prepareQuery(ctx); err != nil {
+		return 0, err
+	}
 	return iq.sqlCount(ctx)
 }
 
@@ -209,6 +223,9 @@ func (iq *InputQuery) CountX(ctx context.Context) int {
 
 // Exist returns true if the query has elements in the graph.
 func (iq *InputQuery) Exist(ctx context.Context) (bool, error) {
+	if err := iq.prepareQuery(ctx); err != nil {
+		return false, err
+	}
 	return iq.sqlExist(ctx)
 }
 
@@ -232,7 +249,8 @@ func (iq *InputQuery) Clone() *InputQuery {
 		unique:     append([]string{}, iq.unique...),
 		predicates: append([]predicate.Input{}, iq.predicates...),
 		// clone intermediate query.
-		sql: iq.sql.Clone(),
+		sql:  iq.sql.Clone(),
+		path: iq.path,
 	}
 }
 
@@ -265,7 +283,12 @@ func (iq *InputQuery) WithQuestion(opts ...func(*QuestionQuery)) *InputQuery {
 func (iq *InputQuery) GroupBy(field string, fields ...string) *InputGroupBy {
 	group := &InputGroupBy{config: iq.config}
 	group.fields = append([]string{field}, fields...)
-	group.sql = iq.sqlQuery()
+	group.path = func(ctx context.Context) (prev *sql.Selector, err error) {
+		if err := iq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		return iq.sqlQuery(), nil
+	}
 	return group
 }
 
@@ -284,8 +307,24 @@ func (iq *InputQuery) GroupBy(field string, fields ...string) *InputGroupBy {
 func (iq *InputQuery) Select(field string, fields ...string) *InputSelect {
 	selector := &InputSelect{config: iq.config}
 	selector.fields = append([]string{field}, fields...)
-	selector.sql = iq.sqlQuery()
+	selector.path = func(ctx context.Context) (prev *sql.Selector, err error) {
+		if err := iq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		return iq.sqlQuery(), nil
+	}
 	return selector
+}
+
+func (iq *InputQuery) prepareQuery(ctx context.Context) error {
+	if iq.path != nil {
+		prev, err := iq.path(ctx)
+		if err != nil {
+			return err
+		}
+		iq.sql = prev
+	}
+	return nil
 }
 
 func (iq *InputQuery) sqlAll(ctx context.Context) ([]*Input, error) {
@@ -434,8 +473,9 @@ type InputGroupBy struct {
 	config
 	fields []string
 	fns    []Aggregate
-	// intermediate query.
-	sql *sql.Selector
+	// intermediate query (i.e. traversal path).
+	sql  *sql.Selector
+	path func(context.Context) (*sql.Selector, error)
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
@@ -446,6 +486,11 @@ func (igb *InputGroupBy) Aggregate(fns ...Aggregate) *InputGroupBy {
 
 // Scan applies the group-by query and scan the result into the given value.
 func (igb *InputGroupBy) Scan(ctx context.Context, v interface{}) error {
+	query, err := igb.path(ctx)
+	if err != nil {
+		return err
+	}
+	igb.sql = query
 	return igb.sqlScan(ctx, v)
 }
 
@@ -564,12 +609,18 @@ func (igb *InputGroupBy) sqlQuery() *sql.Selector {
 type InputSelect struct {
 	config
 	fields []string
-	// intermediate queries.
-	sql *sql.Selector
+	// intermediate query (i.e. traversal path).
+	sql  *sql.Selector
+	path func(context.Context) (*sql.Selector, error)
 }
 
 // Scan applies the selector query and scan the result into the given value.
 func (is *InputSelect) Scan(ctx context.Context, v interface{}) error {
+	query, err := is.path(ctx)
+	if err != nil {
+		return err
+	}
+	is.sql = query
 	return is.sqlScan(ctx, v)
 }
 

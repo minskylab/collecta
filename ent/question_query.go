@@ -14,6 +14,7 @@ import (
 	"github.com/facebookincubator/ent/schema/field"
 	"github.com/google/uuid"
 	"github.com/minskylab/collecta/ent/answer"
+	"github.com/minskylab/collecta/ent/flow"
 	"github.com/minskylab/collecta/ent/input"
 	"github.com/minskylab/collecta/ent/predicate"
 	"github.com/minskylab/collecta/ent/question"
@@ -32,8 +33,9 @@ type QuestionQuery struct {
 	withInput   *InputQuery
 	withFlow    *FlowQuery
 	withFKs     bool
-	// intermediate query.
-	sql *sql.Selector
+	// intermediate query (i.e. traversal path).
+	sql  *sql.Selector
+	path func(context.Context) (*sql.Selector, error)
 }
 
 // Where adds a new predicate for the builder.
@@ -63,36 +65,54 @@ func (qq *QuestionQuery) Order(o ...Order) *QuestionQuery {
 // QueryAnswers chains the current query on the answers edge.
 func (qq *QuestionQuery) QueryAnswers() *AnswerQuery {
 	query := &AnswerQuery{config: qq.config}
-	step := sqlgraph.NewStep(
-		sqlgraph.From(question.Table, question.FieldID, qq.sqlQuery()),
-		sqlgraph.To(answer.Table, answer.FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, question.AnswersTable, question.AnswersColumn),
-	)
-	query.sql = sqlgraph.SetNeighbors(qq.driver.Dialect(), step)
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := qq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(question.Table, question.FieldID, qq.sqlQuery()),
+			sqlgraph.To(answer.Table, answer.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, question.AnswersTable, question.AnswersColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(qq.driver.Dialect(), step)
+		return fromU, nil
+	}
 	return query
 }
 
 // QueryInput chains the current query on the input edge.
 func (qq *QuestionQuery) QueryInput() *InputQuery {
 	query := &InputQuery{config: qq.config}
-	step := sqlgraph.NewStep(
-		sqlgraph.From(question.Table, question.FieldID, qq.sqlQuery()),
-		sqlgraph.To(input.Table, input.FieldID),
-		sqlgraph.Edge(sqlgraph.O2O, false, question.InputTable, question.InputColumn),
-	)
-	query.sql = sqlgraph.SetNeighbors(qq.driver.Dialect(), step)
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := qq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(question.Table, question.FieldID, qq.sqlQuery()),
+			sqlgraph.To(input.Table, input.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, false, question.InputTable, question.InputColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(qq.driver.Dialect(), step)
+		return fromU, nil
+	}
 	return query
 }
 
 // QueryFlow chains the current query on the flow edge.
 func (qq *QuestionQuery) QueryFlow() *FlowQuery {
 	query := &FlowQuery{config: qq.config}
-	step := sqlgraph.NewStep(
-		sqlgraph.From(question.Table, question.FieldID, qq.sqlQuery()),
-		sqlgraph.To(flow.Table, flow.FieldID),
-		sqlgraph.Edge(sqlgraph.M2O, true, question.FlowTable, question.FlowColumn),
-	)
-	query.sql = sqlgraph.SetNeighbors(qq.driver.Dialect(), step)
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := qq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(question.Table, question.FieldID, qq.sqlQuery()),
+			sqlgraph.To(flow.Table, flow.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, question.FlowTable, question.FlowColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(qq.driver.Dialect(), step)
+		return fromU, nil
+	}
 	return query
 }
 
@@ -192,6 +212,9 @@ func (qq *QuestionQuery) OnlyXID(ctx context.Context) uuid.UUID {
 
 // All executes the query and returns a list of Questions.
 func (qq *QuestionQuery) All(ctx context.Context) ([]*Question, error) {
+	if err := qq.prepareQuery(ctx); err != nil {
+		return nil, err
+	}
 	return qq.sqlAll(ctx)
 }
 
@@ -224,6 +247,9 @@ func (qq *QuestionQuery) IDsX(ctx context.Context) []uuid.UUID {
 
 // Count returns the count of the given query.
 func (qq *QuestionQuery) Count(ctx context.Context) (int, error) {
+	if err := qq.prepareQuery(ctx); err != nil {
+		return 0, err
+	}
 	return qq.sqlCount(ctx)
 }
 
@@ -238,6 +264,9 @@ func (qq *QuestionQuery) CountX(ctx context.Context) int {
 
 // Exist returns true if the query has elements in the graph.
 func (qq *QuestionQuery) Exist(ctx context.Context) (bool, error) {
+	if err := qq.prepareQuery(ctx); err != nil {
+		return false, err
+	}
 	return qq.sqlExist(ctx)
 }
 
@@ -261,7 +290,8 @@ func (qq *QuestionQuery) Clone() *QuestionQuery {
 		unique:     append([]string{}, qq.unique...),
 		predicates: append([]predicate.Question{}, qq.predicates...),
 		// clone intermediate query.
-		sql: qq.sql.Clone(),
+		sql:  qq.sql.Clone(),
+		path: qq.path,
 	}
 }
 
@@ -316,7 +346,12 @@ func (qq *QuestionQuery) WithFlow(opts ...func(*FlowQuery)) *QuestionQuery {
 func (qq *QuestionQuery) GroupBy(field string, fields ...string) *QuestionGroupBy {
 	group := &QuestionGroupBy{config: qq.config}
 	group.fields = append([]string{field}, fields...)
-	group.sql = qq.sqlQuery()
+	group.path = func(ctx context.Context) (prev *sql.Selector, err error) {
+		if err := qq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		return qq.sqlQuery(), nil
+	}
 	return group
 }
 
@@ -335,8 +370,24 @@ func (qq *QuestionQuery) GroupBy(field string, fields ...string) *QuestionGroupB
 func (qq *QuestionQuery) Select(field string, fields ...string) *QuestionSelect {
 	selector := &QuestionSelect{config: qq.config}
 	selector.fields = append([]string{field}, fields...)
-	selector.sql = qq.sqlQuery()
+	selector.path = func(ctx context.Context) (prev *sql.Selector, err error) {
+		if err := qq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		return qq.sqlQuery(), nil
+	}
 	return selector
+}
+
+func (qq *QuestionQuery) prepareQuery(ctx context.Context) error {
+	if qq.path != nil {
+		prev, err := qq.path(ctx)
+		if err != nil {
+			return err
+		}
+		qq.sql = prev
+	}
+	return nil
 }
 
 func (qq *QuestionQuery) sqlAll(ctx context.Context) ([]*Question, error) {
@@ -543,8 +594,9 @@ type QuestionGroupBy struct {
 	config
 	fields []string
 	fns    []Aggregate
-	// intermediate query.
-	sql *sql.Selector
+	// intermediate query (i.e. traversal path).
+	sql  *sql.Selector
+	path func(context.Context) (*sql.Selector, error)
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
@@ -555,6 +607,11 @@ func (qgb *QuestionGroupBy) Aggregate(fns ...Aggregate) *QuestionGroupBy {
 
 // Scan applies the group-by query and scan the result into the given value.
 func (qgb *QuestionGroupBy) Scan(ctx context.Context, v interface{}) error {
+	query, err := qgb.path(ctx)
+	if err != nil {
+		return err
+	}
+	qgb.sql = query
 	return qgb.sqlScan(ctx, v)
 }
 
@@ -673,12 +730,18 @@ func (qgb *QuestionGroupBy) sqlQuery() *sql.Selector {
 type QuestionSelect struct {
 	config
 	fields []string
-	// intermediate queries.
-	sql *sql.Selector
+	// intermediate query (i.e. traversal path).
+	sql  *sql.Selector
+	path func(context.Context) (*sql.Selector, error)
 }
 
 // Scan applies the selector query and scan the result into the given value.
 func (qs *QuestionSelect) Scan(ctx context.Context, v interface{}) error {
+	query, err := qs.path(ctx)
+	if err != nil {
+		return err
+	}
+	qs.sql = query
 	return qs.sqlScan(ctx, v)
 }
 

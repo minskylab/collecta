@@ -4,6 +4,7 @@ package ent
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
@@ -15,7 +16,8 @@ import (
 // IPUpdate is the builder for updating IP entities.
 type IPUpdate struct {
 	config
-	ip         *string
+	hooks      []Hook
+	mutation   *IPMutation
 	predicates []predicate.IP
 }
 
@@ -27,13 +29,36 @@ func (iu *IPUpdate) Where(ps ...predicate.IP) *IPUpdate {
 
 // SetIP sets the ip field.
 func (iu *IPUpdate) SetIP(s string) *IPUpdate {
-	iu.ip = &s
+	iu.mutation.SetIP(s)
 	return iu
 }
 
 // Save executes the query and returns the number of rows/vertices matched by this operation.
 func (iu *IPUpdate) Save(ctx context.Context) (int, error) {
-	return iu.sqlSave(ctx)
+	var (
+		err      error
+		affected int
+	)
+	if len(iu.hooks) == 0 {
+		affected, err = iu.sqlSave(ctx)
+	} else {
+		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
+			mutation, ok := m.(*IPMutation)
+			if !ok {
+				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			iu.mutation = mutation
+			affected, err = iu.sqlSave(ctx)
+			return affected, err
+		})
+		for i := len(iu.hooks) - 1; i >= 0; i-- {
+			mut = iu.hooks[i](mut)
+		}
+		if _, err := mut.Mutate(ctx, iu.mutation); err != nil {
+			return 0, err
+		}
+	}
+	return affected, err
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -76,10 +101,10 @@ func (iu *IPUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 		}
 	}
-	if value := iu.ip; value != nil {
+	if value, ok := iu.mutation.IP(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: ip.FieldIP,
 		})
 	}
@@ -97,19 +122,42 @@ func (iu *IPUpdate) sqlSave(ctx context.Context) (n int, err error) {
 // IPUpdateOne is the builder for updating a single IP entity.
 type IPUpdateOne struct {
 	config
-	id int
-	ip *string
+	hooks    []Hook
+	mutation *IPMutation
 }
 
 // SetIP sets the ip field.
 func (iuo *IPUpdateOne) SetIP(s string) *IPUpdateOne {
-	iuo.ip = &s
+	iuo.mutation.SetIP(s)
 	return iuo
 }
 
 // Save executes the query and returns the updated entity.
 func (iuo *IPUpdateOne) Save(ctx context.Context) (*IP, error) {
-	return iuo.sqlSave(ctx)
+	var (
+		err  error
+		node *IP
+	)
+	if len(iuo.hooks) == 0 {
+		node, err = iuo.sqlSave(ctx)
+	} else {
+		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
+			mutation, ok := m.(*IPMutation)
+			if !ok {
+				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			iuo.mutation = mutation
+			node, err = iuo.sqlSave(ctx)
+			return node, err
+		})
+		for i := len(iuo.hooks) - 1; i >= 0; i-- {
+			mut = iuo.hooks[i](mut)
+		}
+		if _, err := mut.Mutate(ctx, iuo.mutation); err != nil {
+			return nil, err
+		}
+	}
+	return node, err
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -140,16 +188,20 @@ func (iuo *IPUpdateOne) sqlSave(ctx context.Context) (i *IP, err error) {
 			Table:   ip.Table,
 			Columns: ip.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Value:  iuo.id,
 				Type:   field.TypeInt,
 				Column: ip.FieldID,
 			},
 		},
 	}
-	if value := iuo.ip; value != nil {
+	id, ok := iuo.mutation.ID()
+	if !ok {
+		return nil, fmt.Errorf("missing IP.ID for update")
+	}
+	_spec.Node.ID.Value = id
+	if value, ok := iuo.mutation.IP(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Value:  *value,
+			Value:  value,
 			Column: ip.FieldIP,
 		})
 	}
