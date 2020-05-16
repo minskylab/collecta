@@ -13,10 +13,10 @@ import (
 
 func (collectaAuth *Auth) matchGoogleUserWithCollectaDomain(ctx context.Context, rawUser goth.User) (string, error) {
 	spew.Dump(rawUser)
-
 	domainHost, ok := rawUser.RawData["hd"].(string)
+	fmt.Println("domainHost, ok: ", domainHost, ok)
 	if !ok {
-		fmt.Println("email: "+rawUser.Email)
+		fmt.Println("email: " + rawUser.Email)
 		parts := strings.Split(rawUser.Email, "@")
 		fmt.Println("parts: ", parts)
 		if len(parts) != 2 {
