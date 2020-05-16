@@ -46,7 +46,58 @@ models:
   ID:
     model:
       - github.com/99designs/gqlgen/graphql.ID
-#  Short:
+  Account:
+    fields:
+      owner:
+        resolver: true
+  Answer:
+    fields:
+      question:
+        resolver: true
+  Contact:
+    fields:
+      owner:
+        resolver: true
+  Device:
+    fields:
+  Domain:
+    fields:
+      surveys:
+        resolver: true
+      users:
+        resolver: true
+      admins:
+        resolver: true
+  Flow:
+    fields:
+      survey:
+        resolver: true
+      questions:
+        resolver: true
+  IP:
+    fields:
+  Input:
+    fields:
+      question:
+        resolver: true
+  Question:
+    fields:
+      answers:
+        resolver: true
+      input:
+        resolver: true
+      flow:
+        resolver: true
+  Short:
+    fields:
+  Survey:
+    fields:
+      flow:
+        resolver: true
+      for:
+        resolver: true
+      owner:
+        resolver: true
   User:
     fields:
       accounts:
@@ -59,49 +110,4 @@ models:
         resolver: true
       adminOf:
         resolver: true
-  Survey:
-    fields:
-      flow:
-        resolver: true
-      for:
-        resolver: true
-      owner:
-        resolver: true
-  Domain:
-    fields:
-        surveys:
-          resolver: true
-        users:
-          resolver: true
-        admins:
-          resolver: true
-  Contact:
-    fields:
-      owner:
-        resolver: true
-  Account:
-    fields:
-      owner:
-        resolver: true
-  Question:
-    fields:
-      answers:
-        resolver: true
-      input:
-        resolver: true
-      flow:
-        resolver: true
-  Input:
-    fields:
-       options:
-         resolver: true
-       question:
-         resolver: true
-  Answer:
-    fields:
-      question:
-        resolver: true
-  Flow:
-    fields:
-      questions:
-        resolver: true
+

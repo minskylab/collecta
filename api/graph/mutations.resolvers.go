@@ -5,6 +5,10 @@ package graph
 
 import (
 	"context"
+
+	"github.com/minskylab/collecta/ent/person"
+	"github.com/minskylab/collecta/errors"
+
 	"fmt"
 	"strings"
 	"time"
@@ -23,8 +27,6 @@ import (
 	"github.com/minskylab/collecta/ent/flow"
 	"github.com/minskylab/collecta/ent/question"
 	"github.com/minskylab/collecta/ent/survey"
-	"github.com/minskylab/collecta/ent/user"
-	"github.com/minskylab/collecta/errors"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -131,7 +133,7 @@ func (r *mutationResolver) AnswerQuestion(ctx context.Context, questionID string
 		LastInteraction: surv.LastInteraction,
 		DueDate:         surv.DueDate,
 		Title:           surv.Title,
-		Description:     surv.Description,
+		Description:     &surv.Description,
 	}, nil
 }
 
@@ -292,7 +294,7 @@ func (r *mutationResolver) GenerateSurveys(ctx context.Context, domainSelector m
 			}
 
 			targetDomain, err = r.DB.Ent.Domain.Query().
-				Where(domain.And(domain.ID(dID), domain.HasAdminsWith(user.ID(userRequester.ID)))).
+				Where(domain.And(domain.ID(dID), domain.HasAdminsWith(person.ID(userRequester.ID)))).
 				Only(ctx)
 			if err != nil {
 				return nil, errors.Wrap(err, "error at fetch domain, probably you aren't an admin for this domain ")
@@ -302,7 +304,7 @@ func (r *mutationResolver) GenerateSurveys(ctx context.Context, domainSelector m
 			targetDomain, err = r.DB.Ent.Domain.Query().
 				Where(domain.And(
 					domain.Name(*domainSelector.ByDomainName),
-					domain.HasAdminsWith(user.ID(userRequester.ID)),
+					domain.HasAdminsWith(person.ID(userRequester.ID)),
 				)).
 				Only(ctx)
 			if err != nil {

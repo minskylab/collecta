@@ -15,20 +15,19 @@ import (
 	"github.com/google/uuid"
 	"github.com/minskylab/collecta/ent/account"
 	"github.com/minskylab/collecta/ent/contact"
-	"github.com/minskylab/collecta/ent/domain"
+	"github.com/minskylab/collecta/ent/person"
 	"github.com/minskylab/collecta/ent/predicate"
 	"github.com/minskylab/collecta/ent/survey"
-	"github.com/minskylab/collecta/ent/user"
 )
 
-// UserQuery is the builder for querying User entities.
-type UserQuery struct {
+// PersonQuery is the builder for querying Person entities.
+type PersonQuery struct {
 	config
 	limit      *int
 	offset     *int
 	order      []Order
 	unique     []string
-	predicates []predicate.User
+	predicates []predicate.Person
 	// eager-loading edges.
 	withAccounts *AccountQuery
 	withContacts *ContactQuery
@@ -40,209 +39,209 @@ type UserQuery struct {
 }
 
 // Where adds a new predicate for the builder.
-func (uq *UserQuery) Where(ps ...predicate.User) *UserQuery {
-	uq.predicates = append(uq.predicates, ps...)
-	return uq
+func (pq *PersonQuery) Where(ps ...predicate.Person) *PersonQuery {
+	pq.predicates = append(pq.predicates, ps...)
+	return pq
 }
 
 // Limit adds a limit step to the query.
-func (uq *UserQuery) Limit(limit int) *UserQuery {
-	uq.limit = &limit
-	return uq
+func (pq *PersonQuery) Limit(limit int) *PersonQuery {
+	pq.limit = &limit
+	return pq
 }
 
 // Offset adds an offset step to the query.
-func (uq *UserQuery) Offset(offset int) *UserQuery {
-	uq.offset = &offset
-	return uq
+func (pq *PersonQuery) Offset(offset int) *PersonQuery {
+	pq.offset = &offset
+	return pq
 }
 
 // Order adds an order step to the query.
-func (uq *UserQuery) Order(o ...Order) *UserQuery {
-	uq.order = append(uq.order, o...)
-	return uq
+func (pq *PersonQuery) Order(o ...Order) *PersonQuery {
+	pq.order = append(pq.order, o...)
+	return pq
 }
 
 // QueryAccounts chains the current query on the accounts edge.
-func (uq *UserQuery) QueryAccounts() *AccountQuery {
-	query := &AccountQuery{config: uq.config}
+func (pq *PersonQuery) QueryAccounts() *AccountQuery {
+	query := &AccountQuery{config: pq.config}
 	step := sqlgraph.NewStep(
-		sqlgraph.From(user.Table, user.FieldID, uq.sqlQuery()),
+		sqlgraph.From(person.Table, person.FieldID, pq.sqlQuery()),
 		sqlgraph.To(account.Table, account.FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, user.AccountsTable, user.AccountsColumn),
+		sqlgraph.Edge(sqlgraph.O2M, false, person.AccountsTable, person.AccountsColumn),
 	)
-	query.sql = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
+	query.sql = sqlgraph.SetNeighbors(pq.driver.Dialect(), step)
 	return query
 }
 
 // QueryContacts chains the current query on the contacts edge.
-func (uq *UserQuery) QueryContacts() *ContactQuery {
-	query := &ContactQuery{config: uq.config}
+func (pq *PersonQuery) QueryContacts() *ContactQuery {
+	query := &ContactQuery{config: pq.config}
 	step := sqlgraph.NewStep(
-		sqlgraph.From(user.Table, user.FieldID, uq.sqlQuery()),
+		sqlgraph.From(person.Table, person.FieldID, pq.sqlQuery()),
 		sqlgraph.To(contact.Table, contact.FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, user.ContactsTable, user.ContactsColumn),
+		sqlgraph.Edge(sqlgraph.O2M, false, person.ContactsTable, person.ContactsColumn),
 	)
-	query.sql = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
+	query.sql = sqlgraph.SetNeighbors(pq.driver.Dialect(), step)
 	return query
 }
 
 // QuerySurveys chains the current query on the surveys edge.
-func (uq *UserQuery) QuerySurveys() *SurveyQuery {
-	query := &SurveyQuery{config: uq.config}
+func (pq *PersonQuery) QuerySurveys() *SurveyQuery {
+	query := &SurveyQuery{config: pq.config}
 	step := sqlgraph.NewStep(
-		sqlgraph.From(user.Table, user.FieldID, uq.sqlQuery()),
+		sqlgraph.From(person.Table, person.FieldID, pq.sqlQuery()),
 		sqlgraph.To(survey.Table, survey.FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, user.SurveysTable, user.SurveysColumn),
+		sqlgraph.Edge(sqlgraph.O2M, false, person.SurveysTable, person.SurveysColumn),
 	)
-	query.sql = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
+	query.sql = sqlgraph.SetNeighbors(pq.driver.Dialect(), step)
 	return query
 }
 
 // QueryDomains chains the current query on the domains edge.
-func (uq *UserQuery) QueryDomains() *DomainQuery {
-	query := &DomainQuery{config: uq.config}
+func (pq *PersonQuery) QueryDomains() *DomainQuery {
+	query := &DomainQuery{config: pq.config}
 	step := sqlgraph.NewStep(
-		sqlgraph.From(user.Table, user.FieldID, uq.sqlQuery()),
+		sqlgraph.From(person.Table, person.FieldID, pq.sqlQuery()),
 		sqlgraph.To(domain.Table, domain.FieldID),
-		sqlgraph.Edge(sqlgraph.M2M, true, user.DomainsTable, user.DomainsPrimaryKey...),
+		sqlgraph.Edge(sqlgraph.M2M, true, person.DomainsTable, person.DomainsPrimaryKey...),
 	)
-	query.sql = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
+	query.sql = sqlgraph.SetNeighbors(pq.driver.Dialect(), step)
 	return query
 }
 
 // QueryAdminOf chains the current query on the adminOf edge.
-func (uq *UserQuery) QueryAdminOf() *DomainQuery {
-	query := &DomainQuery{config: uq.config}
+func (pq *PersonQuery) QueryAdminOf() *DomainQuery {
+	query := &DomainQuery{config: pq.config}
 	step := sqlgraph.NewStep(
-		sqlgraph.From(user.Table, user.FieldID, uq.sqlQuery()),
+		sqlgraph.From(person.Table, person.FieldID, pq.sqlQuery()),
 		sqlgraph.To(domain.Table, domain.FieldID),
-		sqlgraph.Edge(sqlgraph.M2M, true, user.AdminOfTable, user.AdminOfPrimaryKey...),
+		sqlgraph.Edge(sqlgraph.M2M, true, person.AdminOfTable, person.AdminOfPrimaryKey...),
 	)
-	query.sql = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
+	query.sql = sqlgraph.SetNeighbors(pq.driver.Dialect(), step)
 	return query
 }
 
-// First returns the first User entity in the query. Returns *NotFoundError when no user was found.
-func (uq *UserQuery) First(ctx context.Context) (*User, error) {
-	us, err := uq.Limit(1).All(ctx)
+// First returns the first Person entity in the query. Returns *NotFoundError when no person was found.
+func (pq *PersonQuery) First(ctx context.Context) (*Person, error) {
+	pes, err := pq.Limit(1).All(ctx)
 	if err != nil {
 		return nil, err
 	}
-	if len(us) == 0 {
-		return nil, &NotFoundError{user.Label}
+	if len(pes) == 0 {
+		return nil, &NotFoundError{person.Label}
 	}
-	return us[0], nil
+	return pes[0], nil
 }
 
 // FirstX is like First, but panics if an error occurs.
-func (uq *UserQuery) FirstX(ctx context.Context) *User {
-	u, err := uq.First(ctx)
+func (pq *PersonQuery) FirstX(ctx context.Context) *Person {
+	pe, err := pq.First(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
 	}
-	return u
+	return pe
 }
 
-// FirstID returns the first User id in the query. Returns *NotFoundError when no id was found.
-func (uq *UserQuery) FirstID(ctx context.Context) (id uuid.UUID, err error) {
+// FirstID returns the first Person id in the query. Returns *NotFoundError when no id was found.
+func (pq *PersonQuery) FirstID(ctx context.Context) (id uuid.UUID, err error) {
 	var ids []uuid.UUID
-	if ids, err = uq.Limit(1).IDs(ctx); err != nil {
+	if ids, err = pq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
 	if len(ids) == 0 {
-		err = &NotFoundError{user.Label}
+		err = &NotFoundError{person.Label}
 		return
 	}
 	return ids[0], nil
 }
 
 // FirstXID is like FirstID, but panics if an error occurs.
-func (uq *UserQuery) FirstXID(ctx context.Context) uuid.UUID {
-	id, err := uq.FirstID(ctx)
+func (pq *PersonQuery) FirstXID(ctx context.Context) uuid.UUID {
+	id, err := pq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
 	}
 	return id
 }
 
-// Only returns the only User entity in the query, returns an error if not exactly one entity was returned.
-func (uq *UserQuery) Only(ctx context.Context) (*User, error) {
-	us, err := uq.Limit(2).All(ctx)
+// Only returns the only Person entity in the query, returns an error if not exactly one entity was returned.
+func (pq *PersonQuery) Only(ctx context.Context) (*Person, error) {
+	pes, err := pq.Limit(2).All(ctx)
 	if err != nil {
 		return nil, err
 	}
-	switch len(us) {
+	switch len(pes) {
 	case 1:
-		return us[0], nil
+		return pes[0], nil
 	case 0:
-		return nil, &NotFoundError{user.Label}
+		return nil, &NotFoundError{person.Label}
 	default:
-		return nil, &NotSingularError{user.Label}
+		return nil, &NotSingularError{person.Label}
 	}
 }
 
 // OnlyX is like Only, but panics if an error occurs.
-func (uq *UserQuery) OnlyX(ctx context.Context) *User {
-	u, err := uq.Only(ctx)
+func (pq *PersonQuery) OnlyX(ctx context.Context) *Person {
+	pe, err := pq.Only(ctx)
 	if err != nil {
 		panic(err)
 	}
-	return u
+	return pe
 }
 
-// OnlyID returns the only User id in the query, returns an error if not exactly one id was returned.
-func (uq *UserQuery) OnlyID(ctx context.Context) (id uuid.UUID, err error) {
+// OnlyID returns the only Person id in the query, returns an error if not exactly one id was returned.
+func (pq *PersonQuery) OnlyID(ctx context.Context) (id uuid.UUID, err error) {
 	var ids []uuid.UUID
-	if ids, err = uq.Limit(2).IDs(ctx); err != nil {
+	if ids, err = pq.Limit(2).IDs(ctx); err != nil {
 		return
 	}
 	switch len(ids) {
 	case 1:
 		id = ids[0]
 	case 0:
-		err = &NotFoundError{user.Label}
+		err = &NotFoundError{person.Label}
 	default:
-		err = &NotSingularError{user.Label}
+		err = &NotSingularError{person.Label}
 	}
 	return
 }
 
 // OnlyXID is like OnlyID, but panics if an error occurs.
-func (uq *UserQuery) OnlyXID(ctx context.Context) uuid.UUID {
-	id, err := uq.OnlyID(ctx)
+func (pq *PersonQuery) OnlyXID(ctx context.Context) uuid.UUID {
+	id, err := pq.OnlyID(ctx)
 	if err != nil {
 		panic(err)
 	}
 	return id
 }
 
-// All executes the query and returns a list of Users.
-func (uq *UserQuery) All(ctx context.Context) ([]*User, error) {
-	return uq.sqlAll(ctx)
+// All executes the query and returns a list of Persons.
+func (pq *PersonQuery) All(ctx context.Context) ([]*Person, error) {
+	return pq.sqlAll(ctx)
 }
 
 // AllX is like All, but panics if an error occurs.
-func (uq *UserQuery) AllX(ctx context.Context) []*User {
-	us, err := uq.All(ctx)
+func (pq *PersonQuery) AllX(ctx context.Context) []*Person {
+	pes, err := pq.All(ctx)
 	if err != nil {
 		panic(err)
 	}
-	return us
+	return pes
 }
 
-// IDs executes the query and returns a list of User ids.
-func (uq *UserQuery) IDs(ctx context.Context) ([]uuid.UUID, error) {
+// IDs executes the query and returns a list of Person ids.
+func (pq *PersonQuery) IDs(ctx context.Context) ([]uuid.UUID, error) {
 	var ids []uuid.UUID
-	if err := uq.Select(user.FieldID).Scan(ctx, &ids); err != nil {
+	if err := pq.Select(person.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
 	return ids, nil
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (uq *UserQuery) IDsX(ctx context.Context) []uuid.UUID {
-	ids, err := uq.IDs(ctx)
+func (pq *PersonQuery) IDsX(ctx context.Context) []uuid.UUID {
+	ids, err := pq.IDs(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -250,13 +249,13 @@ func (uq *UserQuery) IDsX(ctx context.Context) []uuid.UUID {
 }
 
 // Count returns the count of the given query.
-func (uq *UserQuery) Count(ctx context.Context) (int, error) {
-	return uq.sqlCount(ctx)
+func (pq *PersonQuery) Count(ctx context.Context) (int, error) {
+	return pq.sqlCount(ctx)
 }
 
 // CountX is like Count, but panics if an error occurs.
-func (uq *UserQuery) CountX(ctx context.Context) int {
-	count, err := uq.Count(ctx)
+func (pq *PersonQuery) CountX(ctx context.Context) int {
+	count, err := pq.Count(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -264,13 +263,13 @@ func (uq *UserQuery) CountX(ctx context.Context) int {
 }
 
 // Exist returns true if the query has elements in the graph.
-func (uq *UserQuery) Exist(ctx context.Context) (bool, error) {
-	return uq.sqlExist(ctx)
+func (pq *PersonQuery) Exist(ctx context.Context) (bool, error) {
+	return pq.sqlExist(ctx)
 }
 
 // ExistX is like Exist, but panics if an error occurs.
-func (uq *UserQuery) ExistX(ctx context.Context) bool {
-	exist, err := uq.Exist(ctx)
+func (pq *PersonQuery) ExistX(ctx context.Context) bool {
+	exist, err := pq.Exist(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -279,72 +278,72 @@ func (uq *UserQuery) ExistX(ctx context.Context) bool {
 
 // Clone returns a duplicate of the query builder, including all associated steps. It can be
 // used to prepare common query builders and use them differently after the clone is made.
-func (uq *UserQuery) Clone() *UserQuery {
-	return &UserQuery{
-		config:     uq.config,
-		limit:      uq.limit,
-		offset:     uq.offset,
-		order:      append([]Order{}, uq.order...),
-		unique:     append([]string{}, uq.unique...),
-		predicates: append([]predicate.User{}, uq.predicates...),
+func (pq *PersonQuery) Clone() *PersonQuery {
+	return &PersonQuery{
+		config:     pq.config,
+		limit:      pq.limit,
+		offset:     pq.offset,
+		order:      append([]Order{}, pq.order...),
+		unique:     append([]string{}, pq.unique...),
+		predicates: append([]predicate.Person{}, pq.predicates...),
 		// clone intermediate query.
-		sql: uq.sql.Clone(),
+		sql: pq.sql.Clone(),
 	}
 }
 
 //  WithAccounts tells the query-builder to eager-loads the nodes that are connected to
 // the "accounts" edge. The optional arguments used to configure the query builder of the edge.
-func (uq *UserQuery) WithAccounts(opts ...func(*AccountQuery)) *UserQuery {
-	query := &AccountQuery{config: uq.config}
+func (pq *PersonQuery) WithAccounts(opts ...func(*AccountQuery)) *PersonQuery {
+	query := &AccountQuery{config: pq.config}
 	for _, opt := range opts {
 		opt(query)
 	}
-	uq.withAccounts = query
-	return uq
+	pq.withAccounts = query
+	return pq
 }
 
 //  WithContacts tells the query-builder to eager-loads the nodes that are connected to
 // the "contacts" edge. The optional arguments used to configure the query builder of the edge.
-func (uq *UserQuery) WithContacts(opts ...func(*ContactQuery)) *UserQuery {
-	query := &ContactQuery{config: uq.config}
+func (pq *PersonQuery) WithContacts(opts ...func(*ContactQuery)) *PersonQuery {
+	query := &ContactQuery{config: pq.config}
 	for _, opt := range opts {
 		opt(query)
 	}
-	uq.withContacts = query
-	return uq
+	pq.withContacts = query
+	return pq
 }
 
 //  WithSurveys tells the query-builder to eager-loads the nodes that are connected to
 // the "surveys" edge. The optional arguments used to configure the query builder of the edge.
-func (uq *UserQuery) WithSurveys(opts ...func(*SurveyQuery)) *UserQuery {
-	query := &SurveyQuery{config: uq.config}
+func (pq *PersonQuery) WithSurveys(opts ...func(*SurveyQuery)) *PersonQuery {
+	query := &SurveyQuery{config: pq.config}
 	for _, opt := range opts {
 		opt(query)
 	}
-	uq.withSurveys = query
-	return uq
+	pq.withSurveys = query
+	return pq
 }
 
 //  WithDomains tells the query-builder to eager-loads the nodes that are connected to
 // the "domains" edge. The optional arguments used to configure the query builder of the edge.
-func (uq *UserQuery) WithDomains(opts ...func(*DomainQuery)) *UserQuery {
-	query := &DomainQuery{config: uq.config}
+func (pq *PersonQuery) WithDomains(opts ...func(*DomainQuery)) *PersonQuery {
+	query := &DomainQuery{config: pq.config}
 	for _, opt := range opts {
 		opt(query)
 	}
-	uq.withDomains = query
-	return uq
+	pq.withDomains = query
+	return pq
 }
 
 //  WithAdminOf tells the query-builder to eager-loads the nodes that are connected to
 // the "adminOf" edge. The optional arguments used to configure the query builder of the edge.
-func (uq *UserQuery) WithAdminOf(opts ...func(*DomainQuery)) *UserQuery {
-	query := &DomainQuery{config: uq.config}
+func (pq *PersonQuery) WithAdminOf(opts ...func(*DomainQuery)) *PersonQuery {
+	query := &DomainQuery{config: pq.config}
 	for _, opt := range opts {
 		opt(query)
 	}
-	uq.withAdminOf = query
-	return uq
+	pq.withAdminOf = query
+	return pq
 }
 
 // GroupBy used to group vertices by one or more fields/columns.
@@ -357,15 +356,15 @@ func (uq *UserQuery) WithAdminOf(opts ...func(*DomainQuery)) *UserQuery {
 //		Count int `json:"count,omitempty"`
 //	}
 //
-//	client.User.Query().
-//		GroupBy(user.FieldName).
+//	client.Person.Query().
+//		GroupBy(person.FieldName).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
 //
-func (uq *UserQuery) GroupBy(field string, fields ...string) *UserGroupBy {
-	group := &UserGroupBy{config: uq.config}
+func (pq *PersonQuery) GroupBy(field string, fields ...string) *PersonGroupBy {
+	group := &PersonGroupBy{config: pq.config}
 	group.fields = append([]string{field}, fields...)
-	group.sql = uq.sqlQuery()
+	group.sql = pq.sqlQuery()
 	return group
 }
 
@@ -377,31 +376,31 @@ func (uq *UserQuery) GroupBy(field string, fields ...string) *UserGroupBy {
 //		Name string `json:"name,omitempty"`
 //	}
 //
-//	client.User.Query().
-//		Select(user.FieldName).
+//	client.Person.Query().
+//		Select(person.FieldName).
 //		Scan(ctx, &v)
 //
-func (uq *UserQuery) Select(field string, fields ...string) *UserSelect {
-	selector := &UserSelect{config: uq.config}
+func (pq *PersonQuery) Select(field string, fields ...string) *PersonSelect {
+	selector := &PersonSelect{config: pq.config}
 	selector.fields = append([]string{field}, fields...)
-	selector.sql = uq.sqlQuery()
+	selector.sql = pq.sqlQuery()
 	return selector
 }
 
-func (uq *UserQuery) sqlAll(ctx context.Context) ([]*User, error) {
+func (pq *PersonQuery) sqlAll(ctx context.Context) ([]*Person, error) {
 	var (
-		nodes       = []*User{}
-		_spec       = uq.querySpec()
+		nodes       = []*Person{}
+		_spec       = pq.querySpec()
 		loadedTypes = [5]bool{
-			uq.withAccounts != nil,
-			uq.withContacts != nil,
-			uq.withSurveys != nil,
-			uq.withDomains != nil,
-			uq.withAdminOf != nil,
+			pq.withAccounts != nil,
+			pq.withContacts != nil,
+			pq.withSurveys != nil,
+			pq.withDomains != nil,
+			pq.withAdminOf != nil,
 		}
 	)
 	_spec.ScanValues = func() []interface{} {
-		node := &User{config: uq.config}
+		node := &Person{config: pq.config}
 		nodes = append(nodes, node)
 		values := node.scanValues()
 		return values
@@ -414,116 +413,116 @@ func (uq *UserQuery) sqlAll(ctx context.Context) ([]*User, error) {
 		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(values...)
 	}
-	if err := sqlgraph.QueryNodes(ctx, uq.driver, _spec); err != nil {
+	if err := sqlgraph.QueryNodes(ctx, pq.driver, _spec); err != nil {
 		return nil, err
 	}
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
 
-	if query := uq.withAccounts; query != nil {
+	if query := pq.withAccounts; query != nil {
 		fks := make([]driver.Value, 0, len(nodes))
-		nodeids := make(map[uuid.UUID]*User)
+		nodeids := make(map[uuid.UUID]*Person)
 		for i := range nodes {
 			fks = append(fks, nodes[i].ID)
 			nodeids[nodes[i].ID] = nodes[i]
 		}
 		query.withFKs = true
 		query.Where(predicate.Account(func(s *sql.Selector) {
-			s.Where(sql.InValues(user.AccountsColumn, fks...))
+			s.Where(sql.InValues(person.AccountsColumn, fks...))
 		}))
 		neighbors, err := query.All(ctx)
 		if err != nil {
 			return nil, err
 		}
 		for _, n := range neighbors {
-			fk := n.user_accounts
+			fk := n.person_accounts
 			if fk == nil {
-				return nil, fmt.Errorf(`foreign-key "user_accounts" is nil for node %v`, n.ID)
+				return nil, fmt.Errorf(`foreign-key "person_accounts" is nil for node %v`, n.ID)
 			}
 			node, ok := nodeids[*fk]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "user_accounts" returned %v for node %v`, *fk, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "person_accounts" returned %v for node %v`, *fk, n.ID)
 			}
 			node.Edges.Accounts = append(node.Edges.Accounts, n)
 		}
 	}
 
-	if query := uq.withContacts; query != nil {
+	if query := pq.withContacts; query != nil {
 		fks := make([]driver.Value, 0, len(nodes))
-		nodeids := make(map[uuid.UUID]*User)
+		nodeids := make(map[uuid.UUID]*Person)
 		for i := range nodes {
 			fks = append(fks, nodes[i].ID)
 			nodeids[nodes[i].ID] = nodes[i]
 		}
 		query.withFKs = true
 		query.Where(predicate.Contact(func(s *sql.Selector) {
-			s.Where(sql.InValues(user.ContactsColumn, fks...))
+			s.Where(sql.InValues(person.ContactsColumn, fks...))
 		}))
 		neighbors, err := query.All(ctx)
 		if err != nil {
 			return nil, err
 		}
 		for _, n := range neighbors {
-			fk := n.user_contacts
+			fk := n.person_contacts
 			if fk == nil {
-				return nil, fmt.Errorf(`foreign-key "user_contacts" is nil for node %v`, n.ID)
+				return nil, fmt.Errorf(`foreign-key "person_contacts" is nil for node %v`, n.ID)
 			}
 			node, ok := nodeids[*fk]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "user_contacts" returned %v for node %v`, *fk, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "person_contacts" returned %v for node %v`, *fk, n.ID)
 			}
 			node.Edges.Contacts = append(node.Edges.Contacts, n)
 		}
 	}
 
-	if query := uq.withSurveys; query != nil {
+	if query := pq.withSurveys; query != nil {
 		fks := make([]driver.Value, 0, len(nodes))
-		nodeids := make(map[uuid.UUID]*User)
+		nodeids := make(map[uuid.UUID]*Person)
 		for i := range nodes {
 			fks = append(fks, nodes[i].ID)
 			nodeids[nodes[i].ID] = nodes[i]
 		}
 		query.withFKs = true
 		query.Where(predicate.Survey(func(s *sql.Selector) {
-			s.Where(sql.InValues(user.SurveysColumn, fks...))
+			s.Where(sql.InValues(person.SurveysColumn, fks...))
 		}))
 		neighbors, err := query.All(ctx)
 		if err != nil {
 			return nil, err
 		}
 		for _, n := range neighbors {
-			fk := n.user_surveys
+			fk := n.person_surveys
 			if fk == nil {
-				return nil, fmt.Errorf(`foreign-key "user_surveys" is nil for node %v`, n.ID)
+				return nil, fmt.Errorf(`foreign-key "person_surveys" is nil for node %v`, n.ID)
 			}
 			node, ok := nodeids[*fk]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "user_surveys" returned %v for node %v`, *fk, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "person_surveys" returned %v for node %v`, *fk, n.ID)
 			}
 			node.Edges.Surveys = append(node.Edges.Surveys, n)
 		}
 	}
 
-	if query := uq.withDomains; query != nil {
+	if query := pq.withDomains; query != nil {
 		fks := make([]driver.Value, 0, len(nodes))
-		ids := make(map[uuid.UUID]*User, len(nodes))
+		ids := make(map[uuid.UUID]*Person, len(nodes))
 		for _, node := range nodes {
 			ids[node.ID] = node
 			fks = append(fks, node.ID)
 		}
 		var (
 			edgeids []uuid.UUID
-			edges   = make(map[uuid.UUID][]*User)
+			edges   = make(map[uuid.UUID][]*Person)
 		)
 		_spec := &sqlgraph.EdgeQuerySpec{
 			Edge: &sqlgraph.EdgeSpec{
 				Inverse: true,
-				Table:   user.DomainsTable,
-				Columns: user.DomainsPrimaryKey,
+				Table:   person.DomainsTable,
+				Columns: person.DomainsPrimaryKey,
 			},
 			Predicate: func(s *sql.Selector) {
-				s.Where(sql.InValues(user.DomainsPrimaryKey[1], fks...))
+				s.Where(sql.InValues(person.DomainsPrimaryKey[1], fks...))
 			},
 
 			ScanValues: func() [2]interface{} {
@@ -549,7 +548,7 @@ func (uq *UserQuery) sqlAll(ctx context.Context) ([]*User, error) {
 				return nil
 			},
 		}
-		if err := sqlgraph.QueryEdges(ctx, uq.driver, _spec); err != nil {
+		if err := sqlgraph.QueryEdges(ctx, pq.driver, _spec); err != nil {
 			return nil, fmt.Errorf(`query edges "domains": %v`, err)
 		}
 		query.Where(domain.IDIn(edgeids...))
@@ -568,25 +567,25 @@ func (uq *UserQuery) sqlAll(ctx context.Context) ([]*User, error) {
 		}
 	}
 
-	if query := uq.withAdminOf; query != nil {
+	if query := pq.withAdminOf; query != nil {
 		fks := make([]driver.Value, 0, len(nodes))
-		ids := make(map[uuid.UUID]*User, len(nodes))
+		ids := make(map[uuid.UUID]*Person, len(nodes))
 		for _, node := range nodes {
 			ids[node.ID] = node
 			fks = append(fks, node.ID)
 		}
 		var (
 			edgeids []uuid.UUID
-			edges   = make(map[uuid.UUID][]*User)
+			edges   = make(map[uuid.UUID][]*Person)
 		)
 		_spec := &sqlgraph.EdgeQuerySpec{
 			Edge: &sqlgraph.EdgeSpec{
 				Inverse: true,
-				Table:   user.AdminOfTable,
-				Columns: user.AdminOfPrimaryKey,
+				Table:   person.AdminOfTable,
+				Columns: person.AdminOfPrimaryKey,
 			},
 			Predicate: func(s *sql.Selector) {
-				s.Where(sql.InValues(user.AdminOfPrimaryKey[1], fks...))
+				s.Where(sql.InValues(person.AdminOfPrimaryKey[1], fks...))
 			},
 
 			ScanValues: func() [2]interface{} {
@@ -612,7 +611,7 @@ func (uq *UserQuery) sqlAll(ctx context.Context) ([]*User, error) {
 				return nil
 			},
 		}
-		if err := sqlgraph.QueryEdges(ctx, uq.driver, _spec); err != nil {
+		if err := sqlgraph.QueryEdges(ctx, pq.driver, _spec); err != nil {
 			return nil, fmt.Errorf(`query edges "adminOf": %v`, err)
 		}
 		query.Where(domain.IDIn(edgeids...))
@@ -634,46 +633,46 @@ func (uq *UserQuery) sqlAll(ctx context.Context) ([]*User, error) {
 	return nodes, nil
 }
 
-func (uq *UserQuery) sqlCount(ctx context.Context) (int, error) {
-	_spec := uq.querySpec()
-	return sqlgraph.CountNodes(ctx, uq.driver, _spec)
+func (pq *PersonQuery) sqlCount(ctx context.Context) (int, error) {
+	_spec := pq.querySpec()
+	return sqlgraph.CountNodes(ctx, pq.driver, _spec)
 }
 
-func (uq *UserQuery) sqlExist(ctx context.Context) (bool, error) {
-	n, err := uq.sqlCount(ctx)
+func (pq *PersonQuery) sqlExist(ctx context.Context) (bool, error) {
+	n, err := pq.sqlCount(ctx)
 	if err != nil {
 		return false, fmt.Errorf("ent: check existence: %v", err)
 	}
 	return n > 0, nil
 }
 
-func (uq *UserQuery) querySpec() *sqlgraph.QuerySpec {
+func (pq *PersonQuery) querySpec() *sqlgraph.QuerySpec {
 	_spec := &sqlgraph.QuerySpec{
 		Node: &sqlgraph.NodeSpec{
-			Table:   user.Table,
-			Columns: user.Columns,
+			Table:   person.Table,
+			Columns: person.Columns,
 			ID: &sqlgraph.FieldSpec{
 				Type:   field.TypeUUID,
-				Column: user.FieldID,
+				Column: person.FieldID,
 			},
 		},
-		From:   uq.sql,
+		From:   pq.sql,
 		Unique: true,
 	}
-	if ps := uq.predicates; len(ps) > 0 {
+	if ps := pq.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
-	if limit := uq.limit; limit != nil {
+	if limit := pq.limit; limit != nil {
 		_spec.Limit = *limit
 	}
-	if offset := uq.offset; offset != nil {
+	if offset := pq.offset; offset != nil {
 		_spec.Offset = *offset
 	}
-	if ps := uq.order; len(ps) > 0 {
+	if ps := pq.order; len(ps) > 0 {
 		_spec.Order = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
@@ -683,33 +682,33 @@ func (uq *UserQuery) querySpec() *sqlgraph.QuerySpec {
 	return _spec
 }
 
-func (uq *UserQuery) sqlQuery() *sql.Selector {
-	builder := sql.Dialect(uq.driver.Dialect())
-	t1 := builder.Table(user.Table)
-	selector := builder.Select(t1.Columns(user.Columns...)...).From(t1)
-	if uq.sql != nil {
-		selector = uq.sql
-		selector.Select(selector.Columns(user.Columns...)...)
+func (pq *PersonQuery) sqlQuery() *sql.Selector {
+	builder := sql.Dialect(pq.driver.Dialect())
+	t1 := builder.Table(person.Table)
+	selector := builder.Select(t1.Columns(person.Columns...)...).From(t1)
+	if pq.sql != nil {
+		selector = pq.sql
+		selector.Select(selector.Columns(person.Columns...)...)
 	}
-	for _, p := range uq.predicates {
+	for _, p := range pq.predicates {
 		p(selector)
 	}
-	for _, p := range uq.order {
+	for _, p := range pq.order {
 		p(selector)
 	}
-	if offset := uq.offset; offset != nil {
+	if offset := pq.offset; offset != nil {
 		// limit is mandatory for offset clause. We start
 		// with default value, and override it below if needed.
 		selector.Offset(*offset).Limit(math.MaxInt32)
 	}
-	if limit := uq.limit; limit != nil {
+	if limit := pq.limit; limit != nil {
 		selector.Limit(*limit)
 	}
 	return selector
 }
 
-// UserGroupBy is the builder for group-by User entities.
-type UserGroupBy struct {
+// PersonGroupBy is the builder for group-by Person entities.
+type PersonGroupBy struct {
 	config
 	fields []string
 	fns    []Aggregate
@@ -718,38 +717,38 @@ type UserGroupBy struct {
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
-func (ugb *UserGroupBy) Aggregate(fns ...Aggregate) *UserGroupBy {
-	ugb.fns = append(ugb.fns, fns...)
-	return ugb
+func (pgb *PersonGroupBy) Aggregate(fns ...Aggregate) *PersonGroupBy {
+	pgb.fns = append(pgb.fns, fns...)
+	return pgb
 }
 
 // Scan applies the group-by query and scan the result into the given value.
-func (ugb *UserGroupBy) Scan(ctx context.Context, v interface{}) error {
-	return ugb.sqlScan(ctx, v)
+func (pgb *PersonGroupBy) Scan(ctx context.Context, v interface{}) error {
+	return pgb.sqlScan(ctx, v)
 }
 
 // ScanX is like Scan, but panics if an error occurs.
-func (ugb *UserGroupBy) ScanX(ctx context.Context, v interface{}) {
-	if err := ugb.Scan(ctx, v); err != nil {
+func (pgb *PersonGroupBy) ScanX(ctx context.Context, v interface{}) {
+	if err := pgb.Scan(ctx, v); err != nil {
 		panic(err)
 	}
 }
 
 // Strings returns list of strings from group-by. It is only allowed when querying group-by with one field.
-func (ugb *UserGroupBy) Strings(ctx context.Context) ([]string, error) {
-	if len(ugb.fields) > 1 {
-		return nil, errors.New("ent: UserGroupBy.Strings is not achievable when grouping more than 1 field")
+func (pgb *PersonGroupBy) Strings(ctx context.Context) ([]string, error) {
+	if len(pgb.fields) > 1 {
+		return nil, errors.New("ent: PersonGroupBy.Strings is not achievable when grouping more than 1 field")
 	}
 	var v []string
-	if err := ugb.Scan(ctx, &v); err != nil {
+	if err := pgb.Scan(ctx, &v); err != nil {
 		return nil, err
 	}
 	return v, nil
 }
 
 // StringsX is like Strings, but panics if an error occurs.
-func (ugb *UserGroupBy) StringsX(ctx context.Context) []string {
-	v, err := ugb.Strings(ctx)
+func (pgb *PersonGroupBy) StringsX(ctx context.Context) []string {
+	v, err := pgb.Strings(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -757,20 +756,20 @@ func (ugb *UserGroupBy) StringsX(ctx context.Context) []string {
 }
 
 // Ints returns list of ints from group-by. It is only allowed when querying group-by with one field.
-func (ugb *UserGroupBy) Ints(ctx context.Context) ([]int, error) {
-	if len(ugb.fields) > 1 {
-		return nil, errors.New("ent: UserGroupBy.Ints is not achievable when grouping more than 1 field")
+func (pgb *PersonGroupBy) Ints(ctx context.Context) ([]int, error) {
+	if len(pgb.fields) > 1 {
+		return nil, errors.New("ent: PersonGroupBy.Ints is not achievable when grouping more than 1 field")
 	}
 	var v []int
-	if err := ugb.Scan(ctx, &v); err != nil {
+	if err := pgb.Scan(ctx, &v); err != nil {
 		return nil, err
 	}
 	return v, nil
 }
 
 // IntsX is like Ints, but panics if an error occurs.
-func (ugb *UserGroupBy) IntsX(ctx context.Context) []int {
-	v, err := ugb.Ints(ctx)
+func (pgb *PersonGroupBy) IntsX(ctx context.Context) []int {
+	v, err := pgb.Ints(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -778,20 +777,20 @@ func (ugb *UserGroupBy) IntsX(ctx context.Context) []int {
 }
 
 // Float64s returns list of float64s from group-by. It is only allowed when querying group-by with one field.
-func (ugb *UserGroupBy) Float64s(ctx context.Context) ([]float64, error) {
-	if len(ugb.fields) > 1 {
-		return nil, errors.New("ent: UserGroupBy.Float64s is not achievable when grouping more than 1 field")
+func (pgb *PersonGroupBy) Float64s(ctx context.Context) ([]float64, error) {
+	if len(pgb.fields) > 1 {
+		return nil, errors.New("ent: PersonGroupBy.Float64s is not achievable when grouping more than 1 field")
 	}
 	var v []float64
-	if err := ugb.Scan(ctx, &v); err != nil {
+	if err := pgb.Scan(ctx, &v); err != nil {
 		return nil, err
 	}
 	return v, nil
 }
 
 // Float64sX is like Float64s, but panics if an error occurs.
-func (ugb *UserGroupBy) Float64sX(ctx context.Context) []float64 {
-	v, err := ugb.Float64s(ctx)
+func (pgb *PersonGroupBy) Float64sX(ctx context.Context) []float64 {
+	v, err := pgb.Float64s(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -799,48 +798,48 @@ func (ugb *UserGroupBy) Float64sX(ctx context.Context) []float64 {
 }
 
 // Bools returns list of bools from group-by. It is only allowed when querying group-by with one field.
-func (ugb *UserGroupBy) Bools(ctx context.Context) ([]bool, error) {
-	if len(ugb.fields) > 1 {
-		return nil, errors.New("ent: UserGroupBy.Bools is not achievable when grouping more than 1 field")
+func (pgb *PersonGroupBy) Bools(ctx context.Context) ([]bool, error) {
+	if len(pgb.fields) > 1 {
+		return nil, errors.New("ent: PersonGroupBy.Bools is not achievable when grouping more than 1 field")
 	}
 	var v []bool
-	if err := ugb.Scan(ctx, &v); err != nil {
+	if err := pgb.Scan(ctx, &v); err != nil {
 		return nil, err
 	}
 	return v, nil
 }
 
 // BoolsX is like Bools, but panics if an error occurs.
-func (ugb *UserGroupBy) BoolsX(ctx context.Context) []bool {
-	v, err := ugb.Bools(ctx)
+func (pgb *PersonGroupBy) BoolsX(ctx context.Context) []bool {
+	v, err := pgb.Bools(ctx)
 	if err != nil {
 		panic(err)
 	}
 	return v
 }
 
-func (ugb *UserGroupBy) sqlScan(ctx context.Context, v interface{}) error {
+func (pgb *PersonGroupBy) sqlScan(ctx context.Context, v interface{}) error {
 	rows := &sql.Rows{}
-	query, args := ugb.sqlQuery().Query()
-	if err := ugb.driver.Query(ctx, query, args, rows); err != nil {
+	query, args := pgb.sqlQuery().Query()
+	if err := pgb.driver.Query(ctx, query, args, rows); err != nil {
 		return err
 	}
 	defer rows.Close()
 	return sql.ScanSlice(rows, v)
 }
 
-func (ugb *UserGroupBy) sqlQuery() *sql.Selector {
-	selector := ugb.sql
-	columns := make([]string, 0, len(ugb.fields)+len(ugb.fns))
-	columns = append(columns, ugb.fields...)
-	for _, fn := range ugb.fns {
+func (pgb *PersonGroupBy) sqlQuery() *sql.Selector {
+	selector := pgb.sql
+	columns := make([]string, 0, len(pgb.fields)+len(pgb.fns))
+	columns = append(columns, pgb.fields...)
+	for _, fn := range pgb.fns {
 		columns = append(columns, fn(selector))
 	}
-	return selector.Select(columns...).GroupBy(ugb.fields...)
+	return selector.Select(columns...).GroupBy(pgb.fields...)
 }
 
-// UserSelect is the builder for select fields of User entities.
-type UserSelect struct {
+// PersonSelect is the builder for select fields of Person entities.
+type PersonSelect struct {
 	config
 	fields []string
 	// intermediate queries.
@@ -848,32 +847,32 @@ type UserSelect struct {
 }
 
 // Scan applies the selector query and scan the result into the given value.
-func (us *UserSelect) Scan(ctx context.Context, v interface{}) error {
-	return us.sqlScan(ctx, v)
+func (ps *PersonSelect) Scan(ctx context.Context, v interface{}) error {
+	return ps.sqlScan(ctx, v)
 }
 
 // ScanX is like Scan, but panics if an error occurs.
-func (us *UserSelect) ScanX(ctx context.Context, v interface{}) {
-	if err := us.Scan(ctx, v); err != nil {
+func (ps *PersonSelect) ScanX(ctx context.Context, v interface{}) {
+	if err := ps.Scan(ctx, v); err != nil {
 		panic(err)
 	}
 }
 
 // Strings returns list of strings from selector. It is only allowed when selecting one field.
-func (us *UserSelect) Strings(ctx context.Context) ([]string, error) {
-	if len(us.fields) > 1 {
-		return nil, errors.New("ent: UserSelect.Strings is not achievable when selecting more than 1 field")
+func (ps *PersonSelect) Strings(ctx context.Context) ([]string, error) {
+	if len(ps.fields) > 1 {
+		return nil, errors.New("ent: PersonSelect.Strings is not achievable when selecting more than 1 field")
 	}
 	var v []string
-	if err := us.Scan(ctx, &v); err != nil {
+	if err := ps.Scan(ctx, &v); err != nil {
 		return nil, err
 	}
 	return v, nil
 }
 
 // StringsX is like Strings, but panics if an error occurs.
-func (us *UserSelect) StringsX(ctx context.Context) []string {
-	v, err := us.Strings(ctx)
+func (ps *PersonSelect) StringsX(ctx context.Context) []string {
+	v, err := ps.Strings(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -881,20 +880,20 @@ func (us *UserSelect) StringsX(ctx context.Context) []string {
 }
 
 // Ints returns list of ints from selector. It is only allowed when selecting one field.
-func (us *UserSelect) Ints(ctx context.Context) ([]int, error) {
-	if len(us.fields) > 1 {
-		return nil, errors.New("ent: UserSelect.Ints is not achievable when selecting more than 1 field")
+func (ps *PersonSelect) Ints(ctx context.Context) ([]int, error) {
+	if len(ps.fields) > 1 {
+		return nil, errors.New("ent: PersonSelect.Ints is not achievable when selecting more than 1 field")
 	}
 	var v []int
-	if err := us.Scan(ctx, &v); err != nil {
+	if err := ps.Scan(ctx, &v); err != nil {
 		return nil, err
 	}
 	return v, nil
 }
 
 // IntsX is like Ints, but panics if an error occurs.
-func (us *UserSelect) IntsX(ctx context.Context) []int {
-	v, err := us.Ints(ctx)
+func (ps *PersonSelect) IntsX(ctx context.Context) []int {
+	v, err := ps.Ints(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -902,20 +901,20 @@ func (us *UserSelect) IntsX(ctx context.Context) []int {
 }
 
 // Float64s returns list of float64s from selector. It is only allowed when selecting one field.
-func (us *UserSelect) Float64s(ctx context.Context) ([]float64, error) {
-	if len(us.fields) > 1 {
-		return nil, errors.New("ent: UserSelect.Float64s is not achievable when selecting more than 1 field")
+func (ps *PersonSelect) Float64s(ctx context.Context) ([]float64, error) {
+	if len(ps.fields) > 1 {
+		return nil, errors.New("ent: PersonSelect.Float64s is not achievable when selecting more than 1 field")
 	}
 	var v []float64
-	if err := us.Scan(ctx, &v); err != nil {
+	if err := ps.Scan(ctx, &v); err != nil {
 		return nil, err
 	}
 	return v, nil
 }
 
 // Float64sX is like Float64s, but panics if an error occurs.
-func (us *UserSelect) Float64sX(ctx context.Context) []float64 {
-	v, err := us.Float64s(ctx)
+func (ps *PersonSelect) Float64sX(ctx context.Context) []float64 {
+	v, err := ps.Float64s(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -923,38 +922,38 @@ func (us *UserSelect) Float64sX(ctx context.Context) []float64 {
 }
 
 // Bools returns list of bools from selector. It is only allowed when selecting one field.
-func (us *UserSelect) Bools(ctx context.Context) ([]bool, error) {
-	if len(us.fields) > 1 {
-		return nil, errors.New("ent: UserSelect.Bools is not achievable when selecting more than 1 field")
+func (ps *PersonSelect) Bools(ctx context.Context) ([]bool, error) {
+	if len(ps.fields) > 1 {
+		return nil, errors.New("ent: PersonSelect.Bools is not achievable when selecting more than 1 field")
 	}
 	var v []bool
-	if err := us.Scan(ctx, &v); err != nil {
+	if err := ps.Scan(ctx, &v); err != nil {
 		return nil, err
 	}
 	return v, nil
 }
 
 // BoolsX is like Bools, but panics if an error occurs.
-func (us *UserSelect) BoolsX(ctx context.Context) []bool {
-	v, err := us.Bools(ctx)
+func (ps *PersonSelect) BoolsX(ctx context.Context) []bool {
+	v, err := ps.Bools(ctx)
 	if err != nil {
 		panic(err)
 	}
 	return v
 }
 
-func (us *UserSelect) sqlScan(ctx context.Context, v interface{}) error {
+func (ps *PersonSelect) sqlScan(ctx context.Context, v interface{}) error {
 	rows := &sql.Rows{}
-	query, args := us.sqlQuery().Query()
-	if err := us.driver.Query(ctx, query, args, rows); err != nil {
+	query, args := ps.sqlQuery().Query()
+	if err := ps.driver.Query(ctx, query, args, rows); err != nil {
 		return err
 	}
 	defer rows.Close()
 	return sql.ScanSlice(rows, v)
 }
 
-func (us *UserSelect) sqlQuery() sql.Querier {
-	selector := us.sql
-	selector.Select(selector.Columns(us.fields...)...)
+func (ps *PersonSelect) sqlQuery() sql.Querier {
+	selector := ps.sql
+	selector.Select(selector.Columns(ps.fields...)...)
 	return selector
 }

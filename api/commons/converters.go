@@ -16,21 +16,22 @@ func DomainToGQL(e *ent.Domain) *model.Domain {
 	}
 }
 
-func UserToGQL(e *ent.User) *model.User {
+func PersonToGQL(e *ent.Person) *model.User {
 	return &model.User{
 		ID:           e.ID.String(),
 		Name:         e.Name,
-		Username:     e.Username,
+		Username:     &e.Username,
 		LastActivity: e.LastActivity,
-		Picture:      e.Picture,
+		Picture:      &e.Picture,
 		Roles:        e.Roles,
+
 	}
 }
 
 func AccountToGQL(e *ent.Account) *model.Account {
 	return &model.Account{
 		ID:       e.ID.String(),
-		Type:     e.Type.String(),
+		Type:     model.AccountType(e.Type.String()),
 		Sub:      e.Sub,
 		RemoteID: e.RemoteID,
 		// Secret: e.Secret,
@@ -40,9 +41,9 @@ func AccountToGQL(e *ent.Account) *model.Account {
 func ContactToGQL(e *ent.Contact) *model.Contact {
 	return &model.Contact{
 		ID:          e.ID.String(),
-		Name:        &e.Name,
+		Name:        e.Name,
 		Value:       e.Value,
-		Kind:        e.Kind.String(),
+		Kind:        model.ContactKind(e.Kind.String()),
 		Principal:   e.Principal,
 		Validated:   e.Validated,
 		FromAccount: e.FromAccount,
@@ -50,6 +51,7 @@ func ContactToGQL(e *ent.Contact) *model.Contact {
 }
 
 func FlowToGQL(e *ent.Flow) *model.Flow {
+	pastState := e.PastState.String()
 	return &model.Flow{
 		ID:               e.ID.String(),
 		State:            e.State.String(),
@@ -57,26 +59,27 @@ func FlowToGQL(e *ent.Flow) *model.Flow {
 		Inputs:           e.Inputs,
 		InitialState:     e.InitialState.String(),
 		TerminationState: e.TerminationState.String(),
-		PastState:        e.PastState.String(),
+		PastState:        &pastState,
 	}
 }
 
 func QuestionToGQL(e *ent.Question) *model.Question {
-	meta := make([]*model.MetadataPair, 0)
+	pairs := make([]*model.PairMap, 0)
 	for k, v := range e.Metadata {
-		meta = append(meta, &model.MetadataPair{
+		pairs = append(pairs, &model.PairMap{
 			Key:   k,
 			Value: v,
 		})
 	}
+
 	return &model.Question{
 		ID:          e.ID.String(),
 		Hash:        e.Hash,
 		Title:       e.Title,
 		Description: e.Description,
 		Anonymous:   e.Anonymous,
-		Validator:   e.Validator,
-		Metadata:    meta,
+		Validator:   &e.Validator,
+		Metadata:        &model.Map{Content:pairs},
 	}
 }
 
@@ -85,48 +88,47 @@ func AnswerToGQL(e *ent.Answer) *model.Answer {
 		ID:        e.ID.String(),
 		At:        e.At,
 		Responses: e.Responses,
-		Valid:     e.Valid,
+		Valid:     &e.Valid,
 	}
 }
 
 func InputToGQL(e *ent.Input) *model.Input {
-	defs := make([]*string, 0)
-	for _, s := range e.Defaults {
-		defs = append(defs, &s)
-	}
-
-	opts := map[string]interface{}{}
-
+	pairs := make([]*model.PairMap, 0)
 	for k, v := range e.Options {
-		opts[k] = v
-	}
-
-	return &model.Input{
-		ID:       e.ID.String(),
-		Kind:     e.Kind.String(),
-		Multiple: e.Multiple,
-		Defaults: defs,
-		Options:  opts,
-	}
-}
-
-func SurveyToGQL(e *ent.Survey) *model.Survey {
-	meta := make([]*model.MetadataPair, 0)
-	for k, v := range e.Metadata {
-		meta = append(meta, &model.MetadataPair{
+		pairs = append(pairs, &model.PairMap{
 			Key:   k,
 			Value: v,
 		})
 	}
+
+
+	return &model.Input{
+		ID:       e.ID.String(),
+		Kind:     model.InputKind(e.Kind.String()),
+		Multiple: &e.Multiple,
+		Defaults: e.Defaults,
+		Options:  &model.Map{Content:pairs},
+	}
+}
+
+func SurveyToGQL(e *ent.Survey) *model.Survey {
+	pairs := make([]*model.PairMap, 0)
+	for k, v := range e.Metadata {
+		pairs = append(pairs, &model.PairMap{
+			Key:   k,
+			Value: v,
+		})
+	}
+
 	return &model.Survey{
 		ID:              e.ID.String(),
 		Tags:            e.Tags,
 		LastInteraction: e.LastInteraction,
 		DueDate:         e.DueDate,
 		Title:           e.Title,
-		Description:     e.Description,
-		Done:            e.Done,
-		IsPublic:        e.IsPublic,
-		Metadata:        meta,
+		Description:     &e.Description,
+		Done:            &e.Done,
+		IsPublic:        &e.IsPublic,
+		Metadata:        &model.Map{Content:pairs},
 	}
 }

@@ -7,6 +7,8 @@ const (
 	Label = "device"
 	// FieldID holds the string denoting the id field in the database.
 	FieldID = "id"
+	// FieldDevice holds the string denoting the device vertex property in the database.
+	FieldDevice = "device"
 
 	// Table holds the table name of the device in the database.
 	Table = "devices"
@@ -15,4 +17,5 @@ const (
 // Columns holds all SQL columns for device fields.
 var Columns = []string{
 	FieldID,
+	FieldDevice,
 }

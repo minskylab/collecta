@@ -12,15 +12,18 @@ import (
 
 // IP is the model entity for the IP schema.
 type IP struct {
-	config
+	config `json:"-"`
 	// ID of the ent.
 	ID int `json:"id,omitempty"`
+	// IP holds the value of the "ip" field.
+	IP string `json:"ip,omitempty"`
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
 func (*IP) scanValues() []interface{} {
 	return []interface{}{
-		&sql.NullInt64{}, // id
+		&sql.NullInt64{},  // id
+		&sql.NullString{}, // ip
 	}
 }
 
@@ -36,6 +39,11 @@ func (i *IP) assignValues(values ...interface{}) error {
 	}
 	i.ID = int(value.Int64)
 	values = values[1:]
+	if value, ok := values[0].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field ip", values[0])
+	} else if value.Valid {
+		i.IP = value.String
+	}
 	return nil
 }
 
@@ -62,6 +70,8 @@ func (i *IP) String() string {
 	var builder strings.Builder
 	builder.WriteString("IP(")
 	builder.WriteString(fmt.Sprintf("id=%v", i.ID))
+	builder.WriteString(", ip=")
+	builder.WriteString(i.IP)
 	builder.WriteByte(')')
 	return builder.String()
 }

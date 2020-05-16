@@ -1,0 +1,12 @@
+type Domain {
+    id: ID!
+    name: String!
+    email: String!
+    domain: String!
+    collectaDomain: String!
+    collectaClientCallback: String!
+    tags: [String!]!
+    surveys: [Survey!]!
+    users: [User!]!
+    admins: [User!]!
+}

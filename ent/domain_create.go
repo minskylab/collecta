@@ -11,8 +11,8 @@ import (
 	"github.com/facebookincubator/ent/schema/field"
 	"github.com/google/uuid"
 	"github.com/minskylab/collecta/ent/domain"
+	"github.com/minskylab/collecta/ent/person"
 	"github.com/minskylab/collecta/ent/survey"
-	"github.com/minskylab/collecta/ent/user"
 )
 
 // DomainCreate is the builder for creating a Domain entity.
@@ -92,7 +92,7 @@ func (dc *DomainCreate) AddSurveys(s ...*Survey) *DomainCreate {
 	return dc.AddSurveyIDs(ids...)
 }
 
-// AddUserIDs adds the users edge to User by ids.
+// AddUserIDs adds the users edge to Person by ids.
 func (dc *DomainCreate) AddUserIDs(ids ...uuid.UUID) *DomainCreate {
 	if dc.users == nil {
 		dc.users = make(map[uuid.UUID]struct{})
@@ -103,16 +103,16 @@ func (dc *DomainCreate) AddUserIDs(ids ...uuid.UUID) *DomainCreate {
 	return dc
 }
 
-// AddUsers adds the users edges to User.
-func (dc *DomainCreate) AddUsers(u ...*User) *DomainCreate {
-	ids := make([]uuid.UUID, len(u))
-	for i := range u {
-		ids[i] = u[i].ID
+// AddUsers adds the users edges to Person.
+func (dc *DomainCreate) AddUsers(p ...*Person) *DomainCreate {
+	ids := make([]uuid.UUID, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
 	}
 	return dc.AddUserIDs(ids...)
 }
 
-// AddAdminIDs adds the admins edge to User by ids.
+// AddAdminIDs adds the admins edge to Person by ids.
 func (dc *DomainCreate) AddAdminIDs(ids ...uuid.UUID) *DomainCreate {
 	if dc.admins == nil {
 		dc.admins = make(map[uuid.UUID]struct{})
@@ -123,11 +123,11 @@ func (dc *DomainCreate) AddAdminIDs(ids ...uuid.UUID) *DomainCreate {
 	return dc
 }
 
-// AddAdmins adds the admins edges to User.
-func (dc *DomainCreate) AddAdmins(u ...*User) *DomainCreate {
-	ids := make([]uuid.UUID, len(u))
-	for i := range u {
-		ids[i] = u[i].ID
+// AddAdmins adds the admins edges to Person.
+func (dc *DomainCreate) AddAdmins(p ...*Person) *DomainCreate {
+	ids := make([]uuid.UUID, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
 	}
 	return dc.AddAdminIDs(ids...)
 }
@@ -262,7 +262,7 @@ func (dc *DomainCreate) sqlSave(ctx context.Context) (*Domain, error) {
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
-					Column: user.FieldID,
+					Column: person.FieldID,
 				},
 			},
 		}
@@ -281,7 +281,7 @@ func (dc *DomainCreate) sqlSave(ctx context.Context) (*Domain, error) {
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
-					Column: user.FieldID,
+					Column: person.FieldID,
 				},
 			},
 		}

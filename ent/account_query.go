@@ -14,7 +14,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/minskylab/collecta/ent/account"
 	"github.com/minskylab/collecta/ent/predicate"
-	"github.com/minskylab/collecta/ent/user"
 )
 
 // AccountQuery is the builder for querying Account entities.
@@ -26,7 +25,7 @@ type AccountQuery struct {
 	unique     []string
 	predicates []predicate.Account
 	// eager-loading edges.
-	withOwner *UserQuery
+	withOwner *PersonQuery
 	withFKs   bool
 	// intermediate query.
 	sql *sql.Selector
@@ -57,11 +56,11 @@ func (aq *AccountQuery) Order(o ...Order) *AccountQuery {
 }
 
 // QueryOwner chains the current query on the owner edge.
-func (aq *AccountQuery) QueryOwner() *UserQuery {
-	query := &UserQuery{config: aq.config}
+func (aq *AccountQuery) QueryOwner() *PersonQuery {
+	query := &PersonQuery{config: aq.config}
 	step := sqlgraph.NewStep(
 		sqlgraph.From(account.Table, account.FieldID, aq.sqlQuery()),
-		sqlgraph.To(user.Table, user.FieldID),
+		sqlgraph.To(person.Table, person.FieldID),
 		sqlgraph.Edge(sqlgraph.M2O, true, account.OwnerTable, account.OwnerColumn),
 	)
 	query.sql = sqlgraph.SetNeighbors(aq.driver.Dialect(), step)
@@ -239,8 +238,8 @@ func (aq *AccountQuery) Clone() *AccountQuery {
 
 //  WithOwner tells the query-builder to eager-loads the nodes that are connected to
 // the "owner" edge. The optional arguments used to configure the query builder of the edge.
-func (aq *AccountQuery) WithOwner(opts ...func(*UserQuery)) *AccountQuery {
-	query := &UserQuery{config: aq.config}
+func (aq *AccountQuery) WithOwner(opts ...func(*PersonQuery)) *AccountQuery {
+	query := &PersonQuery{config: aq.config}
 	for _, opt := range opts {
 		opt(query)
 	}
@@ -332,12 +331,12 @@ func (aq *AccountQuery) sqlAll(ctx context.Context) ([]*Account, error) {
 		ids := make([]uuid.UUID, 0, len(nodes))
 		nodeids := make(map[uuid.UUID][]*Account)
 		for i := range nodes {
-			if fk := nodes[i].user_accounts; fk != nil {
+			if fk := nodes[i].person_accounts; fk != nil {
 				ids = append(ids, *fk)
 				nodeids[*fk] = append(nodeids[*fk], nodes[i])
 			}
 		}
-		query.Where(user.IDIn(ids...))
+		query.Where(person.IDIn(ids...))
 		neighbors, err := query.All(ctx)
 		if err != nil {
 			return nil, err
@@ -345,7 +344,7 @@ func (aq *AccountQuery) sqlAll(ctx context.Context) ([]*Account, error) {
 		for _, n := range neighbors {
 			nodes, ok := nodeids[n.ID]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "user_accounts" returned %v`, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "person_accounts" returned %v`, n.ID)
 			}
 			for i := range nodes {
 				nodes[i].Edges.Owner = n

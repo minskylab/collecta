@@ -1,0 +1,14 @@
+type Survey {
+    id: ID!
+    tags: [String!]!
+    lastInteraction: Time!
+    dueDate: Time!
+    title: String!
+    description: String
+    metadata: Map
+    done: Boolean
+    isPublic: Boolean
+    flow: Flow
+    for: User
+    owner: Domain!
+}

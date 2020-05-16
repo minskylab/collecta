@@ -9,7 +9,7 @@ import (
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/google/uuid"
 	"github.com/minskylab/collecta/ent/contact"
-	"github.com/minskylab/collecta/ent/user"
+	"github.com/minskylab/collecta/ent/person"
 )
 
 // Contact is the model entity for the Contact schema.
@@ -31,14 +31,14 @@ type Contact struct {
 	FromAccount bool `json:"fromAccount,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the ContactQuery when eager-loading is set.
-	Edges         ContactEdges `json:"edges"`
-	user_contacts *uuid.UUID
+	Edges           ContactEdges `json:"edges"`
+	person_contacts *uuid.UUID
 }
 
 // ContactEdges holds the relations/edges for other nodes in the graph.
 type ContactEdges struct {
 	// Owner holds the value of the owner edge.
-	Owner *User
+	Owner *Person
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
 	loadedTypes [1]bool
@@ -46,12 +46,12 @@ type ContactEdges struct {
 
 // OwnerOrErr returns the Owner value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
-func (e ContactEdges) OwnerOrErr() (*User, error) {
+func (e ContactEdges) OwnerOrErr() (*Person, error) {
 	if e.loadedTypes[0] {
 		if e.Owner == nil {
 			// The edge owner was loaded in eager-loading,
 			// but was not found.
-			return nil, &NotFoundError{label: user.Label}
+			return nil, &NotFoundError{label: person.Label}
 		}
 		return e.Owner, nil
 	}
@@ -74,7 +74,7 @@ func (*Contact) scanValues() []interface{} {
 // fkValues returns the types for scanning foreign-keys values from sql.Rows.
 func (*Contact) fkValues() []interface{} {
 	return []interface{}{
-		&uuid.UUID{}, // user_contacts
+		&uuid.UUID{}, // person_contacts
 	}
 }
 
@@ -123,16 +123,16 @@ func (c *Contact) assignValues(values ...interface{}) error {
 	values = values[6:]
 	if len(values) == len(contact.ForeignKeys) {
 		if value, ok := values[0].(*uuid.UUID); !ok {
-			return fmt.Errorf("unexpected type %T for field user_contacts", values[0])
+			return fmt.Errorf("unexpected type %T for field person_contacts", values[0])
 		} else if value != nil {
-			c.user_contacts = value
+			c.person_contacts = value
 		}
 	}
 	return nil
 }
 
 // QueryOwner queries the owner edge of the Contact.
-func (c *Contact) QueryOwner() *UserQuery {
+func (c *Contact) QueryOwner() *PersonQuery {
 	return (&ContactClient{config: c.config}).QueryOwner(c)
 }
 

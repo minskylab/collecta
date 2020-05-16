@@ -30,6 +30,9 @@ type IP func(*sql.Selector)
 // Input is the predicate function for input builders.
 type Input func(*sql.Selector)
 
+// Person is the predicate function for person builders.
+type Person func(*sql.Selector)
+
 // Question is the predicate function for question builders.
 type Question func(*sql.Selector)
 
@@ -38,6 +41,3 @@ type Short func(*sql.Selector)
 
 // Survey is the predicate function for survey builders.
 type Survey func(*sql.Selector)
-
-// User is the predicate function for user builders.
-type User func(*sql.Selector)

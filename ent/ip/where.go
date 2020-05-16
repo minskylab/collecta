@@ -90,6 +90,124 @@ func IDLTE(id int) predicate.IP {
 	})
 }
 
+// IP applies equality check predicate on the "ip" field. It's identical to IPEQ.
+func IP(v string) predicate.IP {
+	return predicate.IP(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldIP), v))
+	})
+}
+
+// IPEQ applies the EQ predicate on the "ip" field.
+func IPEQ(v string) predicate.IP {
+	return predicate.IP(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldIP), v))
+	})
+}
+
+// IPNEQ applies the NEQ predicate on the "ip" field.
+func IPNEQ(v string) predicate.IP {
+	return predicate.IP(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldIP), v))
+	})
+}
+
+// IPIn applies the In predicate on the "ip" field.
+func IPIn(vs ...string) predicate.IP {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.IP(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(vs) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.In(s.C(FieldIP), v...))
+	})
+}
+
+// IPNotIn applies the NotIn predicate on the "ip" field.
+func IPNotIn(vs ...string) predicate.IP {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.IP(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(vs) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.NotIn(s.C(FieldIP), v...))
+	})
+}
+
+// IPGT applies the GT predicate on the "ip" field.
+func IPGT(v string) predicate.IP {
+	return predicate.IP(func(s *sql.Selector) {
+		s.Where(sql.GT(s.C(FieldIP), v))
+	})
+}
+
+// IPGTE applies the GTE predicate on the "ip" field.
+func IPGTE(v string) predicate.IP {
+	return predicate.IP(func(s *sql.Selector) {
+		s.Where(sql.GTE(s.C(FieldIP), v))
+	})
+}
+
+// IPLT applies the LT predicate on the "ip" field.
+func IPLT(v string) predicate.IP {
+	return predicate.IP(func(s *sql.Selector) {
+		s.Where(sql.LT(s.C(FieldIP), v))
+	})
+}
+
+// IPLTE applies the LTE predicate on the "ip" field.
+func IPLTE(v string) predicate.IP {
+	return predicate.IP(func(s *sql.Selector) {
+		s.Where(sql.LTE(s.C(FieldIP), v))
+	})
+}
+
+// IPContains applies the Contains predicate on the "ip" field.
+func IPContains(v string) predicate.IP {
+	return predicate.IP(func(s *sql.Selector) {
+		s.Where(sql.Contains(s.C(FieldIP), v))
+	})
+}
+
+// IPHasPrefix applies the HasPrefix predicate on the "ip" field.
+func IPHasPrefix(v string) predicate.IP {
+	return predicate.IP(func(s *sql.Selector) {
+		s.Where(sql.HasPrefix(s.C(FieldIP), v))
+	})
+}
+
+// IPHasSuffix applies the HasSuffix predicate on the "ip" field.
+func IPHasSuffix(v string) predicate.IP {
+	return predicate.IP(func(s *sql.Selector) {
+		s.Where(sql.HasSuffix(s.C(FieldIP), v))
+	})
+}
+
+// IPEqualFold applies the EqualFold predicate on the "ip" field.
+func IPEqualFold(v string) predicate.IP {
+	return predicate.IP(func(s *sql.Selector) {
+		s.Where(sql.EqualFold(s.C(FieldIP), v))
+	})
+}
+
+// IPContainsFold applies the ContainsFold predicate on the "ip" field.
+func IPContainsFold(v string) predicate.IP {
+	return predicate.IP(func(s *sql.Selector) {
+		s.Where(sql.ContainsFold(s.C(FieldIP), v))
+	})
+}
+
 // And groups list of predicates with the AND operator between them.
 func And(predicates ...predicate.IP) predicate.IP {
 	return predicate.IP(func(s *sql.Selector) {

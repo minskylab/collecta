@@ -15,7 +15,7 @@ import (
 	"golang.org/x/net/context"
 )
 
-func (collectaAuth *Auth) registerNewUserFromGoogle(ctx context.Context, rawUser goth.User) (*ent.User, error) {
+func (collectaAuth *Auth) registerNewUserFromGoogle(ctx context.Context, rawUser goth.User) (*ent.Person, error) {
 	domainHost, ok := rawUser.RawData["hd"].(string)
 	if !ok {
 		return nil, errors.New("invalid domain in raw rawUser data")
@@ -37,7 +37,7 @@ func (collectaAuth *Auth) registerNewUserFromGoogle(ctx context.Context, rawUser
 		return nil, errors.Wrap(err, "error at try to get the domain id")
 	}
 
-	newUser, err := collectaAuth.db.Ent.User.Create().
+	newUser, err := collectaAuth.db.Ent.Person.Create().
 		SetID(uuid.New()).
 		SetName(rawUser.Name).
 		SetUsername(rawUser.Name).

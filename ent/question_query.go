@@ -14,7 +14,6 @@ import (
 	"github.com/facebookincubator/ent/schema/field"
 	"github.com/google/uuid"
 	"github.com/minskylab/collecta/ent/answer"
-	"github.com/minskylab/collecta/ent/flow"
 	"github.com/minskylab/collecta/ent/input"
 	"github.com/minskylab/collecta/ent/predicate"
 	"github.com/minskylab/collecta/ent/question"

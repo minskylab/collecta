@@ -8,7 +8,7 @@ import (
 	"github.com/minskylab/collecta/config"
 	"github.com/minskylab/collecta/ent"
 	"github.com/minskylab/collecta/ent/account"
-	"github.com/minskylab/collecta/ent/user"
+	"github.com/minskylab/collecta/ent/person"
 	"github.com/minskylab/collecta/errors"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
@@ -16,7 +16,7 @@ import (
 	"golang.org/x/net/context"
 )
 
-func (db *DB) generateFirstAdminUser(ctx context.Context) (*ent.User, error) {
+func (db *DB) generateFirstAdminUser(ctx context.Context) (*ent.Person, error) {
 	password := strings.TrimSpace(viper.GetString(config.FirstAdminPassword))
 	if password == "" {
 		log.Warn("your password wasn't found, collecta set a generic admin password, you may to update that early")
@@ -28,7 +28,7 @@ func (db *DB) generateFirstAdminUser(ctx context.Context) (*ent.User, error) {
 		return nil, errors.Wrap(err, "error at try to crypt the admin password")
 	}
 
-	newAdmin, err := db.Ent.User.Create().
+	newAdmin, err := db.Ent.Person.Create().
 		SetID(uuid.New()).
 		SetName("Admin").
 		SetUsername("admin").
@@ -58,8 +58,8 @@ func (db *DB) generateFirstAdminUser(ctx context.Context) (*ent.User, error) {
 // isFirstTimeCollectaInstance determine if collecta instance is a first time execution based on the
 // user admin existence
 func (db *DB) isFirstTimeCollectaInstance(ctx context.Context) (bool, error) {
-	adminUserExist, err := db.Ent.User.Query().
-		Where(user.HasAccountsWith(account.And(account.RemoteID("admin"), account.Sub("admin")))).
+	adminUserExist, err := db.Ent.Person.Query().
+		Where(person.HasAccountsWith(account.And(account.RemoteID("admin"), account.Sub("admin")))).
 		Exist(ctx)
 	if err != nil {
 		return false, errors.Wrap(err, "error at fetch admin user existence")

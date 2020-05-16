@@ -635,7 +635,7 @@ func HasFor() predicate.Survey {
 }
 
 // HasForWith applies the HasEdge predicate on the "for" edge with a given conditions (other predicates).
-func HasForWith(preds ...predicate.User) predicate.Survey {
+func HasForWith(preds ...predicate.Person) predicate.Survey {
 	return predicate.Survey(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),

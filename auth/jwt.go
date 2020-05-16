@@ -10,7 +10,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-func (collectaAuth *Auth) createJWTToken(u *ent.User) (string, error) {
+func (collectaAuth *Auth) createJWTToken(u *ent.Person) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.StandardClaims{
 		Audience:  "user",
 		ExpiresAt: time.Now().Add(collectaAuth.jwtDuration).Unix(),
@@ -29,11 +29,11 @@ func (collectaAuth *Auth) createJWTToken(u *ent.User) (string, error) {
 }
 
 // GenerateTokenByUser returns a jwt based on collecta claims
-func (collectaAuth *Auth) GenerateTokenByUser(u *ent.User) (string, error) {
+func (collectaAuth *Auth) GenerateTokenByUser(u *ent.Person) (string, error) {
 	return collectaAuth.createJWTToken(u)
 }
 
-func (collectaAuth *Auth) verifyJWTToken(ctx context.Context, tokenString string) (*ent.User, error) {
+func (collectaAuth *Auth) verifyJWTToken(ctx context.Context, tokenString string) (*ent.Person, error) {
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, errors.New("unexpected signing method")
@@ -55,6 +55,6 @@ func (collectaAuth *Auth) verifyJWTToken(ctx context.Context, tokenString string
 }
 
 // VerifyJWTToken is a util function to perform jwt token verification
-func (collectaAuth *Auth) VerifyJWTToken(ctx context.Context, token string) (*ent.User, error) {
+func (collectaAuth *Auth) VerifyJWTToken(ctx context.Context, token string) (*ent.Person, error) {
 	return collectaAuth.verifyJWTToken(ctx, token)
 }

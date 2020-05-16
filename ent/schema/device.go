@@ -1,6 +1,9 @@
 package schema
 
-import "github.com/facebookincubator/ent"
+import (
+	"github.com/facebookincubator/ent"
+	"github.com/facebookincubator/ent/schema/field"
+)
 
 // Device holds the schema definition for the Device entity.
 type Device struct {
@@ -9,7 +12,9 @@ type Device struct {
 
 // Fields of the Device.
 func (Device) Fields() []ent.Field {
-	return nil
+	return []ent.Field{
+		field.String("device"),
+	}
 }
 
 // Edges of the Device.

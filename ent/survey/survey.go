@@ -41,11 +41,11 @@ const (
 	FlowColumn = "survey_flow"
 	// ForTable is the table the holds the for relation/edge.
 	ForTable = "surveys"
-	// ForInverseTable is the table name for the User entity.
-	// It exists in this package in order to avoid circular dependency with the "user" package.
-	ForInverseTable = "users"
+	// ForInverseTable is the table name for the Person entity.
+	// It exists in this package in order to avoid circular dependency with the "person" package.
+	ForInverseTable = "persons"
 	// ForColumn is the table column denoting the for relation/edge.
-	ForColumn = "user_surveys"
+	ForColumn = "person_surveys"
 	// OwnerTable is the table the holds the owner relation/edge.
 	OwnerTable = "surveys"
 	// OwnerInverseTable is the table name for the Domain entity.
@@ -71,7 +71,7 @@ var Columns = []string{
 // ForeignKeys holds the SQL foreign-keys that are owned by the Survey type.
 var ForeignKeys = []string{
 	"domain_surveys",
-	"user_surveys",
+	"person_surveys",
 }
 
 var (

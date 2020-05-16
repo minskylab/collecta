@@ -14,7 +14,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/minskylab/collecta/ent/answer"
 	"github.com/minskylab/collecta/ent/predicate"
-	"github.com/minskylab/collecta/ent/question"
 )
 
 // AnswerQuery is the builder for querying Answer entities.

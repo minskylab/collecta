@@ -12,8 +12,8 @@ import (
 	"github.com/facebookincubator/ent/schema/field"
 	"github.com/google/uuid"
 	"github.com/minskylab/collecta/ent/account"
+	"github.com/minskylab/collecta/ent/person"
 	"github.com/minskylab/collecta/ent/predicate"
-	"github.com/minskylab/collecta/ent/user"
 )
 
 // AccountUpdate is the builder for updating Account entities.
@@ -74,7 +74,7 @@ func (au *AccountUpdate) ClearSecret() *AccountUpdate {
 	return au
 }
 
-// SetOwnerID sets the owner edge to User by id.
+// SetOwnerID sets the owner edge to Person by id.
 func (au *AccountUpdate) SetOwnerID(id uuid.UUID) *AccountUpdate {
 	if au.owner == nil {
 		au.owner = make(map[uuid.UUID]struct{})
@@ -83,7 +83,7 @@ func (au *AccountUpdate) SetOwnerID(id uuid.UUID) *AccountUpdate {
 	return au
 }
 
-// SetNillableOwnerID sets the owner edge to User by id if the given value is not nil.
+// SetNillableOwnerID sets the owner edge to Person by id if the given value is not nil.
 func (au *AccountUpdate) SetNillableOwnerID(id *uuid.UUID) *AccountUpdate {
 	if id != nil {
 		au = au.SetOwnerID(*id)
@@ -91,12 +91,12 @@ func (au *AccountUpdate) SetNillableOwnerID(id *uuid.UUID) *AccountUpdate {
 	return au
 }
 
-// SetOwner sets the owner edge to User.
-func (au *AccountUpdate) SetOwner(u *User) *AccountUpdate {
-	return au.SetOwnerID(u.ID)
+// SetOwner sets the owner edge to Person.
+func (au *AccountUpdate) SetOwner(p *Person) *AccountUpdate {
+	return au.SetOwnerID(p.ID)
 }
 
-// ClearOwner clears the owner edge to User.
+// ClearOwner clears the owner edge to Person.
 func (au *AccountUpdate) ClearOwner() *AccountUpdate {
 	au.clearedOwner = true
 	return au
@@ -204,7 +204,7 @@ func (au *AccountUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
-					Column: user.FieldID,
+					Column: person.FieldID,
 				},
 			},
 		}
@@ -220,7 +220,7 @@ func (au *AccountUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
-					Column: user.FieldID,
+					Column: person.FieldID,
 				},
 			},
 		}
@@ -292,7 +292,7 @@ func (auo *AccountUpdateOne) ClearSecret() *AccountUpdateOne {
 	return auo
 }
 
-// SetOwnerID sets the owner edge to User by id.
+// SetOwnerID sets the owner edge to Person by id.
 func (auo *AccountUpdateOne) SetOwnerID(id uuid.UUID) *AccountUpdateOne {
 	if auo.owner == nil {
 		auo.owner = make(map[uuid.UUID]struct{})
@@ -301,7 +301,7 @@ func (auo *AccountUpdateOne) SetOwnerID(id uuid.UUID) *AccountUpdateOne {
 	return auo
 }
 
-// SetNillableOwnerID sets the owner edge to User by id if the given value is not nil.
+// SetNillableOwnerID sets the owner edge to Person by id if the given value is not nil.
 func (auo *AccountUpdateOne) SetNillableOwnerID(id *uuid.UUID) *AccountUpdateOne {
 	if id != nil {
 		auo = auo.SetOwnerID(*id)
@@ -309,12 +309,12 @@ func (auo *AccountUpdateOne) SetNillableOwnerID(id *uuid.UUID) *AccountUpdateOne
 	return auo
 }
 
-// SetOwner sets the owner edge to User.
-func (auo *AccountUpdateOne) SetOwner(u *User) *AccountUpdateOne {
-	return auo.SetOwnerID(u.ID)
+// SetOwner sets the owner edge to Person.
+func (auo *AccountUpdateOne) SetOwner(p *Person) *AccountUpdateOne {
+	return auo.SetOwnerID(p.ID)
 }
 
-// ClearOwner clears the owner edge to User.
+// ClearOwner clears the owner edge to Person.
 func (auo *AccountUpdateOne) ClearOwner() *AccountUpdateOne {
 	auo.clearedOwner = true
 	return auo
@@ -416,7 +416,7 @@ func (auo *AccountUpdateOne) sqlSave(ctx context.Context) (a *Account, err error
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
-					Column: user.FieldID,
+					Column: person.FieldID,
 				},
 			},
 		}
@@ -432,7 +432,7 @@ func (auo *AccountUpdateOne) sqlSave(ctx context.Context) (a *Account, err error
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
-					Column: user.FieldID,
+					Column: person.FieldID,
 				},
 			},
 		}

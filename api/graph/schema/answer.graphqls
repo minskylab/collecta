@@ -1,0 +1,7 @@
+type Answer {
+    id: ID!
+    at: Time!
+    responses: [String!]!
+    valid: Boolean
+    question: Question
+}

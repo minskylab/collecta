@@ -28,14 +28,14 @@ type Tx struct {
 	IP *IPClient
 	// Input is the client for interacting with the Input builders.
 	Input *InputClient
+	// Person is the client for interacting with the Person builders.
+	Person *PersonClient
 	// Question is the client for interacting with the Question builders.
 	Question *QuestionClient
 	// Short is the client for interacting with the Short builders.
 	Short *ShortClient
 	// Survey is the client for interacting with the Survey builders.
 	Survey *SurveyClient
-	// User is the client for interacting with the User builders.
-	User *UserClient
 }
 
 // Commit commits the transaction.
@@ -61,10 +61,10 @@ func (tx *Tx) Client() *Client {
 		Flow:     NewFlowClient(tx.config),
 		IP:       NewIPClient(tx.config),
 		Input:    NewInputClient(tx.config),
+		Person:   NewPersonClient(tx.config),
 		Question: NewQuestionClient(tx.config),
 		Short:    NewShortClient(tx.config),
 		Survey:   NewSurveyClient(tx.config),
-		User:     NewUserClient(tx.config),
 	}
 }
 

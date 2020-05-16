@@ -81,16 +81,21 @@ type ComplexityRoot struct {
 		Value       func(childComplexity int) int
 	}
 
+	Device struct {
+		Device func(childComplexity int) int
+	}
+
 	Domain struct {
-		Admins         func(childComplexity int) int
-		CollectaDomain func(childComplexity int) int
-		Domain         func(childComplexity int) int
-		Email          func(childComplexity int) int
-		ID             func(childComplexity int) int
-		Name           func(childComplexity int) int
-		Surveys        func(childComplexity int) int
-		Tags           func(childComplexity int) int
-		Users          func(childComplexity int) int
+		Admins                 func(childComplexity int) int
+		CollectaClientCallback func(childComplexity int) int
+		CollectaDomain         func(childComplexity int) int
+		Domain                 func(childComplexity int) int
+		Email                  func(childComplexity int) int
+		ID                     func(childComplexity int) int
+		Name                   func(childComplexity int) int
+		Surveys                func(childComplexity int) int
+		Tags                   func(childComplexity int) int
+		Users                  func(childComplexity int) int
 	}
 
 	Flow struct {
@@ -101,7 +106,12 @@ type ComplexityRoot struct {
 		Questions        func(childComplexity int) int
 		State            func(childComplexity int) int
 		StateTable       func(childComplexity int) int
+		Survey           func(childComplexity int) int
 		TerminationState func(childComplexity int) int
+	}
+
+	IP struct {
+		IP func(childComplexity int) int
 	}
 
 	Input struct {
@@ -122,9 +132,8 @@ type ComplexityRoot struct {
 		Token func(childComplexity int) int
 	}
 
-	MetadataPair struct {
-		Key   func(childComplexity int) int
-		Value func(childComplexity int) int
+	Map struct {
+		Content func(childComplexity int) int
 	}
 
 	Mutation struct {
@@ -134,6 +143,11 @@ type ComplexityRoot struct {
 		GenerateSurveys func(childComplexity int, domainSelector model.SurveyDomain, draft model.SurveyGenerator) int
 		LoginByPassword func(childComplexity int, username string, password string) int
 		UpdatePassword  func(childComplexity int, oldPassword string, newPassword string) int
+	}
+
+	PairMap struct {
+		Key   func(childComplexity int) int
+		Value func(childComplexity int) int
 	}
 
 	Query struct {
@@ -216,10 +230,10 @@ type DomainResolver interface {
 	Admins(ctx context.Context, obj *model.Domain) ([]*model.User, error)
 }
 type FlowResolver interface {
+	Survey(ctx context.Context, obj *model.Flow) (*model.Survey, error)
 	Questions(ctx context.Context, obj *model.Flow) ([]*model.Question, error)
 }
 type InputResolver interface {
-	Options(ctx context.Context, obj *model.Input) (map[string]interface{}, error)
 	Question(ctx context.Context, obj *model.Input) (*model.Question, error)
 }
 type MutationResolver interface {
@@ -252,8 +266,8 @@ type SurveyResolver interface {
 	Owner(ctx context.Context, obj *model.Survey) (*model.Domain, error)
 }
 type UserResolver interface {
-	Accounts(ctx context.Context, obj *model.User) (*model.Account, error)
-	Contacts(ctx context.Context, obj *model.User) (*model.Contact, error)
+	Accounts(ctx context.Context, obj *model.User) ([]*model.Account, error)
+	Contacts(ctx context.Context, obj *model.User) ([]*model.Contact, error)
 	Surveys(ctx context.Context, obj *model.User) ([]*model.Survey, error)
 	Domains(ctx context.Context, obj *model.User) ([]*model.Domain, error)
 	AdminOf(ctx context.Context, obj *model.User) ([]*model.Domain, error)
@@ -407,12 +421,26 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Contact.Value(childComplexity), true
 
+	case "Device.device":
+		if e.complexity.Device.Device == nil {
+			break
+		}
+
+		return e.complexity.Device.Device(childComplexity), true
+
 	case "Domain.admins":
 		if e.complexity.Domain.Admins == nil {
 			break
 		}
 
 		return e.complexity.Domain.Admins(childComplexity), true
+
+	case "Domain.collectaClientCallback":
+		if e.complexity.Domain.CollectaClientCallback == nil {
+			break
+		}
+
+		return e.complexity.Domain.CollectaClientCallback(childComplexity), true
 
 	case "Domain.collectaDomain":
 		if e.complexity.Domain.CollectaDomain == nil {
@@ -519,12 +547,26 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Flow.StateTable(childComplexity), true
 
+	case "Flow.survey":
+		if e.complexity.Flow.Survey == nil {
+			break
+		}
+
+		return e.complexity.Flow.Survey(childComplexity), true
+
 	case "Flow.terminationState":
 		if e.complexity.Flow.TerminationState == nil {
 			break
 		}
 
 		return e.complexity.Flow.TerminationState(childComplexity), true
+
+	case "IP.ip":
+		if e.complexity.IP.IP == nil {
+			break
+		}
+
+		return e.complexity.IP.IP(childComplexity), true
 
 	case "Input.defaults":
 		if e.complexity.Input.Defaults == nil {
@@ -589,19 +631,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.LoginResponse.Token(childComplexity), true
 
-	case "MetadataPair.key":
-		if e.complexity.MetadataPair.Key == nil {
+	case "Map.content":
+		if e.complexity.Map.Content == nil {
 			break
 		}
 
-		return e.complexity.MetadataPair.Key(childComplexity), true
-
-	case "MetadataPair.value":
-		if e.complexity.MetadataPair.Value == nil {
-			break
-		}
-
-		return e.complexity.MetadataPair.Value(childComplexity), true
+		return e.complexity.Map.Content(childComplexity), true
 
 	case "Mutation.answerQuestion":
 		if e.complexity.Mutation.AnswerQuestion == nil {
@@ -674,6 +709,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.UpdatePassword(childComplexity, args["oldPassword"].(string), args["newPassword"].(string)), true
+
+	case "PairMap.key":
+		if e.complexity.PairMap.Key == nil {
+			break
+		}
+
+		return e.complexity.PairMap.Key(childComplexity), true
+
+	case "PairMap.value":
+		if e.complexity.PairMap.Value == nil {
+			break
+		}
+
+		return e.complexity.PairMap.Value(childComplexity), true
 
 	case "Query.domain":
 		if e.complexity.Query.Domain == nil {
@@ -1101,119 +1150,78 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 }
 
 var sources = []*ast.Source{
-	&ast.Source{Name: "graph/schema/base.graphqls", Input: `scalar Time
-scalar Map
-
-type MetadataPair {
-    key: String!
-    value: String!
-}
-
-type User {
-    id: ID!
-    name: String!
-    username: String!
-    lastActivity: Time!
-    picture: String!
-    roles: [String!]!
-    accounts: Account!
-    contacts: Contact!
-    surveys: [Survey!]!
-    domains: [Domain!]!
-    adminOf: [Domain!]!
-}
-
-type Survey {
-    id: ID!
-    tags: [String!]!
-    lastInteraction: Time!
-    dueDate: Time!
-    title: String!
-    description: String!
-    metadata: [MetadataPair!]!
-    done: Boolean!
-    isPublic: Boolean!
-    flow: Flow!
-    for: User!
-    owner: Domain!
-}
-
-type Domain {
-    id: ID!
-    tags: [String!]!
-    name: String!
-    email: String!
-    domain: String!
-    collectaDomain: String!
-    surveys: [Survey!]!
-    users: [User!]!
-    admins: [User!]!
-}
-
-type Contact {
-    id: ID!
-    name: String
-    value: String!
-    kind: String!
-    principal: Boolean!
-    validated: Boolean!
-    fromAccount: Boolean!
-    owner: User!
+	&ast.Source{Name: "graph/schema/account.graphqls", Input: `enum AccountType {
+    Google
+    Anonymous
+    Email
 }
 
 type Account {
     id: ID!
-    type: String!
+    type: AccountType!
     sub: String!
     remoteID: String!
-    secret: String!
+    secret: String
     owner: User!
-}
-
-type Question {
-    id: ID!
-    hash: String!
-    title: String!
-    description: String!
-    anonymous: Boolean!
-    metadata: [MetadataPair!]!
-    validator: String!
-    answers: [Answer!]!
-    input: Input!
-    flow: Flow!
-}
-
-type Input {
-    id: ID!
-    kind: String!
-    multiple: Boolean!
-    defaults: [String]!
-    options: Map!
-    question: Question!
-}
-
-type Answer {
+}`, BuiltIn: false},
+	&ast.Source{Name: "graph/schema/answer.graphqls", Input: `type Answer {
     id: ID!
     at: Time!
     responses: [String!]!
-    valid: Boolean!
-    question: Question!
+    valid: Boolean
+    question: Question
+}`, BuiltIn: false},
+	&ast.Source{Name: "graph/schema/base.graphqls", Input: `scalar Time
+
+type PairMap {
+    key: String!
+    value: String!
 }
 
-type Flow {
+type Map {
+    content: [PairMap!]!
+}
+`, BuiltIn: false},
+	&ast.Source{Name: "graph/schema/contact.graphqls", Input: `enum ContactKind {
+    Email
+    Phone
+}
+
+type Contact {
+    id: ID!
+    name: String!
+    value: String!
+    kind: ContactKind!
+    principal: Boolean!
+    validated: Boolean!
+    fromAccount: Boolean!
+    owner: User
+}`, BuiltIn: false},
+	&ast.Source{Name: "graph/schema/device.graphqls", Input: `type Device {
+    device: String!
+}`, BuiltIn: false},
+	&ast.Source{Name: "graph/schema/domain.graphqls", Input: `type Domain {
+    id: ID!
+    name: String!
+    email: String!
+    domain: String!
+    collectaDomain: String!
+    collectaClientCallback: String!
+    tags: [String!]!
+    surveys: [Survey!]!
+    users: [User!]!
+    admins: [User!]!
+}`, BuiltIn: false},
+	&ast.Source{Name: "graph/schema/flow.graphqls", Input: `type Flow {
     id: ID!
     state: ID!
     stateTable: String!
     initialState: ID!
     terminationState: ID!
-    pastState: ID!
-    inputs: [String!]!
-    questions: [Question!]!
-}
-
-type Short {
-    key: String!
-    value: ID!
+    pastState: ID
+    inputs: [String!]
+    survey: Survey!
+    questions: [Question]!
 }`, BuiltIn: false},
 	&ast.Source{Name: "graph/schema/general.graphqls", Input: `type LoginResponse {
     token: String!
@@ -1284,12 +1292,31 @@ input DomainCreator {
 type LastSurveyState {
     lastQuestion: Question!
     percent: Float!
+}
+`, BuiltIn: false},
+	&ast.Source{Name: "graph/schema/input.graphqls", Input: `enum InputKind {
+    Text
+    Options
+    Satisfaction
+    Boolean
+}
+
+type Input {
+    id: ID!
+    kind: InputKind!
+    multiple: Boolean
+    defaults: [String!]
+    options: Map
+    question: Question
+}`, BuiltIn: false},
+	&ast.Source{Name: "graph/schema/ip.graphqls", Input: `type IP {
+    ip: String!
 }`, BuiltIn: false},
 	&ast.Source{Name: "graph/schema/mutations.graphqls", Input: `type Mutation {
     # User Related
     answerQuestion(questionID: ID!, answer: [String!]!): Survey!
     backwardSurvey(surveyID: ID!): Survey!
-    
+
     # Admin Related
     loginByPassword(username: String!, password: String!): LoginResponse!
     updatePassword(oldPassword: String!, newPassword: String!): Boolean!
@@ -1315,7 +1342,50 @@ type LastSurveyState {
     lastQuestionOfSurvey(surveyID: ID!): LastSurveyState!
 }
 `, BuiltIn: false},
+	&ast.Source{Name: "graph/schema/question.graphqls", Input: `type Question {
+    id: ID!
+    hash: String!
+    title: String!
+    description: String!
+    metadata: Map
+    validator: String
+    anonymous: Boolean!
+    answers: [Answer!]!
+    input: Input!
+    flow: Flow!
+}`, BuiltIn: false},
+	&ast.Source{Name: "graph/schema/short.graphqls", Input: `type Short {
+    key: String!
+    value: ID!
+}`, BuiltIn: false},
 	&ast.Source{Name: "graph/schema/subscriptions.graphqls", Input: ``, BuiltIn: false},
+	&ast.Source{Name: "graph/schema/survey.graphqls", Input: `type Survey {
+    id: ID!
+    tags: [String!]!
+    lastInteraction: Time!
+    dueDate: Time!
+    title: String!
+    description: String
+    metadata: Map
+    done: Boolean
+    isPublic: Boolean
+    flow: Flow
+    for: User
+    owner: Domain!
+}`, BuiltIn: false},
+	&ast.Source{Name: "graph/schema/user.graphqls", Input: `type User {
+    id: ID!
+    name: String!
+    lastActivity: Time!
+    username: String
+    picture: String
+    roles: [String!]
+    accounts: [Account!]!
+    contacts: [Contact!]!
+    surveys: [Survey!]!
+    domains: [Domain!]!
+    adminOf: [Domain!]!
+}`, BuiltIn: false},
 }
 var parsedSchema = gqlparser.MustLoadSchema(sources...)
 
@@ -1664,9 +1734,9 @@ func (ec *executionContext) _Account_type(ctx context.Context, field graphql.Col
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(model.AccountType)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalNAccountType2githubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐAccountType(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Account_sub(ctx context.Context, field graphql.CollectedField, obj *model.Account) (ret graphql.Marshaler) {
@@ -1761,14 +1831,11 @@ func (ec *executionContext) _Account_secret(ctx context.Context, field graphql.C
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*string)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Account_owner(ctx context.Context, field graphql.CollectedField, obj *model.Account) (ret graphql.Marshaler) {
@@ -1931,14 +1998,11 @@ func (ec *executionContext) _Answer_valid(ctx context.Context, field graphql.Col
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(bool)
+	res := resTmp.(*bool)
 	fc.Result = res
-	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Answer_question(ctx context.Context, field graphql.CollectedField, obj *model.Answer) (ret graphql.Marshaler) {
@@ -1965,14 +2029,11 @@ func (ec *executionContext) _Answer_question(ctx context.Context, field graphql.
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
 	res := resTmp.(*model.Question)
 	fc.Result = res
-	return ec.marshalNQuestion2ᚖgithubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐQuestion(ctx, field.Selections, res)
+	return ec.marshalOQuestion2ᚖgithubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐQuestion(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Contact_id(ctx context.Context, field graphql.CollectedField, obj *model.Contact) (ret graphql.Marshaler) {
@@ -2033,11 +2094,14 @@ func (ec *executionContext) _Contact_name(ctx context.Context, field graphql.Col
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
-	res := resTmp.(*string)
+	res := resTmp.(string)
 	fc.Result = res
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Contact_value(ctx context.Context, field graphql.CollectedField, obj *model.Contact) (ret graphql.Marshaler) {
@@ -2103,9 +2167,9 @@ func (ec *executionContext) _Contact_kind(ctx context.Context, field graphql.Col
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(model.ContactKind)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalNContactKind2githubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐContactKind(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Contact_principal(ctx context.Context, field graphql.CollectedField, obj *model.Contact) (ret graphql.Marshaler) {
@@ -2234,14 +2298,45 @@ func (ec *executionContext) _Contact_owner(ctx context.Context, field graphql.Co
 		return graphql.Null
 	}
 	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.User)
+	fc.Result = res
+	return ec.marshalOUser2ᚖgithubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐUser(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Device_device(ctx context.Context, field graphql.CollectedField, obj *model.Device) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Device",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Device, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
 		if !graphql.HasFieldError(ctx, fc) {
 			ec.Errorf(ctx, "must not be null")
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*model.User)
+	res := resTmp.(string)
 	fc.Result = res
-	return ec.marshalNUser2ᚖgithubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐUser(ctx, field.Selections, res)
+	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Domain_id(ctx context.Context, field graphql.CollectedField, obj *model.Domain) (ret graphql.Marshaler) {
@@ -2276,40 +2371,6 @@ func (ec *executionContext) _Domain_id(ctx context.Context, field graphql.Collec
 	res := resTmp.(string)
 	fc.Result = res
 	return ec.marshalNID2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Domain_tags(ctx context.Context, field graphql.CollectedField, obj *model.Domain) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:   "Domain",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Tags, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.([]string)
-	fc.Result = res
-	return ec.marshalNString2ᚕstringᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Domain_name(ctx context.Context, field graphql.CollectedField, obj *model.Domain) (ret graphql.Marshaler) {
@@ -2446,6 +2507,74 @@ func (ec *executionContext) _Domain_collectaDomain(ctx context.Context, field gr
 	res := resTmp.(string)
 	fc.Result = res
 	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Domain_collectaClientCallback(ctx context.Context, field graphql.CollectedField, obj *model.Domain) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Domain",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CollectaClientCallback, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Domain_tags(ctx context.Context, field graphql.CollectedField, obj *model.Domain) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Domain",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Tags, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]string)
+	fc.Result = res
+	return ec.marshalNString2ᚕstringᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Domain_surveys(ctx context.Context, field graphql.CollectedField, obj *model.Domain) (ret graphql.Marshaler) {
@@ -2744,14 +2873,11 @@ func (ec *executionContext) _Flow_pastState(ctx context.Context, field graphql.C
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*string)
 	fc.Result = res
-	return ec.marshalNID2string(ctx, field.Selections, res)
+	return ec.marshalOID2ᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Flow_inputs(ctx context.Context, field graphql.CollectedField, obj *model.Flow) (ret graphql.Marshaler) {
@@ -2778,14 +2904,45 @@ func (ec *executionContext) _Flow_inputs(ctx context.Context, field graphql.Coll
 		return graphql.Null
 	}
 	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]string)
+	fc.Result = res
+	return ec.marshalOString2ᚕstringᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Flow_survey(ctx context.Context, field graphql.CollectedField, obj *model.Flow) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Flow",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Flow().Survey(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
 		if !graphql.HasFieldError(ctx, fc) {
 			ec.Errorf(ctx, "must not be null")
 		}
 		return graphql.Null
 	}
-	res := resTmp.([]string)
+	res := resTmp.(*model.Survey)
 	fc.Result = res
-	return ec.marshalNString2ᚕstringᚄ(ctx, field.Selections, res)
+	return ec.marshalNSurvey2ᚖgithubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐSurvey(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Flow_questions(ctx context.Context, field graphql.CollectedField, obj *model.Flow) (ret graphql.Marshaler) {
@@ -2819,7 +2976,41 @@ func (ec *executionContext) _Flow_questions(ctx context.Context, field graphql.C
 	}
 	res := resTmp.([]*model.Question)
 	fc.Result = res
-	return ec.marshalNQuestion2ᚕᚖgithubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐQuestionᚄ(ctx, field.Selections, res)
+	return ec.marshalNQuestion2ᚕᚖgithubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐQuestion(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _IP_ip(ctx context.Context, field graphql.CollectedField, obj *model.IP) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "IP",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.IP, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Input_id(ctx context.Context, field graphql.CollectedField, obj *model.Input) (ret graphql.Marshaler) {
@@ -2885,9 +3076,9 @@ func (ec *executionContext) _Input_kind(ctx context.Context, field graphql.Colle
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(model.InputKind)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalNInputKind2githubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐInputKind(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Input_multiple(ctx context.Context, field graphql.CollectedField, obj *model.Input) (ret graphql.Marshaler) {
@@ -2914,14 +3105,11 @@ func (ec *executionContext) _Input_multiple(ctx context.Context, field graphql.C
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(bool)
+	res := resTmp.(*bool)
 	fc.Result = res
-	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Input_defaults(ctx context.Context, field graphql.CollectedField, obj *model.Input) (ret graphql.Marshaler) {
@@ -2948,14 +3136,11 @@ func (ec *executionContext) _Input_defaults(ctx context.Context, field graphql.C
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.([]*string)
+	res := resTmp.([]string)
 	fc.Result = res
-	return ec.marshalNString2ᚕᚖstring(ctx, field.Selections, res)
+	return ec.marshalOString2ᚕstringᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Input_options(ctx context.Context, field graphql.CollectedField, obj *model.Input) (ret graphql.Marshaler) {
@@ -2969,27 +3154,24 @@ func (ec *executionContext) _Input_options(ctx context.Context, field graphql.Co
 		Object:   "Input",
 		Field:    field,
 		Args:     nil,
-		IsMethod: true,
+		IsMethod: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Input().Options(rctx, obj)
+		return obj.Options, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(map[string]interface{})
+	res := resTmp.(*model.Map)
 	fc.Result = res
-	return ec.marshalNMap2map(ctx, field.Selections, res)
+	return ec.marshalOMap2ᚖgithubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐMap(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Input_question(ctx context.Context, field graphql.CollectedField, obj *model.Input) (ret graphql.Marshaler) {
@@ -3016,14 +3198,11 @@ func (ec *executionContext) _Input_question(ctx context.Context, field graphql.C
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
 	res := resTmp.(*model.Question)
 	fc.Result = res
-	return ec.marshalNQuestion2ᚖgithubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐQuestion(ctx, field.Selections, res)
+	return ec.marshalOQuestion2ᚖgithubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐQuestion(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _LastSurveyState_lastQuestion(ctx context.Context, field graphql.CollectedField, obj *model.LastSurveyState) (ret graphql.Marshaler) {
@@ -3128,7 +3307,7 @@ func (ec *executionContext) _LoginResponse_token(ctx context.Context, field grap
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _MetadataPair_key(ctx context.Context, field graphql.CollectedField, obj *model.MetadataPair) (ret graphql.Marshaler) {
+func (ec *executionContext) _Map_content(ctx context.Context, field graphql.CollectedField, obj *model.Map) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -3136,7 +3315,7 @@ func (ec *executionContext) _MetadataPair_key(ctx context.Context, field graphql
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "MetadataPair",
+		Object:   "Map",
 		Field:    field,
 		Args:     nil,
 		IsMethod: false,
@@ -3145,7 +3324,7 @@ func (ec *executionContext) _MetadataPair_key(ctx context.Context, field graphql
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Key, nil
+		return obj.Content, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -3157,43 +3336,9 @@ func (ec *executionContext) _MetadataPair_key(ctx context.Context, field graphql
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.([]*model.PairMap)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _MetadataPair_value(ctx context.Context, field graphql.CollectedField, obj *model.MetadataPair) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:   "MetadataPair",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Value, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalNPairMap2ᚕᚖgithubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐPairMapᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_answerQuestion(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -3440,6 +3585,74 @@ func (ec *executionContext) _Mutation_generateSurveys(ctx context.Context, field
 	res := resTmp.(*model.SuveyGenerationResult)
 	fc.Result = res
 	return ec.marshalNSuveyGenerationResult2ᚖgithubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐSuveyGenerationResult(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _PairMap_key(ctx context.Context, field graphql.CollectedField, obj *model.PairMap) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "PairMap",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Key, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _PairMap_value(ctx context.Context, field graphql.CollectedField, obj *model.PairMap) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "PairMap",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Value, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_domain(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -4009,6 +4222,68 @@ func (ec *executionContext) _Question_description(ctx context.Context, field gra
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Question_metadata(ctx context.Context, field graphql.CollectedField, obj *model.Question) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Question",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Metadata, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.Map)
+	fc.Result = res
+	return ec.marshalOMap2ᚖgithubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐMap(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Question_validator(ctx context.Context, field graphql.CollectedField, obj *model.Question) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Question",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Validator, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Question_anonymous(ctx context.Context, field graphql.CollectedField, obj *model.Question) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -4041,74 +4316,6 @@ func (ec *executionContext) _Question_anonymous(ctx context.Context, field graph
 	res := resTmp.(bool)
 	fc.Result = res
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Question_metadata(ctx context.Context, field graphql.CollectedField, obj *model.Question) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:   "Question",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Metadata, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.([]*model.MetadataPair)
-	fc.Result = res
-	return ec.marshalNMetadataPair2ᚕᚖgithubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐMetadataPairᚄ(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Question_validator(ctx context.Context, field graphql.CollectedField, obj *model.Question) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:   "Question",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Validator, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Question_answers(ctx context.Context, field graphql.CollectedField, obj *model.Question) (ret graphql.Marshaler) {
@@ -4475,14 +4682,11 @@ func (ec *executionContext) _Survey_description(ctx context.Context, field graph
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*string)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Survey_metadata(ctx context.Context, field graphql.CollectedField, obj *model.Survey) (ret graphql.Marshaler) {
@@ -4509,14 +4713,11 @@ func (ec *executionContext) _Survey_metadata(ctx context.Context, field graphql.
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.([]*model.MetadataPair)
+	res := resTmp.(*model.Map)
 	fc.Result = res
-	return ec.marshalNMetadataPair2ᚕᚖgithubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐMetadataPairᚄ(ctx, field.Selections, res)
+	return ec.marshalOMap2ᚖgithubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐMap(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Survey_done(ctx context.Context, field graphql.CollectedField, obj *model.Survey) (ret graphql.Marshaler) {
@@ -4543,14 +4744,11 @@ func (ec *executionContext) _Survey_done(ctx context.Context, field graphql.Coll
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(bool)
+	res := resTmp.(*bool)
 	fc.Result = res
-	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Survey_isPublic(ctx context.Context, field graphql.CollectedField, obj *model.Survey) (ret graphql.Marshaler) {
@@ -4577,14 +4775,11 @@ func (ec *executionContext) _Survey_isPublic(ctx context.Context, field graphql.
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(bool)
+	res := resTmp.(*bool)
 	fc.Result = res
-	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Survey_flow(ctx context.Context, field graphql.CollectedField, obj *model.Survey) (ret graphql.Marshaler) {
@@ -4611,14 +4806,11 @@ func (ec *executionContext) _Survey_flow(ctx context.Context, field graphql.Coll
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
 	res := resTmp.(*model.Flow)
 	fc.Result = res
-	return ec.marshalNFlow2ᚖgithubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐFlow(ctx, field.Selections, res)
+	return ec.marshalOFlow2ᚖgithubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐFlow(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Survey_for(ctx context.Context, field graphql.CollectedField, obj *model.Survey) (ret graphql.Marshaler) {
@@ -4645,14 +4837,11 @@ func (ec *executionContext) _Survey_for(ctx context.Context, field graphql.Colle
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
 	res := resTmp.(*model.User)
 	fc.Result = res
-	return ec.marshalNUser2ᚖgithubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐUser(ctx, field.Selections, res)
+	return ec.marshalOUser2ᚖgithubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐUser(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Survey_owner(ctx context.Context, field graphql.CollectedField, obj *model.Survey) (ret graphql.Marshaler) {
@@ -4825,40 +5014,6 @@ func (ec *executionContext) _User_name(ctx context.Context, field graphql.Collec
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _User_username(ctx context.Context, field graphql.CollectedField, obj *model.User) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:   "User",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Username, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
 func (ec *executionContext) _User_lastActivity(ctx context.Context, field graphql.CollectedField, obj *model.User) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -4893,6 +5048,37 @@ func (ec *executionContext) _User_lastActivity(ctx context.Context, field graphq
 	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _User_username(ctx context.Context, field graphql.CollectedField, obj *model.User) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "User",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Username, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _User_picture(ctx context.Context, field graphql.CollectedField, obj *model.User) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -4917,14 +5103,11 @@ func (ec *executionContext) _User_picture(ctx context.Context, field graphql.Col
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*string)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _User_roles(ctx context.Context, field graphql.CollectedField, obj *model.User) (ret graphql.Marshaler) {
@@ -4951,14 +5134,11 @@ func (ec *executionContext) _User_roles(ctx context.Context, field graphql.Colle
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
 	res := resTmp.([]string)
 	fc.Result = res
-	return ec.marshalNString2ᚕstringᚄ(ctx, field.Selections, res)
+	return ec.marshalOString2ᚕstringᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _User_accounts(ctx context.Context, field graphql.CollectedField, obj *model.User) (ret graphql.Marshaler) {
@@ -4990,9 +5170,9 @@ func (ec *executionContext) _User_accounts(ctx context.Context, field graphql.Co
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*model.Account)
+	res := resTmp.([]*model.Account)
 	fc.Result = res
-	return ec.marshalNAccount2ᚖgithubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐAccount(ctx, field.Selections, res)
+	return ec.marshalNAccount2ᚕᚖgithubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐAccountᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _User_contacts(ctx context.Context, field graphql.CollectedField, obj *model.User) (ret graphql.Marshaler) {
@@ -5024,9 +5204,9 @@ func (ec *executionContext) _User_contacts(ctx context.Context, field graphql.Co
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*model.Contact)
+	res := resTmp.([]*model.Contact)
 	fc.Result = res
-	return ec.marshalNContact2ᚖgithubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐContact(ctx, field.Selections, res)
+	return ec.marshalNContact2ᚕᚖgithubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐContactᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _User_surveys(ctx context.Context, field graphql.CollectedField, obj *model.User) (ret graphql.Marshaler) {
@@ -6449,9 +6629,6 @@ func (ec *executionContext) _Account(ctx context.Context, sel ast.SelectionSet, 
 			}
 		case "secret":
 			out.Values[i] = ec._Account_secret(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
 		case "owner":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
@@ -6505,9 +6682,6 @@ func (ec *executionContext) _Answer(ctx context.Context, sel ast.SelectionSet, o
 			}
 		case "valid":
 			out.Values[i] = ec._Answer_valid(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
 		case "question":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
@@ -6517,9 +6691,6 @@ func (ec *executionContext) _Answer(ctx context.Context, sel ast.SelectionSet, o
 					}
 				}()
 				res = ec._Answer_question(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
 				return res
 			})
 		default:
@@ -6551,6 +6722,9 @@ func (ec *executionContext) _Contact(ctx context.Context, sel ast.SelectionSet, 
 			}
 		case "name":
 			out.Values[i] = ec._Contact_name(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
 		case "value":
 			out.Values[i] = ec._Contact_value(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -6585,11 +6759,35 @@ func (ec *executionContext) _Contact(ctx context.Context, sel ast.SelectionSet, 
 					}
 				}()
 				res = ec._Contact_owner(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
 				return res
 			})
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var deviceImplementors = []string{"Device"}
+
+func (ec *executionContext) _Device(ctx context.Context, sel ast.SelectionSet, obj *model.Device) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, deviceImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("Device")
+		case "device":
+			out.Values[i] = ec._Device_device(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -6617,11 +6815,6 @@ func (ec *executionContext) _Domain(ctx context.Context, sel ast.SelectionSet, o
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
-		case "tags":
-			out.Values[i] = ec._Domain_tags(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
 		case "name":
 			out.Values[i] = ec._Domain_name(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -6639,6 +6832,16 @@ func (ec *executionContext) _Domain(ctx context.Context, sel ast.SelectionSet, o
 			}
 		case "collectaDomain":
 			out.Values[i] = ec._Domain_collectaDomain(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "collectaClientCallback":
+			out.Values[i] = ec._Domain_collectaClientCallback(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "tags":
+			out.Values[i] = ec._Domain_tags(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
@@ -6733,14 +6936,22 @@ func (ec *executionContext) _Flow(ctx context.Context, sel ast.SelectionSet, obj
 			}
 		case "pastState":
 			out.Values[i] = ec._Flow_pastState(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
 		case "inputs":
 			out.Values[i] = ec._Flow_inputs(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
+		case "survey":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Flow_survey(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		case "questions":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
@@ -6755,6 +6966,33 @@ func (ec *executionContext) _Flow(ctx context.Context, sel ast.SelectionSet, obj
 				}
 				return res
 			})
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var iPImplementors = []string{"IP"}
+
+func (ec *executionContext) _IP(ctx context.Context, sel ast.SelectionSet, obj *model.IP) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, iPImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("IP")
+		case "ip":
+			out.Values[i] = ec._IP_ip(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -6789,28 +7027,10 @@ func (ec *executionContext) _Input(ctx context.Context, sel ast.SelectionSet, ob
 			}
 		case "multiple":
 			out.Values[i] = ec._Input_multiple(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
 		case "defaults":
 			out.Values[i] = ec._Input_defaults(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
 		case "options":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Input_options(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
-				return res
-			})
+			out.Values[i] = ec._Input_options(ctx, field, obj)
 		case "question":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
@@ -6820,9 +7040,6 @@ func (ec *executionContext) _Input(ctx context.Context, sel ast.SelectionSet, ob
 					}
 				}()
 				res = ec._Input_question(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
 				return res
 			})
 		default:
@@ -6895,24 +7112,19 @@ func (ec *executionContext) _LoginResponse(ctx context.Context, sel ast.Selectio
 	return out
 }
 
-var metadataPairImplementors = []string{"MetadataPair"}
+var mapImplementors = []string{"Map"}
 
-func (ec *executionContext) _MetadataPair(ctx context.Context, sel ast.SelectionSet, obj *model.MetadataPair) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, metadataPairImplementors)
+func (ec *executionContext) _Map(ctx context.Context, sel ast.SelectionSet, obj *model.Map) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, mapImplementors)
 
 	out := graphql.NewFieldSet(fields)
 	var invalids uint32
 	for i, field := range fields {
 		switch field.Name {
 		case "__typename":
-			out.Values[i] = graphql.MarshalString("MetadataPair")
-		case "key":
-			out.Values[i] = ec._MetadataPair_key(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "value":
-			out.Values[i] = ec._MetadataPair_value(ctx, field, obj)
+			out.Values[i] = graphql.MarshalString("Map")
+		case "content":
+			out.Values[i] = ec._Map_content(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -6969,6 +7181,38 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			}
 		case "generateSurveys":
 			out.Values[i] = ec._Mutation_generateSurveys(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var pairMapImplementors = []string{"PairMap"}
+
+func (ec *executionContext) _PairMap(ctx context.Context, sel ast.SelectionSet, obj *model.PairMap) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, pairMapImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("PairMap")
+		case "key":
+			out.Values[i] = ec._PairMap_key(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "value":
+			out.Values[i] = ec._PairMap_value(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -7170,18 +7414,12 @@ func (ec *executionContext) _Question(ctx context.Context, sel ast.SelectionSet,
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
-		case "anonymous":
-			out.Values[i] = ec._Question_anonymous(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
 		case "metadata":
 			out.Values[i] = ec._Question_metadata(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
 		case "validator":
 			out.Values[i] = ec._Question_validator(ctx, field, obj)
+		case "anonymous":
+			out.Values[i] = ec._Question_anonymous(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
@@ -7308,24 +7546,12 @@ func (ec *executionContext) _Survey(ctx context.Context, sel ast.SelectionSet, o
 			}
 		case "description":
 			out.Values[i] = ec._Survey_description(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
 		case "metadata":
 			out.Values[i] = ec._Survey_metadata(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
 		case "done":
 			out.Values[i] = ec._Survey_done(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
 		case "isPublic":
 			out.Values[i] = ec._Survey_isPublic(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
 		case "flow":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
@@ -7335,9 +7561,6 @@ func (ec *executionContext) _Survey(ctx context.Context, sel ast.SelectionSet, o
 					}
 				}()
 				res = ec._Survey_flow(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
 				return res
 			})
 		case "for":
@@ -7349,9 +7572,6 @@ func (ec *executionContext) _Survey(ctx context.Context, sel ast.SelectionSet, o
 					}
 				}()
 				res = ec._Survey_for(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
 				return res
 			})
 		case "owner":
@@ -7432,26 +7652,17 @@ func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
-		case "username":
-			out.Values[i] = ec._User_username(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
 		case "lastActivity":
 			out.Values[i] = ec._User_lastActivity(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
+		case "username":
+			out.Values[i] = ec._User_username(ctx, field, obj)
 		case "picture":
 			out.Values[i] = ec._User_picture(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
 		case "roles":
 			out.Values[i] = ec._User_roles(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
 		case "accounts":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
@@ -7782,6 +7993,43 @@ func (ec *executionContext) marshalNAccount2githubᚗcomᚋminskylabᚋcollecta�
 	return ec._Account(ctx, sel, &v)
 }
 
+func (ec *executionContext) marshalNAccount2ᚕᚖgithubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐAccountᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Account) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNAccount2ᚖgithubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐAccount(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
 func (ec *executionContext) marshalNAccount2ᚖgithubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐAccount(ctx context.Context, sel ast.SelectionSet, v *model.Account) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
@@ -7790,6 +8038,15 @@ func (ec *executionContext) marshalNAccount2ᚖgithubᚗcomᚋminskylabᚋcollec
 		return graphql.Null
 	}
 	return ec._Account(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNAccountType2githubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐAccountType(ctx context.Context, v interface{}) (model.AccountType, error) {
+	var res model.AccountType
+	return res, res.UnmarshalGQL(v)
+}
+
+func (ec *executionContext) marshalNAccountType2githubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐAccountType(ctx context.Context, sel ast.SelectionSet, v model.AccountType) graphql.Marshaler {
+	return v
 }
 
 func (ec *executionContext) marshalNAnswer2githubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐAnswer(ctx context.Context, sel ast.SelectionSet, v model.Answer) graphql.Marshaler {
@@ -7861,6 +8118,43 @@ func (ec *executionContext) marshalNContact2githubᚗcomᚋminskylabᚋcollecta�
 	return ec._Contact(ctx, sel, &v)
 }
 
+func (ec *executionContext) marshalNContact2ᚕᚖgithubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐContactᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Contact) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNContact2ᚖgithubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐContact(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
 func (ec *executionContext) marshalNContact2ᚖgithubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐContact(ctx context.Context, sel ast.SelectionSet, v *model.Contact) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
@@ -7869,6 +8163,15 @@ func (ec *executionContext) marshalNContact2ᚖgithubᚗcomᚋminskylabᚋcollec
 		return graphql.Null
 	}
 	return ec._Contact(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNContactKind2githubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐContactKind(ctx context.Context, v interface{}) (model.ContactKind, error) {
+	var res model.ContactKind
+	return res, res.UnmarshalGQL(v)
+}
+
+func (ec *executionContext) marshalNContactKind2githubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐContactKind(ctx context.Context, sel ast.SelectionSet, v model.ContactKind) graphql.Marshaler {
+	return v
 }
 
 func (ec *executionContext) marshalNDomain2githubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐDomain(ctx context.Context, sel ast.SelectionSet, v model.Domain) graphql.Marshaler {
@@ -7982,6 +8285,15 @@ func (ec *executionContext) marshalNInput2ᚖgithubᚗcomᚋminskylabᚋcollecta
 	return ec._Input(ctx, sel, v)
 }
 
+func (ec *executionContext) unmarshalNInputKind2githubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐInputKind(ctx context.Context, v interface{}) (model.InputKind, error) {
+	var res model.InputKind
+	return res, res.UnmarshalGQL(v)
+}
+
+func (ec *executionContext) marshalNInputKind2githubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐInputKind(ctx context.Context, sel ast.SelectionSet, v model.InputKind) graphql.Marshaler {
+	return v
+}
+
 func (ec *executionContext) unmarshalNInputType2githubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐInputType(ctx context.Context, v interface{}) (model.InputType, error) {
 	var res model.InputType
 	return res, res.UnmarshalGQL(v)
@@ -8033,80 +8345,6 @@ func (ec *executionContext) marshalNLoginResponse2ᚖgithubᚗcomᚋminskylabᚋ
 	return ec._LoginResponse(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNMap2map(ctx context.Context, v interface{}) (map[string]interface{}, error) {
-	if v == nil {
-		return nil, nil
-	}
-	return graphql.UnmarshalMap(v)
-}
-
-func (ec *executionContext) marshalNMap2map(ctx context.Context, sel ast.SelectionSet, v map[string]interface{}) graphql.Marshaler {
-	if v == nil {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := graphql.MarshalMap(v)
-	if res == graphql.Null {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "must not be null")
-		}
-	}
-	return res
-}
-
-func (ec *executionContext) marshalNMetadataPair2githubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐMetadataPair(ctx context.Context, sel ast.SelectionSet, v model.MetadataPair) graphql.Marshaler {
-	return ec._MetadataPair(ctx, sel, &v)
-}
-
-func (ec *executionContext) marshalNMetadataPair2ᚕᚖgithubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐMetadataPairᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.MetadataPair) graphql.Marshaler {
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalNMetadataPair2ᚖgithubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐMetadataPair(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
-	return ret
-}
-
-func (ec *executionContext) marshalNMetadataPair2ᚖgithubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐMetadataPair(ctx context.Context, sel ast.SelectionSet, v *model.MetadataPair) graphql.Marshaler {
-	if v == nil {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	return ec._MetadataPair(ctx, sel, v)
-}
-
 func (ec *executionContext) unmarshalNPair2githubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐPair(ctx context.Context, v interface{}) (model.Pair, error) {
 	return ec.unmarshalInputPair(ctx, v)
 }
@@ -8119,11 +8357,11 @@ func (ec *executionContext) unmarshalNPair2ᚖgithubᚗcomᚋminskylabᚋcollect
 	return &res, err
 }
 
-func (ec *executionContext) marshalNQuestion2githubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐQuestion(ctx context.Context, sel ast.SelectionSet, v model.Question) graphql.Marshaler {
-	return ec._Question(ctx, sel, &v)
+func (ec *executionContext) marshalNPairMap2githubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐPairMap(ctx context.Context, sel ast.SelectionSet, v model.PairMap) graphql.Marshaler {
+	return ec._PairMap(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNQuestion2ᚕᚖgithubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐQuestionᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Question) graphql.Marshaler {
+func (ec *executionContext) marshalNPairMap2ᚕᚖgithubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐPairMapᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.PairMap) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -8147,7 +8385,58 @@ func (ec *executionContext) marshalNQuestion2ᚕᚖgithubᚗcomᚋminskylabᚋco
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNQuestion2ᚖgithubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐQuestion(ctx, sel, v[i])
+			ret[i] = ec.marshalNPairMap2ᚖgithubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐPairMap(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
+func (ec *executionContext) marshalNPairMap2ᚖgithubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐPairMap(ctx context.Context, sel ast.SelectionSet, v *model.PairMap) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._PairMap(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNQuestion2githubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐQuestion(ctx context.Context, sel ast.SelectionSet, v model.Question) graphql.Marshaler {
+	return ec._Question(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNQuestion2ᚕᚖgithubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐQuestion(ctx context.Context, sel ast.SelectionSet, v []*model.Question) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalOQuestion2ᚖgithubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐQuestion(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -8240,35 +8529,6 @@ func (ec *executionContext) marshalNString2ᚕstringᚄ(ctx context.Context, sel
 	ret := make(graphql.Array, len(v))
 	for i := range v {
 		ret[i] = ec.marshalNString2string(ctx, sel, v[i])
-	}
-
-	return ret
-}
-
-func (ec *executionContext) unmarshalNString2ᚕᚖstring(ctx context.Context, v interface{}) ([]*string, error) {
-	var vSlice []interface{}
-	if v != nil {
-		if tmp1, ok := v.([]interface{}); ok {
-			vSlice = tmp1
-		} else {
-			vSlice = []interface{}{v}
-		}
-	}
-	var err error
-	res := make([]*string, len(vSlice))
-	for i := range vSlice {
-		res[i], err = ec.unmarshalOString2ᚖstring(ctx, vSlice[i])
-		if err != nil {
-			return nil, err
-		}
-	}
-	return res, nil
-}
-
-func (ec *executionContext) marshalNString2ᚕᚖstring(ctx context.Context, sel ast.SelectionSet, v []*string) graphql.Marshaler {
-	ret := make(graphql.Array, len(v))
-	for i := range v {
-		ret[i] = ec.marshalOString2ᚖstring(ctx, sel, v[i])
 	}
 
 	return ret
@@ -8682,6 +8942,17 @@ func (ec *executionContext) marshalOBoolean2ᚖbool(ctx context.Context, sel ast
 	return ec.marshalOBoolean2bool(ctx, sel, *v)
 }
 
+func (ec *executionContext) marshalOFlow2githubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐFlow(ctx context.Context, sel ast.SelectionSet, v model.Flow) graphql.Marshaler {
+	return ec._Flow(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalOFlow2ᚖgithubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐFlow(ctx context.Context, sel ast.SelectionSet, v *model.Flow) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._Flow(ctx, sel, v)
+}
+
 func (ec *executionContext) unmarshalOID2string(ctx context.Context, v interface{}) (string, error) {
 	return graphql.UnmarshalID(v)
 }
@@ -8737,6 +9008,17 @@ func (ec *executionContext) marshalOID2ᚖstring(ctx context.Context, sel ast.Se
 	return ec.marshalOID2string(ctx, sel, *v)
 }
 
+func (ec *executionContext) marshalOMap2githubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐMap(ctx context.Context, sel ast.SelectionSet, v model.Map) graphql.Marshaler {
+	return ec._Map(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalOMap2ᚖgithubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐMap(ctx context.Context, sel ast.SelectionSet, v *model.Map) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._Map(ctx, sel, v)
+}
+
 func (ec *executionContext) unmarshalOPair2ᚕᚖgithubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐPairᚄ(ctx context.Context, v interface{}) ([]*model.Pair, error) {
 	var vSlice []interface{}
 	if v != nil {
@@ -8755,6 +9037,17 @@ func (ec *executionContext) unmarshalOPair2ᚕᚖgithubᚗcomᚋminskylabᚋcoll
 		}
 	}
 	return res, nil
+}
+
+func (ec *executionContext) marshalOQuestion2githubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐQuestion(ctx context.Context, sel ast.SelectionSet, v model.Question) graphql.Marshaler {
+	return ec._Question(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalOQuestion2ᚖgithubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐQuestion(ctx context.Context, sel ast.SelectionSet, v *model.Question) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._Question(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalOString2string(ctx context.Context, v interface{}) (string, error) {
@@ -8833,6 +9126,17 @@ func (ec *executionContext) marshalOTime2ᚖtimeᚐTime(ctx context.Context, sel
 		return graphql.Null
 	}
 	return ec.marshalOTime2timeᚐTime(ctx, sel, *v)
+}
+
+func (ec *executionContext) marshalOUser2githubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐUser(ctx context.Context, sel ast.SelectionSet, v model.User) graphql.Marshaler {
+	return ec._User(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalOUser2ᚖgithubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐUser(ctx context.Context, sel ast.SelectionSet, v *model.User) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._User(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalO__EnumValue2ᚕgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐEnumValueᚄ(ctx context.Context, sel ast.SelectionSet, v []introspection.EnumValue) graphql.Marshaler {

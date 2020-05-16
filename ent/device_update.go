@@ -15,12 +15,19 @@ import (
 // DeviceUpdate is the builder for updating Device entities.
 type DeviceUpdate struct {
 	config
+	device     *string
 	predicates []predicate.Device
 }
 
 // Where adds a new predicate for the builder.
 func (du *DeviceUpdate) Where(ps ...predicate.Device) *DeviceUpdate {
 	du.predicates = append(du.predicates, ps...)
+	return du
+}
+
+// SetDevice sets the device field.
+func (du *DeviceUpdate) SetDevice(s string) *DeviceUpdate {
+	du.device = &s
 	return du
 }
 
@@ -69,6 +76,13 @@ func (du *DeviceUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 		}
 	}
+	if value := du.device; value != nil {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: device.FieldDevice,
+		})
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, du.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{device.Label}
@@ -83,7 +97,14 @@ func (du *DeviceUpdate) sqlSave(ctx context.Context) (n int, err error) {
 // DeviceUpdateOne is the builder for updating a single Device entity.
 type DeviceUpdateOne struct {
 	config
-	id int
+	id     int
+	device *string
+}
+
+// SetDevice sets the device field.
+func (duo *DeviceUpdateOne) SetDevice(s string) *DeviceUpdateOne {
+	duo.device = &s
+	return duo
 }
 
 // Save executes the query and returns the updated entity.
@@ -124,6 +145,13 @@ func (duo *DeviceUpdateOne) sqlSave(ctx context.Context) (d *Device, err error) 
 				Column: device.FieldID,
 			},
 		},
+	}
+	if value := duo.device; value != nil {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: device.FieldDevice,
+		})
 	}
 	d = &Device{config: duo.config}
 	_spec.Assign = d.assignValues

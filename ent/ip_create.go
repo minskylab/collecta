@@ -4,6 +4,7 @@ package ent
 
 import (
 	"context"
+	"errors"
 
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
 	"github.com/facebookincubator/ent/schema/field"
@@ -13,10 +14,20 @@ import (
 // IPCreate is the builder for creating a IP entity.
 type IPCreate struct {
 	config
+	ip *string
+}
+
+// SetIP sets the ip field.
+func (ic *IPCreate) SetIP(s string) *IPCreate {
+	ic.ip = &s
+	return ic
 }
 
 // Save creates the IP in the database.
 func (ic *IPCreate) Save(ctx context.Context) (*IP, error) {
+	if ic.ip == nil {
+		return nil, errors.New("ent: missing required field \"ip\"")
+	}
 	return ic.sqlSave(ctx)
 }
 
@@ -40,6 +51,14 @@ func (ic *IPCreate) sqlSave(ctx context.Context) (*IP, error) {
 			},
 		}
 	)
+	if value := ic.ip; value != nil {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: ip.FieldIP,
+		})
+		i.IP = *value
+	}
 	if err := sqlgraph.CreateNode(ctx, ic.driver, _spec); err != nil {
 		if cerr, ok := isSQLConstraintError(err); ok {
 			err = cerr

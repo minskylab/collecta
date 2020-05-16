@@ -19,8 +19,8 @@ func (Domain) Fields() []ent.Field {
 		field.String("name").NotEmpty(),
 		field.String("email").NotEmpty().Unique(),
 		field.String("domain").Unique(),
-		field.String("collectaDomain").Unique(),
-		field.String("collectaClientCallback").Unique(),
+		field.String("collectaDomain"),
+		field.String("collectaClientCallback"),
 		field.Strings("tags"),
 	}
 }
@@ -29,7 +29,7 @@ func (Domain) Fields() []ent.Field {
 func (Domain) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.To("surveys", Survey.Type),
-		edge.To("users", User.Type),
-		edge.To("admins", User.Type),
+		edge.To("users", Person.Type),
+		edge.To("admins", Person.Type),
 	}
 }

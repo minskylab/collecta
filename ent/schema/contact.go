@@ -28,6 +28,6 @@ func (Contact) Fields() []ent.Field {
 // Edges of the Contact.
 func (Contact) Edges() []ent.Edge {
 	return []ent.Edge{
-		edge.From("owner", User.Type).Ref("contacts").Unique().Required(),
+		edge.From("owner", Person.Type).Ref("contacts").Unique().Required(),
 	}
 }

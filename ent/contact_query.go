@@ -14,7 +14,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/minskylab/collecta/ent/contact"
 	"github.com/minskylab/collecta/ent/predicate"
-	"github.com/minskylab/collecta/ent/user"
 )
 
 // ContactQuery is the builder for querying Contact entities.
@@ -26,7 +25,7 @@ type ContactQuery struct {
 	unique     []string
 	predicates []predicate.Contact
 	// eager-loading edges.
-	withOwner *UserQuery
+	withOwner *PersonQuery
 	withFKs   bool
 	// intermediate query.
 	sql *sql.Selector
@@ -57,11 +56,11 @@ func (cq *ContactQuery) Order(o ...Order) *ContactQuery {
 }
 
 // QueryOwner chains the current query on the owner edge.
-func (cq *ContactQuery) QueryOwner() *UserQuery {
-	query := &UserQuery{config: cq.config}
+func (cq *ContactQuery) QueryOwner() *PersonQuery {
+	query := &PersonQuery{config: cq.config}
 	step := sqlgraph.NewStep(
 		sqlgraph.From(contact.Table, contact.FieldID, cq.sqlQuery()),
-		sqlgraph.To(user.Table, user.FieldID),
+		sqlgraph.To(person.Table, person.FieldID),
 		sqlgraph.Edge(sqlgraph.M2O, true, contact.OwnerTable, contact.OwnerColumn),
 	)
 	query.sql = sqlgraph.SetNeighbors(cq.driver.Dialect(), step)
@@ -239,8 +238,8 @@ func (cq *ContactQuery) Clone() *ContactQuery {
 
 //  WithOwner tells the query-builder to eager-loads the nodes that are connected to
 // the "owner" edge. The optional arguments used to configure the query builder of the edge.
-func (cq *ContactQuery) WithOwner(opts ...func(*UserQuery)) *ContactQuery {
-	query := &UserQuery{config: cq.config}
+func (cq *ContactQuery) WithOwner(opts ...func(*PersonQuery)) *ContactQuery {
+	query := &PersonQuery{config: cq.config}
 	for _, opt := range opts {
 		opt(query)
 	}
@@ -332,12 +331,12 @@ func (cq *ContactQuery) sqlAll(ctx context.Context) ([]*Contact, error) {
 		ids := make([]uuid.UUID, 0, len(nodes))
 		nodeids := make(map[uuid.UUID][]*Contact)
 		for i := range nodes {
-			if fk := nodes[i].user_contacts; fk != nil {
+			if fk := nodes[i].person_contacts; fk != nil {
 				ids = append(ids, *fk)
 				nodeids[*fk] = append(nodeids[*fk], nodes[i])
 			}
 		}
-		query.Where(user.IDIn(ids...))
+		query.Where(person.IDIn(ids...))
 		neighbors, err := query.All(ctx)
 		if err != nil {
 			return nil, err
@@ -345,7 +344,7 @@ func (cq *ContactQuery) sqlAll(ctx context.Context) ([]*Contact, error) {
 		for _, n := range neighbors {
 			nodes, ok := nodeids[n.ID]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "user_contacts" returned %v`, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "person_contacts" returned %v`, n.ID)
 			}
 			for i := range nodes {
 				nodes[i].Edges.Owner = n

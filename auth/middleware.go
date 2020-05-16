@@ -39,8 +39,8 @@ func (collectaAuth *Auth) Middleware() gin.HandlerFunc {
 }
 
 // UserOfContext finds the user from the context. REQUIRES Middleware to have run.
-func (collectaAuth *Auth) UserOfContext(ctx context.Context) *ent.User {
-	raw, isOk := ctx.Value(userCtxKey).(*ent.User)
+func (collectaAuth *Auth) UserOfContext(ctx context.Context) *ent.Person {
+	raw, isOk := ctx.Value(userCtxKey).(*ent.Person)
 	if !isOk {
 		return nil
 	}

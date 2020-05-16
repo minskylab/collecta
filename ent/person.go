@@ -10,11 +10,11 @@ import (
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/google/uuid"
-	"github.com/minskylab/collecta/ent/user"
+	"github.com/minskylab/collecta/ent/person"
 )
 
-// User is the model entity for the User schema.
-type User struct {
+// Person is the model entity for the Person schema.
+type Person struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID uuid.UUID `json:"id,omitempty"`
@@ -29,12 +29,12 @@ type User struct {
 	// Roles holds the value of the "roles" field.
 	Roles []string `json:"roles,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
-	// The values are being populated by the UserQuery when eager-loading is set.
-	Edges UserEdges `json:"edges"`
+	// The values are being populated by the PersonQuery when eager-loading is set.
+	Edges PersonEdges `json:"edges"`
 }
 
-// UserEdges holds the relations/edges for other nodes in the graph.
-type UserEdges struct {
+// PersonEdges holds the relations/edges for other nodes in the graph.
+type PersonEdges struct {
 	// Accounts holds the value of the accounts edge.
 	Accounts []*Account
 	// Contacts holds the value of the contacts edge.
@@ -52,7 +52,7 @@ type UserEdges struct {
 
 // AccountsOrErr returns the Accounts value or an error if the edge
 // was not loaded in eager-loading.
-func (e UserEdges) AccountsOrErr() ([]*Account, error) {
+func (e PersonEdges) AccountsOrErr() ([]*Account, error) {
 	if e.loadedTypes[0] {
 		return e.Accounts, nil
 	}
@@ -61,7 +61,7 @@ func (e UserEdges) AccountsOrErr() ([]*Account, error) {
 
 // ContactsOrErr returns the Contacts value or an error if the edge
 // was not loaded in eager-loading.
-func (e UserEdges) ContactsOrErr() ([]*Contact, error) {
+func (e PersonEdges) ContactsOrErr() ([]*Contact, error) {
 	if e.loadedTypes[1] {
 		return e.Contacts, nil
 	}
@@ -70,7 +70,7 @@ func (e UserEdges) ContactsOrErr() ([]*Contact, error) {
 
 // SurveysOrErr returns the Surveys value or an error if the edge
 // was not loaded in eager-loading.
-func (e UserEdges) SurveysOrErr() ([]*Survey, error) {
+func (e PersonEdges) SurveysOrErr() ([]*Survey, error) {
 	if e.loadedTypes[2] {
 		return e.Surveys, nil
 	}
@@ -79,7 +79,7 @@ func (e UserEdges) SurveysOrErr() ([]*Survey, error) {
 
 // DomainsOrErr returns the Domains value or an error if the edge
 // was not loaded in eager-loading.
-func (e UserEdges) DomainsOrErr() ([]*Domain, error) {
+func (e PersonEdges) DomainsOrErr() ([]*Domain, error) {
 	if e.loadedTypes[3] {
 		return e.Domains, nil
 	}
@@ -88,7 +88,7 @@ func (e UserEdges) DomainsOrErr() ([]*Domain, error) {
 
 // AdminOfOrErr returns the AdminOf value or an error if the edge
 // was not loaded in eager-loading.
-func (e UserEdges) AdminOfOrErr() ([]*Domain, error) {
+func (e PersonEdges) AdminOfOrErr() ([]*Domain, error) {
 	if e.loadedTypes[4] {
 		return e.AdminOf, nil
 	}
@@ -96,7 +96,7 @@ func (e UserEdges) AdminOfOrErr() ([]*Domain, error) {
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
-func (*User) scanValues() []interface{} {
+func (*Person) scanValues() []interface{} {
 	return []interface{}{
 		&uuid.UUID{},      // id
 		&sql.NullString{}, // name
@@ -108,115 +108,115 @@ func (*User) scanValues() []interface{} {
 }
 
 // assignValues assigns the values that were returned from sql.Rows (after scanning)
-// to the User fields.
-func (u *User) assignValues(values ...interface{}) error {
-	if m, n := len(values), len(user.Columns); m < n {
+// to the Person fields.
+func (pe *Person) assignValues(values ...interface{}) error {
+	if m, n := len(values), len(person.Columns); m < n {
 		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
 	if value, ok := values[0].(*uuid.UUID); !ok {
 		return fmt.Errorf("unexpected type %T for field id", values[0])
 	} else if value != nil {
-		u.ID = *value
+		pe.ID = *value
 	}
 	values = values[1:]
 	if value, ok := values[0].(*sql.NullString); !ok {
 		return fmt.Errorf("unexpected type %T for field name", values[0])
 	} else if value.Valid {
-		u.Name = value.String
+		pe.Name = value.String
 	}
 	if value, ok := values[1].(*sql.NullTime); !ok {
 		return fmt.Errorf("unexpected type %T for field lastActivity", values[1])
 	} else if value.Valid {
-		u.LastActivity = value.Time
+		pe.LastActivity = value.Time
 	}
 	if value, ok := values[2].(*sql.NullString); !ok {
 		return fmt.Errorf("unexpected type %T for field username", values[2])
 	} else if value.Valid {
-		u.Username = value.String
+		pe.Username = value.String
 	}
 	if value, ok := values[3].(*sql.NullString); !ok {
 		return fmt.Errorf("unexpected type %T for field picture", values[3])
 	} else if value.Valid {
-		u.Picture = value.String
+		pe.Picture = value.String
 	}
 
 	if value, ok := values[4].(*[]byte); !ok {
 		return fmt.Errorf("unexpected type %T for field roles", values[4])
 	} else if value != nil && len(*value) > 0 {
-		if err := json.Unmarshal(*value, &u.Roles); err != nil {
+		if err := json.Unmarshal(*value, &pe.Roles); err != nil {
 			return fmt.Errorf("unmarshal field roles: %v", err)
 		}
 	}
 	return nil
 }
 
-// QueryAccounts queries the accounts edge of the User.
-func (u *User) QueryAccounts() *AccountQuery {
-	return (&UserClient{config: u.config}).QueryAccounts(u)
+// QueryAccounts queries the accounts edge of the Person.
+func (pe *Person) QueryAccounts() *AccountQuery {
+	return (&PersonClient{config: pe.config}).QueryAccounts(pe)
 }
 
-// QueryContacts queries the contacts edge of the User.
-func (u *User) QueryContacts() *ContactQuery {
-	return (&UserClient{config: u.config}).QueryContacts(u)
+// QueryContacts queries the contacts edge of the Person.
+func (pe *Person) QueryContacts() *ContactQuery {
+	return (&PersonClient{config: pe.config}).QueryContacts(pe)
 }
 
-// QuerySurveys queries the surveys edge of the User.
-func (u *User) QuerySurveys() *SurveyQuery {
-	return (&UserClient{config: u.config}).QuerySurveys(u)
+// QuerySurveys queries the surveys edge of the Person.
+func (pe *Person) QuerySurveys() *SurveyQuery {
+	return (&PersonClient{config: pe.config}).QuerySurveys(pe)
 }
 
-// QueryDomains queries the domains edge of the User.
-func (u *User) QueryDomains() *DomainQuery {
-	return (&UserClient{config: u.config}).QueryDomains(u)
+// QueryDomains queries the domains edge of the Person.
+func (pe *Person) QueryDomains() *DomainQuery {
+	return (&PersonClient{config: pe.config}).QueryDomains(pe)
 }
 
-// QueryAdminOf queries the adminOf edge of the User.
-func (u *User) QueryAdminOf() *DomainQuery {
-	return (&UserClient{config: u.config}).QueryAdminOf(u)
+// QueryAdminOf queries the adminOf edge of the Person.
+func (pe *Person) QueryAdminOf() *DomainQuery {
+	return (&PersonClient{config: pe.config}).QueryAdminOf(pe)
 }
 
-// Update returns a builder for updating this User.
-// Note that, you need to call User.Unwrap() before calling this method, if this User
+// Update returns a builder for updating this Person.
+// Note that, you need to call Person.Unwrap() before calling this method, if this Person
 // was returned from a transaction, and the transaction was committed or rolled back.
-func (u *User) Update() *UserUpdateOne {
-	return (&UserClient{config: u.config}).UpdateOne(u)
+func (pe *Person) Update() *PersonUpdateOne {
+	return (&PersonClient{config: pe.config}).UpdateOne(pe)
 }
 
 // Unwrap unwraps the entity that was returned from a transaction after it was closed,
 // so that all next queries will be executed through the driver which created the transaction.
-func (u *User) Unwrap() *User {
-	tx, ok := u.config.driver.(*txDriver)
+func (pe *Person) Unwrap() *Person {
+	tx, ok := pe.config.driver.(*txDriver)
 	if !ok {
-		panic("ent: User is not a transactional entity")
+		panic("ent: Person is not a transactional entity")
 	}
-	u.config.driver = tx.drv
-	return u
+	pe.config.driver = tx.drv
+	return pe
 }
 
 // String implements the fmt.Stringer.
-func (u *User) String() string {
+func (pe *Person) String() string {
 	var builder strings.Builder
-	builder.WriteString("User(")
-	builder.WriteString(fmt.Sprintf("id=%v", u.ID))
+	builder.WriteString("Person(")
+	builder.WriteString(fmt.Sprintf("id=%v", pe.ID))
 	builder.WriteString(", name=")
-	builder.WriteString(u.Name)
+	builder.WriteString(pe.Name)
 	builder.WriteString(", lastActivity=")
-	builder.WriteString(u.LastActivity.Format(time.ANSIC))
+	builder.WriteString(pe.LastActivity.Format(time.ANSIC))
 	builder.WriteString(", username=")
-	builder.WriteString(u.Username)
+	builder.WriteString(pe.Username)
 	builder.WriteString(", picture=")
-	builder.WriteString(u.Picture)
+	builder.WriteString(pe.Picture)
 	builder.WriteString(", roles=")
-	builder.WriteString(fmt.Sprintf("%v", u.Roles))
+	builder.WriteString(fmt.Sprintf("%v", pe.Roles))
 	builder.WriteByte(')')
 	return builder.String()
 }
 
-// Users is a parsable slice of User.
-type Users []*User
+// Persons is a parsable slice of Person.
+type Persons []*Person
 
-func (u Users) config(cfg config) {
-	for _i := range u {
-		u[_i].config = cfg
+func (pe Persons) config(cfg config) {
+	for _i := range pe {
+		pe[_i].config = cfg
 	}
 }

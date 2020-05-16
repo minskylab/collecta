@@ -15,12 +15,19 @@ import (
 // IPUpdate is the builder for updating IP entities.
 type IPUpdate struct {
 	config
+	ip         *string
 	predicates []predicate.IP
 }
 
 // Where adds a new predicate for the builder.
 func (iu *IPUpdate) Where(ps ...predicate.IP) *IPUpdate {
 	iu.predicates = append(iu.predicates, ps...)
+	return iu
+}
+
+// SetIP sets the ip field.
+func (iu *IPUpdate) SetIP(s string) *IPUpdate {
+	iu.ip = &s
 	return iu
 }
 
@@ -69,6 +76,13 @@ func (iu *IPUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 		}
 	}
+	if value := iu.ip; value != nil {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: ip.FieldIP,
+		})
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, iu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{ip.Label}
@@ -84,6 +98,13 @@ func (iu *IPUpdate) sqlSave(ctx context.Context) (n int, err error) {
 type IPUpdateOne struct {
 	config
 	id int
+	ip *string
+}
+
+// SetIP sets the ip field.
+func (iuo *IPUpdateOne) SetIP(s string) *IPUpdateOne {
+	iuo.ip = &s
+	return iuo
 }
 
 // Save executes the query and returns the updated entity.
@@ -124,6 +145,13 @@ func (iuo *IPUpdateOne) sqlSave(ctx context.Context) (i *IP, err error) {
 				Column: ip.FieldID,
 			},
 		},
+	}
+	if value := iuo.ip; value != nil {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: ip.FieldIP,
+		})
 	}
 	i = &IP{config: iuo.config}
 	_spec.Assign = i.assignValues

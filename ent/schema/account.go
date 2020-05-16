@@ -26,6 +26,6 @@ func (Account) Fields() []ent.Field {
 // Edges of the Account.
 func (Account) Edges() []ent.Edge {
 	return []ent.Edge{
-		edge.From("owner", User.Type).Ref("accounts").Unique(),
+		edge.From("owner", Person.Type).Ref("accounts").Unique(),
 	}
 }

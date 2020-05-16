@@ -16,7 +16,6 @@ import (
 	"github.com/minskylab/collecta/ent/flow"
 	"github.com/minskylab/collecta/ent/predicate"
 	"github.com/minskylab/collecta/ent/question"
-	"github.com/minskylab/collecta/ent/survey"
 )
 
 // FlowQuery is the builder for querying Flow entities.

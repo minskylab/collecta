@@ -521,7 +521,7 @@ func HasOwner() predicate.Account {
 }
 
 // HasOwnerWith applies the HasEdge predicate on the "owner" edge with a given conditions (other predicates).
-func HasOwnerWith(preds ...predicate.User) predicate.Account {
+func HasOwnerWith(preds ...predicate.Person) predicate.Account {
 	return predicate.Account(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),

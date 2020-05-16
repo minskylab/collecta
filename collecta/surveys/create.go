@@ -220,3 +220,4 @@ func createSurveysFromAPI(ctx context.Context, db *db.DB, domainID uuid.UUID, dr
 func GenerateSurveys(ctx context.Context, db *db.DB, domainID uuid.UUID, draft model.SurveyGenerator) ([]*ent.Survey, error) {
 	return createSurveysFromAPI(ctx, db, domainID, draft)
 }
+

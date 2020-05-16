@@ -14,7 +14,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/minskylab/collecta/ent/input"
 	"github.com/minskylab/collecta/ent/predicate"
-	"github.com/minskylab/collecta/ent/question"
 )
 
 // InputQuery is the builder for querying Input entities.

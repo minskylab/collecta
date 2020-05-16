@@ -11,7 +11,7 @@ import (
 	"github.com/facebookincubator/ent/schema/field"
 	"github.com/google/uuid"
 	"github.com/minskylab/collecta/ent/contact"
-	"github.com/minskylab/collecta/ent/user"
+	"github.com/minskylab/collecta/ent/person"
 )
 
 // ContactCreate is the builder for creating a Contact entity.
@@ -85,7 +85,7 @@ func (cc *ContactCreate) SetID(u uuid.UUID) *ContactCreate {
 	return cc
 }
 
-// SetOwnerID sets the owner edge to User by id.
+// SetOwnerID sets the owner edge to Person by id.
 func (cc *ContactCreate) SetOwnerID(id uuid.UUID) *ContactCreate {
 	if cc.owner == nil {
 		cc.owner = make(map[uuid.UUID]struct{})
@@ -94,9 +94,9 @@ func (cc *ContactCreate) SetOwnerID(id uuid.UUID) *ContactCreate {
 	return cc
 }
 
-// SetOwner sets the owner edge to User.
-func (cc *ContactCreate) SetOwner(u *User) *ContactCreate {
-	return cc.SetOwnerID(u.ID)
+// SetOwner sets the owner edge to Person.
+func (cc *ContactCreate) SetOwner(p *Person) *ContactCreate {
+	return cc.SetOwnerID(p.ID)
 }
 
 // Save creates the Contact in the database.
@@ -218,7 +218,7 @@ func (cc *ContactCreate) sqlSave(ctx context.Context) (*Contact, error) {
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
-					Column: user.FieldID,
+					Column: person.FieldID,
 				},
 			},
 		}

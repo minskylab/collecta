@@ -35,14 +35,14 @@ const (
 	SurveysColumn = "domain_surveys"
 	// UsersTable is the table the holds the users relation/edge. The primary key declared below.
 	UsersTable = "domain_users"
-	// UsersInverseTable is the table name for the User entity.
-	// It exists in this package in order to avoid circular dependency with the "user" package.
-	UsersInverseTable = "users"
+	// UsersInverseTable is the table name for the Person entity.
+	// It exists in this package in order to avoid circular dependency with the "person" package.
+	UsersInverseTable = "persons"
 	// AdminsTable is the table the holds the admins relation/edge. The primary key declared below.
 	AdminsTable = "domain_admins"
-	// AdminsInverseTable is the table name for the User entity.
-	// It exists in this package in order to avoid circular dependency with the "user" package.
-	AdminsInverseTable = "users"
+	// AdminsInverseTable is the table name for the Person entity.
+	// It exists in this package in order to avoid circular dependency with the "person" package.
+	AdminsInverseTable = "persons"
 )
 
 // Columns holds all SQL columns for domain fields.
@@ -59,10 +59,10 @@ var Columns = []string{
 var (
 	// UsersPrimaryKey and UsersColumn2 are the table columns denoting the
 	// primary key for the users relation (M2M).
-	UsersPrimaryKey = []string{"domain_id", "user_id"}
+	UsersPrimaryKey = []string{"domain_id", "person_id"}
 	// AdminsPrimaryKey and AdminsColumn2 are the table columns denoting the
 	// primary key for the admins relation (M2M).
-	AdminsPrimaryKey = []string{"domain_id", "user_id"}
+	AdminsPrimaryKey = []string{"domain_id", "person_id"}
 )
 
 var (

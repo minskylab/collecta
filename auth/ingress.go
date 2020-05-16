@@ -5,15 +5,15 @@ import (
 	"github.com/markbates/goth"
 	"github.com/minskylab/collecta/ent"
 	"github.com/minskylab/collecta/ent/account"
-	"github.com/minskylab/collecta/ent/user"
+	"github.com/minskylab/collecta/ent/person"
 	"github.com/pkg/errors"
 	"golang.org/x/net/context"
 )
 
 func (collectaAuth *Auth) ingressWithGoogle(ctx context.Context, rawUser goth.User) (string, error) {
 	spew.Dump(rawUser)
-	googleUserExist, err := collectaAuth.db.Ent.User.Query().
-		Where(user.HasAccountsWith(
+	googleUserExist, err := collectaAuth.db.Ent.Person.Query().
+		Where(person.HasAccountsWith(
 			account.And(
 				account.Sub(rawUser.Email),
 				account.RemoteID(rawUser.UserID),
@@ -25,7 +25,7 @@ func (collectaAuth *Auth) ingressWithGoogle(ctx context.Context, rawUser goth.Us
 		return "", errors.Wrap(err, "error at try to verify the user existance")
 	}
 
-	var googleUser *ent.User
+	var googleUser *ent.Person
 
 	if !googleUserExist {
 		googleUser, err = collectaAuth.registerNewUserFromGoogle(ctx, rawUser)
@@ -33,8 +33,8 @@ func (collectaAuth *Auth) ingressWithGoogle(ctx context.Context, rawUser goth.Us
 			return "", errors.Wrap(err, "error at try to register new google user")
 		}
 	} else {
-		googleUser, err = collectaAuth.db.Ent.User.Query().
-			Where(user.HasAccountsWith(
+		googleUser, err = collectaAuth.db.Ent.Person.Query().
+			Where(person.HasAccountsWith(
 				account.And(
 					account.Sub(rawUser.Email),
 					account.RemoteID(rawUser.UserID),

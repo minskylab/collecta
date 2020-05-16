@@ -222,6 +222,19 @@ func (dq *DeviceQuery) Clone() *DeviceQuery {
 
 // GroupBy used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
+//
+// Example:
+//
+//	var v []struct {
+//		Device string `json:"device,omitempty"`
+//		Count int `json:"count,omitempty"`
+//	}
+//
+//	client.Device.Query().
+//		GroupBy(device.FieldDevice).
+//		Aggregate(ent.Count()).
+//		Scan(ctx, &v)
+//
 func (dq *DeviceQuery) GroupBy(field string, fields ...string) *DeviceGroupBy {
 	group := &DeviceGroupBy{config: dq.config}
 	group.fields = append([]string{field}, fields...)
@@ -230,6 +243,17 @@ func (dq *DeviceQuery) GroupBy(field string, fields ...string) *DeviceGroupBy {
 }
 
 // Select one or more fields from the given query.
+//
+// Example:
+//
+//	var v []struct {
+//		Device string `json:"device,omitempty"`
+//	}
+//
+//	client.Device.Query().
+//		Select(device.FieldDevice).
+//		Scan(ctx, &v)
+//
 func (dq *DeviceQuery) Select(field string, fields ...string) *DeviceSelect {
 	selector := &DeviceSelect{config: dq.config}
 	selector.fields = append([]string{field}, fields...)

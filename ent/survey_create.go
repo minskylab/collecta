@@ -13,8 +13,8 @@ import (
 	"github.com/google/uuid"
 	"github.com/minskylab/collecta/ent/domain"
 	"github.com/minskylab/collecta/ent/flow"
+	"github.com/minskylab/collecta/ent/person"
 	"github.com/minskylab/collecta/ent/survey"
-	"github.com/minskylab/collecta/ent/user"
 )
 
 // SurveyCreate is the builder for creating a Survey entity.
@@ -134,7 +134,7 @@ func (sc *SurveyCreate) SetFlow(f *Flow) *SurveyCreate {
 	return sc.SetFlowID(f.ID)
 }
 
-// SetForID sets the for edge to User by id.
+// SetForID sets the for edge to Person by id.
 func (sc *SurveyCreate) SetForID(id uuid.UUID) *SurveyCreate {
 	if sc._for == nil {
 		sc._for = make(map[uuid.UUID]struct{})
@@ -143,9 +143,9 @@ func (sc *SurveyCreate) SetForID(id uuid.UUID) *SurveyCreate {
 	return sc
 }
 
-// SetFor sets the for edge to User.
-func (sc *SurveyCreate) SetFor(u *User) *SurveyCreate {
-	return sc.SetForID(u.ID)
+// SetFor sets the for edge to Person.
+func (sc *SurveyCreate) SetFor(p *Person) *SurveyCreate {
+	return sc.SetForID(p.ID)
 }
 
 // SetOwnerID sets the owner edge to Domain by id.
@@ -331,7 +331,7 @@ func (sc *SurveyCreate) sqlSave(ctx context.Context) (*Survey, error) {
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
-					Column: user.FieldID,
+					Column: person.FieldID,
 				},
 			},
 		}

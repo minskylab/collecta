@@ -14,12 +14,12 @@ import (
 	"github.com/minskylab/collecta/ent/account"
 	"github.com/minskylab/collecta/ent/contact"
 	"github.com/minskylab/collecta/ent/domain"
+	"github.com/minskylab/collecta/ent/person"
 	"github.com/minskylab/collecta/ent/survey"
-	"github.com/minskylab/collecta/ent/user"
 )
 
-// UserCreate is the builder for creating a User entity.
-type UserCreate struct {
+// PersonCreate is the builder for creating a Person entity.
+type PersonCreate struct {
 	config
 	id           *uuid.UUID
 	name         *string
@@ -35,250 +35,250 @@ type UserCreate struct {
 }
 
 // SetName sets the name field.
-func (uc *UserCreate) SetName(s string) *UserCreate {
-	uc.name = &s
-	return uc
+func (pc *PersonCreate) SetName(s string) *PersonCreate {
+	pc.name = &s
+	return pc
 }
 
 // SetLastActivity sets the lastActivity field.
-func (uc *UserCreate) SetLastActivity(t time.Time) *UserCreate {
-	uc.lastActivity = &t
-	return uc
+func (pc *PersonCreate) SetLastActivity(t time.Time) *PersonCreate {
+	pc.lastActivity = &t
+	return pc
 }
 
 // SetNillableLastActivity sets the lastActivity field if the given value is not nil.
-func (uc *UserCreate) SetNillableLastActivity(t *time.Time) *UserCreate {
+func (pc *PersonCreate) SetNillableLastActivity(t *time.Time) *PersonCreate {
 	if t != nil {
-		uc.SetLastActivity(*t)
+		pc.SetLastActivity(*t)
 	}
-	return uc
+	return pc
 }
 
 // SetUsername sets the username field.
-func (uc *UserCreate) SetUsername(s string) *UserCreate {
-	uc.username = &s
-	return uc
+func (pc *PersonCreate) SetUsername(s string) *PersonCreate {
+	pc.username = &s
+	return pc
 }
 
 // SetNillableUsername sets the username field if the given value is not nil.
-func (uc *UserCreate) SetNillableUsername(s *string) *UserCreate {
+func (pc *PersonCreate) SetNillableUsername(s *string) *PersonCreate {
 	if s != nil {
-		uc.SetUsername(*s)
+		pc.SetUsername(*s)
 	}
-	return uc
+	return pc
 }
 
 // SetPicture sets the picture field.
-func (uc *UserCreate) SetPicture(s string) *UserCreate {
-	uc.picture = &s
-	return uc
+func (pc *PersonCreate) SetPicture(s string) *PersonCreate {
+	pc.picture = &s
+	return pc
 }
 
 // SetNillablePicture sets the picture field if the given value is not nil.
-func (uc *UserCreate) SetNillablePicture(s *string) *UserCreate {
+func (pc *PersonCreate) SetNillablePicture(s *string) *PersonCreate {
 	if s != nil {
-		uc.SetPicture(*s)
+		pc.SetPicture(*s)
 	}
-	return uc
+	return pc
 }
 
 // SetRoles sets the roles field.
-func (uc *UserCreate) SetRoles(s []string) *UserCreate {
-	uc.roles = &s
-	return uc
+func (pc *PersonCreate) SetRoles(s []string) *PersonCreate {
+	pc.roles = &s
+	return pc
 }
 
 // SetID sets the id field.
-func (uc *UserCreate) SetID(u uuid.UUID) *UserCreate {
-	uc.id = &u
-	return uc
+func (pc *PersonCreate) SetID(u uuid.UUID) *PersonCreate {
+	pc.id = &u
+	return pc
 }
 
 // AddAccountIDs adds the accounts edge to Account by ids.
-func (uc *UserCreate) AddAccountIDs(ids ...uuid.UUID) *UserCreate {
-	if uc.accounts == nil {
-		uc.accounts = make(map[uuid.UUID]struct{})
+func (pc *PersonCreate) AddAccountIDs(ids ...uuid.UUID) *PersonCreate {
+	if pc.accounts == nil {
+		pc.accounts = make(map[uuid.UUID]struct{})
 	}
 	for i := range ids {
-		uc.accounts[ids[i]] = struct{}{}
+		pc.accounts[ids[i]] = struct{}{}
 	}
-	return uc
+	return pc
 }
 
 // AddAccounts adds the accounts edges to Account.
-func (uc *UserCreate) AddAccounts(a ...*Account) *UserCreate {
+func (pc *PersonCreate) AddAccounts(a ...*Account) *PersonCreate {
 	ids := make([]uuid.UUID, len(a))
 	for i := range a {
 		ids[i] = a[i].ID
 	}
-	return uc.AddAccountIDs(ids...)
+	return pc.AddAccountIDs(ids...)
 }
 
 // AddContactIDs adds the contacts edge to Contact by ids.
-func (uc *UserCreate) AddContactIDs(ids ...uuid.UUID) *UserCreate {
-	if uc.contacts == nil {
-		uc.contacts = make(map[uuid.UUID]struct{})
+func (pc *PersonCreate) AddContactIDs(ids ...uuid.UUID) *PersonCreate {
+	if pc.contacts == nil {
+		pc.contacts = make(map[uuid.UUID]struct{})
 	}
 	for i := range ids {
-		uc.contacts[ids[i]] = struct{}{}
+		pc.contacts[ids[i]] = struct{}{}
 	}
-	return uc
+	return pc
 }
 
 // AddContacts adds the contacts edges to Contact.
-func (uc *UserCreate) AddContacts(c ...*Contact) *UserCreate {
+func (pc *PersonCreate) AddContacts(c ...*Contact) *PersonCreate {
 	ids := make([]uuid.UUID, len(c))
 	for i := range c {
 		ids[i] = c[i].ID
 	}
-	return uc.AddContactIDs(ids...)
+	return pc.AddContactIDs(ids...)
 }
 
 // AddSurveyIDs adds the surveys edge to Survey by ids.
-func (uc *UserCreate) AddSurveyIDs(ids ...uuid.UUID) *UserCreate {
-	if uc.surveys == nil {
-		uc.surveys = make(map[uuid.UUID]struct{})
+func (pc *PersonCreate) AddSurveyIDs(ids ...uuid.UUID) *PersonCreate {
+	if pc.surveys == nil {
+		pc.surveys = make(map[uuid.UUID]struct{})
 	}
 	for i := range ids {
-		uc.surveys[ids[i]] = struct{}{}
+		pc.surveys[ids[i]] = struct{}{}
 	}
-	return uc
+	return pc
 }
 
 // AddSurveys adds the surveys edges to Survey.
-func (uc *UserCreate) AddSurveys(s ...*Survey) *UserCreate {
+func (pc *PersonCreate) AddSurveys(s ...*Survey) *PersonCreate {
 	ids := make([]uuid.UUID, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}
-	return uc.AddSurveyIDs(ids...)
+	return pc.AddSurveyIDs(ids...)
 }
 
 // AddDomainIDs adds the domains edge to Domain by ids.
-func (uc *UserCreate) AddDomainIDs(ids ...uuid.UUID) *UserCreate {
-	if uc.domains == nil {
-		uc.domains = make(map[uuid.UUID]struct{})
+func (pc *PersonCreate) AddDomainIDs(ids ...uuid.UUID) *PersonCreate {
+	if pc.domains == nil {
+		pc.domains = make(map[uuid.UUID]struct{})
 	}
 	for i := range ids {
-		uc.domains[ids[i]] = struct{}{}
+		pc.domains[ids[i]] = struct{}{}
 	}
-	return uc
+	return pc
 }
 
 // AddDomains adds the domains edges to Domain.
-func (uc *UserCreate) AddDomains(d ...*Domain) *UserCreate {
+func (pc *PersonCreate) AddDomains(d ...*Domain) *PersonCreate {
 	ids := make([]uuid.UUID, len(d))
 	for i := range d {
 		ids[i] = d[i].ID
 	}
-	return uc.AddDomainIDs(ids...)
+	return pc.AddDomainIDs(ids...)
 }
 
 // AddAdminOfIDs adds the adminOf edge to Domain by ids.
-func (uc *UserCreate) AddAdminOfIDs(ids ...uuid.UUID) *UserCreate {
-	if uc.adminOf == nil {
-		uc.adminOf = make(map[uuid.UUID]struct{})
+func (pc *PersonCreate) AddAdminOfIDs(ids ...uuid.UUID) *PersonCreate {
+	if pc.adminOf == nil {
+		pc.adminOf = make(map[uuid.UUID]struct{})
 	}
 	for i := range ids {
-		uc.adminOf[ids[i]] = struct{}{}
+		pc.adminOf[ids[i]] = struct{}{}
 	}
-	return uc
+	return pc
 }
 
 // AddAdminOf adds the adminOf edges to Domain.
-func (uc *UserCreate) AddAdminOf(d ...*Domain) *UserCreate {
+func (pc *PersonCreate) AddAdminOf(d ...*Domain) *PersonCreate {
 	ids := make([]uuid.UUID, len(d))
 	for i := range d {
 		ids[i] = d[i].ID
 	}
-	return uc.AddAdminOfIDs(ids...)
+	return pc.AddAdminOfIDs(ids...)
 }
 
-// Save creates the User in the database.
-func (uc *UserCreate) Save(ctx context.Context) (*User, error) {
-	if uc.name == nil {
+// Save creates the Person in the database.
+func (pc *PersonCreate) Save(ctx context.Context) (*Person, error) {
+	if pc.name == nil {
 		return nil, errors.New("ent: missing required field \"name\"")
 	}
-	if err := user.NameValidator(*uc.name); err != nil {
+	if err := person.NameValidator(*pc.name); err != nil {
 		return nil, fmt.Errorf("ent: validator failed for field \"name\": %v", err)
 	}
-	if uc.lastActivity == nil {
-		v := user.DefaultLastActivity()
-		uc.lastActivity = &v
+	if pc.lastActivity == nil {
+		v := person.DefaultLastActivity()
+		pc.lastActivity = &v
 	}
-	return uc.sqlSave(ctx)
+	return pc.sqlSave(ctx)
 }
 
 // SaveX calls Save and panics if Save returns an error.
-func (uc *UserCreate) SaveX(ctx context.Context) *User {
-	v, err := uc.Save(ctx)
+func (pc *PersonCreate) SaveX(ctx context.Context) *Person {
+	v, err := pc.Save(ctx)
 	if err != nil {
 		panic(err)
 	}
 	return v
 }
 
-func (uc *UserCreate) sqlSave(ctx context.Context) (*User, error) {
+func (pc *PersonCreate) sqlSave(ctx context.Context) (*Person, error) {
 	var (
-		u     = &User{config: uc.config}
+		pe    = &Person{config: pc.config}
 		_spec = &sqlgraph.CreateSpec{
-			Table: user.Table,
+			Table: person.Table,
 			ID: &sqlgraph.FieldSpec{
 				Type:   field.TypeUUID,
-				Column: user.FieldID,
+				Column: person.FieldID,
 			},
 		}
 	)
-	if value := uc.id; value != nil {
-		u.ID = *value
+	if value := pc.id; value != nil {
+		pe.ID = *value
 		_spec.ID.Value = *value
 	}
-	if value := uc.name; value != nil {
+	if value := pc.name; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
-			Column: user.FieldName,
+			Column: person.FieldName,
 		})
-		u.Name = *value
+		pe.Name = *value
 	}
-	if value := uc.lastActivity; value != nil {
+	if value := pc.lastActivity; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  *value,
-			Column: user.FieldLastActivity,
+			Column: person.FieldLastActivity,
 		})
-		u.LastActivity = *value
+		pe.LastActivity = *value
 	}
-	if value := uc.username; value != nil {
+	if value := pc.username; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
-			Column: user.FieldUsername,
+			Column: person.FieldUsername,
 		})
-		u.Username = *value
+		pe.Username = *value
 	}
-	if value := uc.picture; value != nil {
+	if value := pc.picture; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
-			Column: user.FieldPicture,
+			Column: person.FieldPicture,
 		})
-		u.Picture = *value
+		pe.Picture = *value
 	}
-	if value := uc.roles; value != nil {
+	if value := pc.roles; value != nil {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeJSON,
 			Value:  *value,
-			Column: user.FieldRoles,
+			Column: person.FieldRoles,
 		})
-		u.Roles = *value
+		pe.Roles = *value
 	}
-	if nodes := uc.accounts; len(nodes) > 0 {
+	if nodes := pc.accounts; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   user.AccountsTable,
-			Columns: []string{user.AccountsColumn},
+			Table:   person.AccountsTable,
+			Columns: []string{person.AccountsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -292,12 +292,12 @@ func (uc *UserCreate) sqlSave(ctx context.Context) (*User, error) {
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := uc.contacts; len(nodes) > 0 {
+	if nodes := pc.contacts; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   user.ContactsTable,
-			Columns: []string{user.ContactsColumn},
+			Table:   person.ContactsTable,
+			Columns: []string{person.ContactsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -311,12 +311,12 @@ func (uc *UserCreate) sqlSave(ctx context.Context) (*User, error) {
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := uc.surveys; len(nodes) > 0 {
+	if nodes := pc.surveys; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   user.SurveysTable,
-			Columns: []string{user.SurveysColumn},
+			Table:   person.SurveysTable,
+			Columns: []string{person.SurveysColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -330,12 +330,12 @@ func (uc *UserCreate) sqlSave(ctx context.Context) (*User, error) {
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := uc.domains; len(nodes) > 0 {
+	if nodes := pc.domains; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
 			Inverse: true,
-			Table:   user.DomainsTable,
-			Columns: user.DomainsPrimaryKey,
+			Table:   person.DomainsTable,
+			Columns: person.DomainsPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -349,12 +349,12 @@ func (uc *UserCreate) sqlSave(ctx context.Context) (*User, error) {
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := uc.adminOf; len(nodes) > 0 {
+	if nodes := pc.adminOf; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
 			Inverse: true,
-			Table:   user.AdminOfTable,
-			Columns: user.AdminOfPrimaryKey,
+			Table:   person.AdminOfTable,
+			Columns: person.AdminOfPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -368,11 +368,11 @@ func (uc *UserCreate) sqlSave(ctx context.Context) (*User, error) {
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if err := sqlgraph.CreateNode(ctx, uc.driver, _spec); err != nil {
+	if err := sqlgraph.CreateNode(ctx, pc.driver, _spec); err != nil {
 		if cerr, ok := isSQLConstraintError(err); ok {
 			err = cerr
 		}
 		return nil, err
 	}
-	return u, nil
+	return pe, nil
 }

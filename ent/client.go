@@ -18,10 +18,10 @@ import (
 	"github.com/minskylab/collecta/ent/flow"
 	"github.com/minskylab/collecta/ent/input"
 	"github.com/minskylab/collecta/ent/ip"
+	"github.com/minskylab/collecta/ent/person"
 	"github.com/minskylab/collecta/ent/question"
 	"github.com/minskylab/collecta/ent/short"
 	"github.com/minskylab/collecta/ent/survey"
-	"github.com/minskylab/collecta/ent/user"
 
 	"github.com/facebookincubator/ent/dialect"
 	"github.com/facebookincubator/ent/dialect/sql"
@@ -49,14 +49,14 @@ type Client struct {
 	IP *IPClient
 	// Input is the client for interacting with the Input builders.
 	Input *InputClient
+	// Person is the client for interacting with the Person builders.
+	Person *PersonClient
 	// Question is the client for interacting with the Question builders.
 	Question *QuestionClient
 	// Short is the client for interacting with the Short builders.
 	Short *ShortClient
 	// Survey is the client for interacting with the Survey builders.
 	Survey *SurveyClient
-	// User is the client for interacting with the User builders.
-	User *UserClient
 }
 
 // NewClient creates a new client configured with the given options.
@@ -74,10 +74,10 @@ func NewClient(opts ...Option) *Client {
 		Flow:     NewFlowClient(c),
 		IP:       NewIPClient(c),
 		Input:    NewInputClient(c),
+		Person:   NewPersonClient(c),
 		Question: NewQuestionClient(c),
 		Short:    NewShortClient(c),
 		Survey:   NewSurveyClient(c),
-		User:     NewUserClient(c),
 	}
 }
 
@@ -117,10 +117,10 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		Flow:     NewFlowClient(cfg),
 		IP:       NewIPClient(cfg),
 		Input:    NewInputClient(cfg),
+		Person:   NewPersonClient(cfg),
 		Question: NewQuestionClient(cfg),
 		Short:    NewShortClient(cfg),
 		Survey:   NewSurveyClient(cfg),
-		User:     NewUserClient(cfg),
 	}, nil
 }
 
@@ -147,10 +147,10 @@ func (c *Client) Debug() *Client {
 		Flow:     NewFlowClient(cfg),
 		IP:       NewIPClient(cfg),
 		Input:    NewInputClient(cfg),
+		Person:   NewPersonClient(cfg),
 		Question: NewQuestionClient(cfg),
 		Short:    NewShortClient(cfg),
 		Survey:   NewSurveyClient(cfg),
-		User:     NewUserClient(cfg),
 	}
 }
 
@@ -224,12 +224,12 @@ func (c *AccountClient) GetX(ctx context.Context, id uuid.UUID) *Account {
 }
 
 // QueryOwner queries the owner edge of a Account.
-func (c *AccountClient) QueryOwner(a *Account) *UserQuery {
-	query := &UserQuery{config: c.config}
+func (c *AccountClient) QueryOwner(a *Account) *PersonQuery {
+	query := &PersonQuery{config: c.config}
 	id := a.ID
 	step := sqlgraph.NewStep(
 		sqlgraph.From(account.Table, account.FieldID, id),
-		sqlgraph.To(user.Table, user.FieldID),
+		sqlgraph.To(person.Table, person.FieldID),
 		sqlgraph.Edge(sqlgraph.M2O, true, account.OwnerTable, account.OwnerColumn),
 	)
 	query.sql = sqlgraph.Neighbors(a.driver.Dialect(), step)
@@ -380,12 +380,12 @@ func (c *ContactClient) GetX(ctx context.Context, id uuid.UUID) *Contact {
 }
 
 // QueryOwner queries the owner edge of a Contact.
-func (c *ContactClient) QueryOwner(co *Contact) *UserQuery {
-	query := &UserQuery{config: c.config}
+func (c *ContactClient) QueryOwner(co *Contact) *PersonQuery {
+	query := &PersonQuery{config: c.config}
 	id := co.ID
 	step := sqlgraph.NewStep(
 		sqlgraph.From(contact.Table, contact.FieldID, id),
-		sqlgraph.To(user.Table, user.FieldID),
+		sqlgraph.To(person.Table, person.FieldID),
 		sqlgraph.Edge(sqlgraph.M2O, true, contact.OwnerTable, contact.OwnerColumn),
 	)
 	query.sql = sqlgraph.Neighbors(co.driver.Dialect(), step)
@@ -536,12 +536,12 @@ func (c *DomainClient) QuerySurveys(d *Domain) *SurveyQuery {
 }
 
 // QueryUsers queries the users edge of a Domain.
-func (c *DomainClient) QueryUsers(d *Domain) *UserQuery {
-	query := &UserQuery{config: c.config}
+func (c *DomainClient) QueryUsers(d *Domain) *PersonQuery {
+	query := &PersonQuery{config: c.config}
 	id := d.ID
 	step := sqlgraph.NewStep(
 		sqlgraph.From(domain.Table, domain.FieldID, id),
-		sqlgraph.To(user.Table, user.FieldID),
+		sqlgraph.To(person.Table, person.FieldID),
 		sqlgraph.Edge(sqlgraph.M2M, false, domain.UsersTable, domain.UsersPrimaryKey...),
 	)
 	query.sql = sqlgraph.Neighbors(d.driver.Dialect(), step)
@@ -550,12 +550,12 @@ func (c *DomainClient) QueryUsers(d *Domain) *UserQuery {
 }
 
 // QueryAdmins queries the admins edge of a Domain.
-func (c *DomainClient) QueryAdmins(d *Domain) *UserQuery {
-	query := &UserQuery{config: c.config}
+func (c *DomainClient) QueryAdmins(d *Domain) *PersonQuery {
+	query := &PersonQuery{config: c.config}
 	id := d.ID
 	step := sqlgraph.NewStep(
 		sqlgraph.From(domain.Table, domain.FieldID, id),
-		sqlgraph.To(user.Table, user.FieldID),
+		sqlgraph.To(person.Table, person.FieldID),
 		sqlgraph.Edge(sqlgraph.M2M, false, domain.AdminsTable, domain.AdminsPrimaryKey...),
 	)
 	query.sql = sqlgraph.Neighbors(d.driver.Dialect(), step)
@@ -793,6 +793,140 @@ func (c *InputClient) QueryQuestion(i *Input) *QuestionQuery {
 		sqlgraph.Edge(sqlgraph.O2O, true, input.QuestionTable, input.QuestionColumn),
 	)
 	query.sql = sqlgraph.Neighbors(i.driver.Dialect(), step)
+
+	return query
+}
+
+// PersonClient is a client for the Person schema.
+type PersonClient struct {
+	config
+}
+
+// NewPersonClient returns a client for the Person from the given config.
+func NewPersonClient(c config) *PersonClient {
+	return &PersonClient{config: c}
+}
+
+// Create returns a create builder for Person.
+func (c *PersonClient) Create() *PersonCreate {
+	return &PersonCreate{config: c.config}
+}
+
+// Update returns an update builder for Person.
+func (c *PersonClient) Update() *PersonUpdate {
+	return &PersonUpdate{config: c.config}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *PersonClient) UpdateOne(pe *Person) *PersonUpdateOne {
+	return c.UpdateOneID(pe.ID)
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *PersonClient) UpdateOneID(id uuid.UUID) *PersonUpdateOne {
+	return &PersonUpdateOne{config: c.config, id: id}
+}
+
+// Delete returns a delete builder for Person.
+func (c *PersonClient) Delete() *PersonDelete {
+	return &PersonDelete{config: c.config}
+}
+
+// DeleteOne returns a delete builder for the given entity.
+func (c *PersonClient) DeleteOne(pe *Person) *PersonDeleteOne {
+	return c.DeleteOneID(pe.ID)
+}
+
+// DeleteOneID returns a delete builder for the given id.
+func (c *PersonClient) DeleteOneID(id uuid.UUID) *PersonDeleteOne {
+	return &PersonDeleteOne{c.Delete().Where(person.ID(id))}
+}
+
+// Create returns a query builder for Person.
+func (c *PersonClient) Query() *PersonQuery {
+	return &PersonQuery{config: c.config}
+}
+
+// Get returns a Person entity by its id.
+func (c *PersonClient) Get(ctx context.Context, id uuid.UUID) (*Person, error) {
+	return c.Query().Where(person.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *PersonClient) GetX(ctx context.Context, id uuid.UUID) *Person {
+	pe, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return pe
+}
+
+// QueryAccounts queries the accounts edge of a Person.
+func (c *PersonClient) QueryAccounts(pe *Person) *AccountQuery {
+	query := &AccountQuery{config: c.config}
+	id := pe.ID
+	step := sqlgraph.NewStep(
+		sqlgraph.From(person.Table, person.FieldID, id),
+		sqlgraph.To(account.Table, account.FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, person.AccountsTable, person.AccountsColumn),
+	)
+	query.sql = sqlgraph.Neighbors(pe.driver.Dialect(), step)
+
+	return query
+}
+
+// QueryContacts queries the contacts edge of a Person.
+func (c *PersonClient) QueryContacts(pe *Person) *ContactQuery {
+	query := &ContactQuery{config: c.config}
+	id := pe.ID
+	step := sqlgraph.NewStep(
+		sqlgraph.From(person.Table, person.FieldID, id),
+		sqlgraph.To(contact.Table, contact.FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, person.ContactsTable, person.ContactsColumn),
+	)
+	query.sql = sqlgraph.Neighbors(pe.driver.Dialect(), step)
+
+	return query
+}
+
+// QuerySurveys queries the surveys edge of a Person.
+func (c *PersonClient) QuerySurveys(pe *Person) *SurveyQuery {
+	query := &SurveyQuery{config: c.config}
+	id := pe.ID
+	step := sqlgraph.NewStep(
+		sqlgraph.From(person.Table, person.FieldID, id),
+		sqlgraph.To(survey.Table, survey.FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, person.SurveysTable, person.SurveysColumn),
+	)
+	query.sql = sqlgraph.Neighbors(pe.driver.Dialect(), step)
+
+	return query
+}
+
+// QueryDomains queries the domains edge of a Person.
+func (c *PersonClient) QueryDomains(pe *Person) *DomainQuery {
+	query := &DomainQuery{config: c.config}
+	id := pe.ID
+	step := sqlgraph.NewStep(
+		sqlgraph.From(person.Table, person.FieldID, id),
+		sqlgraph.To(domain.Table, domain.FieldID),
+		sqlgraph.Edge(sqlgraph.M2M, true, person.DomainsTable, person.DomainsPrimaryKey...),
+	)
+	query.sql = sqlgraph.Neighbors(pe.driver.Dialect(), step)
+
+	return query
+}
+
+// QueryAdminOf queries the adminOf edge of a Person.
+func (c *PersonClient) QueryAdminOf(pe *Person) *DomainQuery {
+	query := &DomainQuery{config: c.config}
+	id := pe.ID
+	step := sqlgraph.NewStep(
+		sqlgraph.From(person.Table, person.FieldID, id),
+		sqlgraph.To(domain.Table, domain.FieldID),
+		sqlgraph.Edge(sqlgraph.M2M, true, person.AdminOfTable, person.AdminOfPrimaryKey...),
+	)
+	query.sql = sqlgraph.Neighbors(pe.driver.Dialect(), step)
 
 	return query
 }
@@ -1046,12 +1180,12 @@ func (c *SurveyClient) QueryFlow(s *Survey) *FlowQuery {
 }
 
 // QueryFor queries the for edge of a Survey.
-func (c *SurveyClient) QueryFor(s *Survey) *UserQuery {
-	query := &UserQuery{config: c.config}
+func (c *SurveyClient) QueryFor(s *Survey) *PersonQuery {
+	query := &PersonQuery{config: c.config}
 	id := s.ID
 	step := sqlgraph.NewStep(
 		sqlgraph.From(survey.Table, survey.FieldID, id),
-		sqlgraph.To(user.Table, user.FieldID),
+		sqlgraph.To(person.Table, person.FieldID),
 		sqlgraph.Edge(sqlgraph.M2O, true, survey.ForTable, survey.ForColumn),
 	)
 	query.sql = sqlgraph.Neighbors(s.driver.Dialect(), step)
@@ -1069,140 +1203,6 @@ func (c *SurveyClient) QueryOwner(s *Survey) *DomainQuery {
 		sqlgraph.Edge(sqlgraph.M2O, true, survey.OwnerTable, survey.OwnerColumn),
 	)
 	query.sql = sqlgraph.Neighbors(s.driver.Dialect(), step)
-
-	return query
-}
-
-// UserClient is a client for the User schema.
-type UserClient struct {
-	config
-}
-
-// NewUserClient returns a client for the User from the given config.
-func NewUserClient(c config) *UserClient {
-	return &UserClient{config: c}
-}
-
-// Create returns a create builder for User.
-func (c *UserClient) Create() *UserCreate {
-	return &UserCreate{config: c.config}
-}
-
-// Update returns an update builder for User.
-func (c *UserClient) Update() *UserUpdate {
-	return &UserUpdate{config: c.config}
-}
-
-// UpdateOne returns an update builder for the given entity.
-func (c *UserClient) UpdateOne(u *User) *UserUpdateOne {
-	return c.UpdateOneID(u.ID)
-}
-
-// UpdateOneID returns an update builder for the given id.
-func (c *UserClient) UpdateOneID(id uuid.UUID) *UserUpdateOne {
-	return &UserUpdateOne{config: c.config, id: id}
-}
-
-// Delete returns a delete builder for User.
-func (c *UserClient) Delete() *UserDelete {
-	return &UserDelete{config: c.config}
-}
-
-// DeleteOne returns a delete builder for the given entity.
-func (c *UserClient) DeleteOne(u *User) *UserDeleteOne {
-	return c.DeleteOneID(u.ID)
-}
-
-// DeleteOneID returns a delete builder for the given id.
-func (c *UserClient) DeleteOneID(id uuid.UUID) *UserDeleteOne {
-	return &UserDeleteOne{c.Delete().Where(user.ID(id))}
-}
-
-// Create returns a query builder for User.
-func (c *UserClient) Query() *UserQuery {
-	return &UserQuery{config: c.config}
-}
-
-// Get returns a User entity by its id.
-func (c *UserClient) Get(ctx context.Context, id uuid.UUID) (*User, error) {
-	return c.Query().Where(user.ID(id)).Only(ctx)
-}
-
-// GetX is like Get, but panics if an error occurs.
-func (c *UserClient) GetX(ctx context.Context, id uuid.UUID) *User {
-	u, err := c.Get(ctx, id)
-	if err != nil {
-		panic(err)
-	}
-	return u
-}
-
-// QueryAccounts queries the accounts edge of a User.
-func (c *UserClient) QueryAccounts(u *User) *AccountQuery {
-	query := &AccountQuery{config: c.config}
-	id := u.ID
-	step := sqlgraph.NewStep(
-		sqlgraph.From(user.Table, user.FieldID, id),
-		sqlgraph.To(account.Table, account.FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, user.AccountsTable, user.AccountsColumn),
-	)
-	query.sql = sqlgraph.Neighbors(u.driver.Dialect(), step)
-
-	return query
-}
-
-// QueryContacts queries the contacts edge of a User.
-func (c *UserClient) QueryContacts(u *User) *ContactQuery {
-	query := &ContactQuery{config: c.config}
-	id := u.ID
-	step := sqlgraph.NewStep(
-		sqlgraph.From(user.Table, user.FieldID, id),
-		sqlgraph.To(contact.Table, contact.FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, user.ContactsTable, user.ContactsColumn),
-	)
-	query.sql = sqlgraph.Neighbors(u.driver.Dialect(), step)
-
-	return query
-}
-
-// QuerySurveys queries the surveys edge of a User.
-func (c *UserClient) QuerySurveys(u *User) *SurveyQuery {
-	query := &SurveyQuery{config: c.config}
-	id := u.ID
-	step := sqlgraph.NewStep(
-		sqlgraph.From(user.Table, user.FieldID, id),
-		sqlgraph.To(survey.Table, survey.FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, user.SurveysTable, user.SurveysColumn),
-	)
-	query.sql = sqlgraph.Neighbors(u.driver.Dialect(), step)
-
-	return query
-}
-
-// QueryDomains queries the domains edge of a User.
-func (c *UserClient) QueryDomains(u *User) *DomainQuery {
-	query := &DomainQuery{config: c.config}
-	id := u.ID
-	step := sqlgraph.NewStep(
-		sqlgraph.From(user.Table, user.FieldID, id),
-		sqlgraph.To(domain.Table, domain.FieldID),
-		sqlgraph.Edge(sqlgraph.M2M, true, user.DomainsTable, user.DomainsPrimaryKey...),
-	)
-	query.sql = sqlgraph.Neighbors(u.driver.Dialect(), step)
-
-	return query
-}
-
-// QueryAdminOf queries the adminOf edge of a User.
-func (c *UserClient) QueryAdminOf(u *User) *DomainQuery {
-	query := &DomainQuery{config: c.config}
-	id := u.ID
-	step := sqlgraph.NewStep(
-		sqlgraph.From(user.Table, user.FieldID, id),
-		sqlgraph.To(domain.Table, domain.FieldID),
-		sqlgraph.Edge(sqlgraph.M2M, true, user.AdminOfTable, user.AdminOfPrimaryKey...),
-	)
-	query.sql = sqlgraph.Neighbors(u.driver.Dialect(), step)
 
 	return query
 }

@@ -16,7 +16,6 @@ import (
 	"github.com/minskylab/collecta/ent/domain"
 	"github.com/minskylab/collecta/ent/predicate"
 	"github.com/minskylab/collecta/ent/survey"
-	"github.com/minskylab/collecta/ent/user"
 )
 
 // DomainQuery is the builder for querying Domain entities.
@@ -29,8 +28,8 @@ type DomainQuery struct {
 	predicates []predicate.Domain
 	// eager-loading edges.
 	withSurveys *SurveyQuery
-	withUsers   *UserQuery
-	withAdmins  *UserQuery
+	withUsers   *PersonQuery
+	withAdmins  *PersonQuery
 	// intermediate query.
 	sql *sql.Selector
 }
@@ -72,11 +71,11 @@ func (dq *DomainQuery) QuerySurveys() *SurveyQuery {
 }
 
 // QueryUsers chains the current query on the users edge.
-func (dq *DomainQuery) QueryUsers() *UserQuery {
-	query := &UserQuery{config: dq.config}
+func (dq *DomainQuery) QueryUsers() *PersonQuery {
+	query := &PersonQuery{config: dq.config}
 	step := sqlgraph.NewStep(
 		sqlgraph.From(domain.Table, domain.FieldID, dq.sqlQuery()),
-		sqlgraph.To(user.Table, user.FieldID),
+		sqlgraph.To(person.Table, person.FieldID),
 		sqlgraph.Edge(sqlgraph.M2M, false, domain.UsersTable, domain.UsersPrimaryKey...),
 	)
 	query.sql = sqlgraph.SetNeighbors(dq.driver.Dialect(), step)
@@ -84,11 +83,11 @@ func (dq *DomainQuery) QueryUsers() *UserQuery {
 }
 
 // QueryAdmins chains the current query on the admins edge.
-func (dq *DomainQuery) QueryAdmins() *UserQuery {
-	query := &UserQuery{config: dq.config}
+func (dq *DomainQuery) QueryAdmins() *PersonQuery {
+	query := &PersonQuery{config: dq.config}
 	step := sqlgraph.NewStep(
 		sqlgraph.From(domain.Table, domain.FieldID, dq.sqlQuery()),
-		sqlgraph.To(user.Table, user.FieldID),
+		sqlgraph.To(person.Table, person.FieldID),
 		sqlgraph.Edge(sqlgraph.M2M, false, domain.AdminsTable, domain.AdminsPrimaryKey...),
 	)
 	query.sql = sqlgraph.SetNeighbors(dq.driver.Dialect(), step)
@@ -277,8 +276,8 @@ func (dq *DomainQuery) WithSurveys(opts ...func(*SurveyQuery)) *DomainQuery {
 
 //  WithUsers tells the query-builder to eager-loads the nodes that are connected to
 // the "users" edge. The optional arguments used to configure the query builder of the edge.
-func (dq *DomainQuery) WithUsers(opts ...func(*UserQuery)) *DomainQuery {
-	query := &UserQuery{config: dq.config}
+func (dq *DomainQuery) WithUsers(opts ...func(*PersonQuery)) *DomainQuery {
+	query := &PersonQuery{config: dq.config}
 	for _, opt := range opts {
 		opt(query)
 	}
@@ -288,8 +287,8 @@ func (dq *DomainQuery) WithUsers(opts ...func(*UserQuery)) *DomainQuery {
 
 //  WithAdmins tells the query-builder to eager-loads the nodes that are connected to
 // the "admins" edge. The optional arguments used to configure the query builder of the edge.
-func (dq *DomainQuery) WithAdmins(opts ...func(*UserQuery)) *DomainQuery {
-	query := &UserQuery{config: dq.config}
+func (dq *DomainQuery) WithAdmins(opts ...func(*PersonQuery)) *DomainQuery {
+	query := &PersonQuery{config: dq.config}
 	for _, opt := range opts {
 		opt(query)
 	}
@@ -444,7 +443,7 @@ func (dq *DomainQuery) sqlAll(ctx context.Context) ([]*Domain, error) {
 		if err := sqlgraph.QueryEdges(ctx, dq.driver, _spec); err != nil {
 			return nil, fmt.Errorf(`query edges "users": %v`, err)
 		}
-		query.Where(user.IDIn(edgeids...))
+		query.Where(person.IDIn(edgeids...))
 		neighbors, err := query.All(ctx)
 		if err != nil {
 			return nil, err
@@ -507,7 +506,7 @@ func (dq *DomainQuery) sqlAll(ctx context.Context) ([]*Domain, error) {
 		if err := sqlgraph.QueryEdges(ctx, dq.driver, _spec); err != nil {
 			return nil, fmt.Errorf(`query edges "admins": %v`, err)
 		}
-		query.Where(user.IDIn(edgeids...))
+		query.Where(person.IDIn(edgeids...))
 		neighbors, err := query.All(ctx)
 		if err != nil {
 			return nil, err

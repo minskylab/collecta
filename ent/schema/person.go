@@ -9,13 +9,13 @@ import (
 	"github.com/google/uuid"
 )
 
-// User holds the schema definition for the User entity.
-type User struct {
+// Person holds the schema definition for the Person entity.
+type Person struct {
 	ent.Schema
 }
 
-// Fields of the User.
-func (User) Fields() []ent.Field {
+// Fields of the Person.
+func (Person) Fields() []ent.Field {
 	return []ent.Field{
 		field.UUID("id", uuid.UUID{}),
 		field.String("name").NotEmpty(),
@@ -26,8 +26,8 @@ func (User) Fields() []ent.Field {
 	}
 }
 
-// Edges of the User.
-func (User) Edges() []ent.Edge {
+// Edges of the Person.
+func (Person) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.To("accounts", Account.Type),
 		edge.To("contacts", Contact.Type),

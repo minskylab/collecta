@@ -35,7 +35,7 @@ func (Survey) Fields() []ent.Field {
 func (Survey) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.To("flow", Flow.Type).Unique().Required(),
-		edge.From("for", User.Type).Ref("surveys").Unique().Required(),
+		edge.From("for", Person.Type).Ref("surveys").Unique().Required(),
 		edge.From("owner", Domain.Type).Ref("surveys").Unique(),
 	}
 }

@@ -10,43 +10,48 @@ import (
 )
 
 type Account struct {
-	ID       string `json:"id"`
-	Type     string `json:"type"`
-	Sub      string `json:"sub"`
-	RemoteID string `json:"remoteID"`
-	Secret   string `json:"secret"`
-	Owner    *User  `json:"owner"`
+	ID       string      `json:"id"`
+	Type     AccountType `json:"type"`
+	Sub      string      `json:"sub"`
+	RemoteID string      `json:"remoteID"`
+	Secret   *string     `json:"secret"`
+	Owner    *User       `json:"owner"`
 }
 
 type Answer struct {
 	ID        string    `json:"id"`
 	At        time.Time `json:"at"`
 	Responses []string  `json:"responses"`
-	Valid     bool      `json:"valid"`
+	Valid     *bool     `json:"valid"`
 	Question  *Question `json:"question"`
 }
 
 type Contact struct {
-	ID          string  `json:"id"`
-	Name        *string `json:"name"`
-	Value       string  `json:"value"`
-	Kind        string  `json:"kind"`
-	Principal   bool    `json:"principal"`
-	Validated   bool    `json:"validated"`
-	FromAccount bool    `json:"fromAccount"`
-	Owner       *User   `json:"owner"`
+	ID          string      `json:"id"`
+	Name        string      `json:"name"`
+	Value       string      `json:"value"`
+	Kind        ContactKind `json:"kind"`
+	Principal   bool        `json:"principal"`
+	Validated   bool        `json:"validated"`
+	FromAccount bool        `json:"fromAccount"`
+	Owner       *User       `json:"owner"`
+}
+
+type Device struct {
+	Device string `json:"device"`
 }
 
 type Domain struct {
-	ID             string    `json:"id"`
-	Tags           []string  `json:"tags"`
-	Name           string    `json:"name"`
-	Email          string    `json:"email"`
-	Domain         string    `json:"domain"`
-	CollectaDomain string    `json:"collectaDomain"`
-	Surveys        []*Survey `json:"surveys"`
-	Users          []*User   `json:"users"`
-	Admins         []*User   `json:"admins"`
+	ID                     string    `json:"id"`
+	Name                   string    `json:"name"`
+	Email                  string    `json:"email"`
+	Domain                 string    `json:"domain"`
+	CollectaDomain         string    `json:"collectaDomain"`
+	CollectaClientCallback string    `json:"collectaClientCallback"`
+	Tags                   []string  `json:"tags"`
+	Surveys                []*Survey `json:"surveys"`
+	Users                  []*User   `json:"users"`
+	Admins                 []*User   `json:"admins"`
 }
 
 type DomainCreator struct {
@@ -63,18 +68,23 @@ type Flow struct {
 	StateTable       string      `json:"stateTable"`
 	InitialState     string      `json:"initialState"`
 	TerminationState string      `json:"terminationState"`
-	PastState        string      `json:"pastState"`
+	PastState        *string     `json:"pastState"`
 	Inputs           []string    `json:"inputs"`
+	Survey           *Survey     `json:"survey"`
 	Questions        []*Question `json:"questions"`
 }
 
+type IP struct {
+	IP string `json:"ip"`
+}
+
 type Input struct {
-	ID       string                 `json:"id"`
-	Kind     string                 `json:"kind"`
-	Multiple bool                   `json:"multiple"`
-	Defaults []*string              `json:"defaults"`
-	Options  map[string]interface{} `json:"options"`
-	Question *Question              `json:"question"`
+	ID       string    `json:"id"`
+	Kind     InputKind `json:"kind"`
+	Multiple *bool     `json:"multiple"`
+	Defaults []string  `json:"defaults"`
+	Options  *Map      `json:"options"`
+	Question *Question `json:"question"`
 }
 
 type LastSurveyState struct {
@@ -86,9 +96,8 @@ type LoginResponse struct {
 	Token string `json:"token"`
 }
 
-type MetadataPair struct {
-	Key   string `json:"key"`
-	Value string `json:"value"`
+type Map struct {
+	Content []*PairMap `json:"content"`
 }
 
 type Pair struct {
@@ -96,17 +105,22 @@ type Pair struct {
 	Value string `json:"value"`
 }
 
+type PairMap struct {
+	Key   string `json:"key"`
+	Value string `json:"value"`
+}
+
 type Question struct {
-	ID          string          `json:"id"`
-	Hash        string          `json:"hash"`
-	Title       string          `json:"title"`
-	Description string          `json:"description"`
-	Anonymous   bool            `json:"anonymous"`
-	Metadata    []*MetadataPair `json:"metadata"`
-	Validator   string          `json:"validator"`
-	Answers     []*Answer       `json:"answers"`
-	Input       *Input          `json:"input"`
-	Flow        *Flow           `json:"flow"`
+	ID          string    `json:"id"`
+	Hash        string    `json:"hash"`
+	Title       string    `json:"title"`
+	Description string    `json:"description"`
+	Metadata    *Map      `json:"metadata"`
+	Validator   *string   `json:"validator"`
+	Anonymous   bool      `json:"anonymous"`
+	Answers     []*Answer `json:"answers"`
+	Input       *Input    `json:"input"`
+	Flow        *Flow     `json:"flow"`
 }
 
 type QuestionCreator struct {
@@ -124,18 +138,18 @@ type Short struct {
 }
 
 type Survey struct {
-	ID              string          `json:"id"`
-	Tags            []string        `json:"tags"`
-	LastInteraction time.Time       `json:"lastInteraction"`
-	DueDate         time.Time       `json:"dueDate"`
-	Title           string          `json:"title"`
-	Description     string          `json:"description"`
-	Metadata        []*MetadataPair `json:"metadata"`
-	Done            bool            `json:"done"`
-	IsPublic        bool            `json:"isPublic"`
-	Flow            *Flow           `json:"flow"`
-	For             *User           `json:"for"`
-	Owner           *Domain         `json:"owner"`
+	ID              string    `json:"id"`
+	Tags            []string  `json:"tags"`
+	LastInteraction time.Time `json:"lastInteraction"`
+	DueDate         time.Time `json:"dueDate"`
+	Title           string    `json:"title"`
+	Description     *string   `json:"description"`
+	Metadata        *Map      `json:"metadata"`
+	Done            *bool     `json:"done"`
+	IsPublic        *bool     `json:"isPublic"`
+	Flow            *Flow     `json:"flow"`
+	For             *User     `json:"for"`
+	Owner           *Domain   `json:"owner"`
 }
 
 type SurveyDomain struct {
@@ -165,17 +179,146 @@ type SuveyGenerationResult struct {
 }
 
 type User struct {
-	ID           string    `json:"id"`
-	Name         string    `json:"name"`
-	Username     string    `json:"username"`
-	LastActivity time.Time `json:"lastActivity"`
-	Picture      string    `json:"picture"`
-	Roles        []string  `json:"roles"`
-	Accounts     *Account  `json:"accounts"`
-	Contacts     *Contact  `json:"contacts"`
-	Surveys      []*Survey `json:"surveys"`
-	Domains      []*Domain `json:"domains"`
-	AdminOf      []*Domain `json:"adminOf"`
+	ID           string     `json:"id"`
+	Name         string     `json:"name"`
+	LastActivity time.Time  `json:"lastActivity"`
+	Username     *string    `json:"username"`
+	Picture      *string    `json:"picture"`
+	Roles        []string   `json:"roles"`
+	Accounts     []*Account `json:"accounts"`
+	Contacts     []*Contact `json:"contacts"`
+	Surveys      []*Survey  `json:"surveys"`
+	Domains      []*Domain  `json:"domains"`
+	AdminOf      []*Domain  `json:"adminOf"`
+}
+
+type AccountType string
+
+const (
+	AccountTypeGoogle    AccountType = "Google"
+	AccountTypeAnonymous AccountType = "Anonymous"
+	AccountTypeEmail     AccountType = "Email"
+)
+
+var AllAccountType = []AccountType{
+	AccountTypeGoogle,
+	AccountTypeAnonymous,
+	AccountTypeEmail,
+}
+
+func (e AccountType) IsValid() bool {
+	switch e {
+	case AccountTypeGoogle, AccountTypeAnonymous, AccountTypeEmail:
+		return true
+	}
+	return false
+}
+
+func (e AccountType) String() string {
+	return string(e)
+}
+
+func (e *AccountType) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = AccountType(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid AccountType", str)
+	}
+	return nil
+}
+
+func (e AccountType) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type ContactKind string
+
+const (
+	ContactKindEmail ContactKind = "Email"
+	ContactKindPhone ContactKind = "Phone"
+)
+
+var AllContactKind = []ContactKind{
+	ContactKindEmail,
+	ContactKindPhone,
+}
+
+func (e ContactKind) IsValid() bool {
+	switch e {
+	case ContactKindEmail, ContactKindPhone:
+		return true
+	}
+	return false
+}
+
+func (e ContactKind) String() string {
+	return string(e)
+}
+
+func (e *ContactKind) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = ContactKind(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid ContactKind", str)
+	}
+	return nil
+}
+
+func (e ContactKind) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type InputKind string
+
+const (
+	InputKindText         InputKind = "Text"
+	InputKindOptions      InputKind = "Options"
+	InputKindSatisfaction InputKind = "Satisfaction"
+	InputKindBoolean      InputKind = "Boolean"
+)
+
+var AllInputKind = []InputKind{
+	InputKindText,
+	InputKindOptions,
+	InputKindSatisfaction,
+	InputKindBoolean,
+}
+
+func (e InputKind) IsValid() bool {
+	switch e {
+	case InputKindText, InputKindOptions, InputKindSatisfaction, InputKindBoolean:
+		return true
+	}
+	return false
+}
+
+func (e InputKind) String() string {
+	return string(e)
+}
+
+func (e *InputKind) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = InputKind(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid InputKind", str)
+	}
+	return nil
+}
+
+func (e InputKind) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
 type InputType string

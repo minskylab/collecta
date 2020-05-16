@@ -39,9 +39,9 @@ type DomainEdges struct {
 	// Surveys holds the value of the surveys edge.
 	Surveys []*Survey
 	// Users holds the value of the users edge.
-	Users []*User
+	Users []*Person
 	// Admins holds the value of the admins edge.
-	Admins []*User
+	Admins []*Person
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
 	loadedTypes [3]bool
@@ -58,7 +58,7 @@ func (e DomainEdges) SurveysOrErr() ([]*Survey, error) {
 
 // UsersOrErr returns the Users value or an error if the edge
 // was not loaded in eager-loading.
-func (e DomainEdges) UsersOrErr() ([]*User, error) {
+func (e DomainEdges) UsersOrErr() ([]*Person, error) {
 	if e.loadedTypes[1] {
 		return e.Users, nil
 	}
@@ -67,7 +67,7 @@ func (e DomainEdges) UsersOrErr() ([]*User, error) {
 
 // AdminsOrErr returns the Admins value or an error if the edge
 // was not loaded in eager-loading.
-func (e DomainEdges) AdminsOrErr() ([]*User, error) {
+func (e DomainEdges) AdminsOrErr() ([]*Person, error) {
 	if e.loadedTypes[2] {
 		return e.Admins, nil
 	}
@@ -141,12 +141,12 @@ func (d *Domain) QuerySurveys() *SurveyQuery {
 }
 
 // QueryUsers queries the users edge of the Domain.
-func (d *Domain) QueryUsers() *UserQuery {
+func (d *Domain) QueryUsers() *PersonQuery {
 	return (&DomainClient{config: d.config}).QueryUsers(d)
 }
 
 // QueryAdmins queries the admins edge of the Domain.
-func (d *Domain) QueryAdmins() *UserQuery {
+func (d *Domain) QueryAdmins() *PersonQuery {
 	return (&DomainClient{config: d.config}).QueryAdmins(d)
 }
 

@@ -12,15 +12,18 @@ import (
 
 // Device is the model entity for the Device schema.
 type Device struct {
-	config
+	config `json:"-"`
 	// ID of the ent.
 	ID int `json:"id,omitempty"`
+	// Device holds the value of the "device" field.
+	Device string `json:"device,omitempty"`
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
 func (*Device) scanValues() []interface{} {
 	return []interface{}{
-		&sql.NullInt64{}, // id
+		&sql.NullInt64{},  // id
+		&sql.NullString{}, // device
 	}
 }
 
@@ -36,6 +39,11 @@ func (d *Device) assignValues(values ...interface{}) error {
 	}
 	d.ID = int(value.Int64)
 	values = values[1:]
+	if value, ok := values[0].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field device", values[0])
+	} else if value.Valid {
+		d.Device = value.String
+	}
 	return nil
 }
 
@@ -62,6 +70,8 @@ func (d *Device) String() string {
 	var builder strings.Builder
 	builder.WriteString("Device(")
 	builder.WriteString(fmt.Sprintf("id=%v", d.ID))
+	builder.WriteString(", device=")
+	builder.WriteString(d.Device)
 	builder.WriteByte(')')
 	return builder.String()
 }

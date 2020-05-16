@@ -4,6 +4,7 @@ package ent
 
 import (
 	"context"
+	"errors"
 
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
 	"github.com/facebookincubator/ent/schema/field"
@@ -13,10 +14,20 @@ import (
 // DeviceCreate is the builder for creating a Device entity.
 type DeviceCreate struct {
 	config
+	device *string
+}
+
+// SetDevice sets the device field.
+func (dc *DeviceCreate) SetDevice(s string) *DeviceCreate {
+	dc.device = &s
+	return dc
 }
 
 // Save creates the Device in the database.
 func (dc *DeviceCreate) Save(ctx context.Context) (*Device, error) {
+	if dc.device == nil {
+		return nil, errors.New("ent: missing required field \"device\"")
+	}
 	return dc.sqlSave(ctx)
 }
 
@@ -40,6 +51,14 @@ func (dc *DeviceCreate) sqlSave(ctx context.Context) (*Device, error) {
 			},
 		}
 	)
+	if value := dc.device; value != nil {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: device.FieldDevice,
+		})
+		d.Device = *value
+	}
 	if err := sqlgraph.CreateNode(ctx, dc.driver, _spec); err != nil {
 		if cerr, ok := isSQLConstraintError(err); ok {
 			err = cerr

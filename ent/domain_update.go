@@ -11,9 +11,9 @@ import (
 	"github.com/facebookincubator/ent/schema/field"
 	"github.com/google/uuid"
 	"github.com/minskylab/collecta/ent/domain"
+	"github.com/minskylab/collecta/ent/person"
 	"github.com/minskylab/collecta/ent/predicate"
 	"github.com/minskylab/collecta/ent/survey"
-	"github.com/minskylab/collecta/ent/user"
 )
 
 // DomainUpdate is the builder for updating Domain entities.
@@ -96,7 +96,7 @@ func (du *DomainUpdate) AddSurveys(s ...*Survey) *DomainUpdate {
 	return du.AddSurveyIDs(ids...)
 }
 
-// AddUserIDs adds the users edge to User by ids.
+// AddUserIDs adds the users edge to Person by ids.
 func (du *DomainUpdate) AddUserIDs(ids ...uuid.UUID) *DomainUpdate {
 	if du.users == nil {
 		du.users = make(map[uuid.UUID]struct{})
@@ -107,16 +107,16 @@ func (du *DomainUpdate) AddUserIDs(ids ...uuid.UUID) *DomainUpdate {
 	return du
 }
 
-// AddUsers adds the users edges to User.
-func (du *DomainUpdate) AddUsers(u ...*User) *DomainUpdate {
-	ids := make([]uuid.UUID, len(u))
-	for i := range u {
-		ids[i] = u[i].ID
+// AddUsers adds the users edges to Person.
+func (du *DomainUpdate) AddUsers(p ...*Person) *DomainUpdate {
+	ids := make([]uuid.UUID, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
 	}
 	return du.AddUserIDs(ids...)
 }
 
-// AddAdminIDs adds the admins edge to User by ids.
+// AddAdminIDs adds the admins edge to Person by ids.
 func (du *DomainUpdate) AddAdminIDs(ids ...uuid.UUID) *DomainUpdate {
 	if du.admins == nil {
 		du.admins = make(map[uuid.UUID]struct{})
@@ -127,11 +127,11 @@ func (du *DomainUpdate) AddAdminIDs(ids ...uuid.UUID) *DomainUpdate {
 	return du
 }
 
-// AddAdmins adds the admins edges to User.
-func (du *DomainUpdate) AddAdmins(u ...*User) *DomainUpdate {
-	ids := make([]uuid.UUID, len(u))
-	for i := range u {
-		ids[i] = u[i].ID
+// AddAdmins adds the admins edges to Person.
+func (du *DomainUpdate) AddAdmins(p ...*Person) *DomainUpdate {
+	ids := make([]uuid.UUID, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
 	}
 	return du.AddAdminIDs(ids...)
 }
@@ -156,7 +156,7 @@ func (du *DomainUpdate) RemoveSurveys(s ...*Survey) *DomainUpdate {
 	return du.RemoveSurveyIDs(ids...)
 }
 
-// RemoveUserIDs removes the users edge to User by ids.
+// RemoveUserIDs removes the users edge to Person by ids.
 func (du *DomainUpdate) RemoveUserIDs(ids ...uuid.UUID) *DomainUpdate {
 	if du.removedUsers == nil {
 		du.removedUsers = make(map[uuid.UUID]struct{})
@@ -167,16 +167,16 @@ func (du *DomainUpdate) RemoveUserIDs(ids ...uuid.UUID) *DomainUpdate {
 	return du
 }
 
-// RemoveUsers removes users edges to User.
-func (du *DomainUpdate) RemoveUsers(u ...*User) *DomainUpdate {
-	ids := make([]uuid.UUID, len(u))
-	for i := range u {
-		ids[i] = u[i].ID
+// RemoveUsers removes users edges to Person.
+func (du *DomainUpdate) RemoveUsers(p ...*Person) *DomainUpdate {
+	ids := make([]uuid.UUID, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
 	}
 	return du.RemoveUserIDs(ids...)
 }
 
-// RemoveAdminIDs removes the admins edge to User by ids.
+// RemoveAdminIDs removes the admins edge to Person by ids.
 func (du *DomainUpdate) RemoveAdminIDs(ids ...uuid.UUID) *DomainUpdate {
 	if du.removedAdmins == nil {
 		du.removedAdmins = make(map[uuid.UUID]struct{})
@@ -187,11 +187,11 @@ func (du *DomainUpdate) RemoveAdminIDs(ids ...uuid.UUID) *DomainUpdate {
 	return du
 }
 
-// RemoveAdmins removes admins edges to User.
-func (du *DomainUpdate) RemoveAdmins(u ...*User) *DomainUpdate {
-	ids := make([]uuid.UUID, len(u))
-	for i := range u {
-		ids[i] = u[i].ID
+// RemoveAdmins removes admins edges to Person.
+func (du *DomainUpdate) RemoveAdmins(p ...*Person) *DomainUpdate {
+	ids := make([]uuid.UUID, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
 	}
 	return du.RemoveAdminIDs(ids...)
 }
@@ -341,7 +341,7 @@ func (du *DomainUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
-					Column: user.FieldID,
+					Column: person.FieldID,
 				},
 			},
 		}
@@ -360,7 +360,7 @@ func (du *DomainUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
-					Column: user.FieldID,
+					Column: person.FieldID,
 				},
 			},
 		}
@@ -379,7 +379,7 @@ func (du *DomainUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
-					Column: user.FieldID,
+					Column: person.FieldID,
 				},
 			},
 		}
@@ -398,7 +398,7 @@ func (du *DomainUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
-					Column: user.FieldID,
+					Column: person.FieldID,
 				},
 			},
 		}
@@ -492,7 +492,7 @@ func (duo *DomainUpdateOne) AddSurveys(s ...*Survey) *DomainUpdateOne {
 	return duo.AddSurveyIDs(ids...)
 }
 
-// AddUserIDs adds the users edge to User by ids.
+// AddUserIDs adds the users edge to Person by ids.
 func (duo *DomainUpdateOne) AddUserIDs(ids ...uuid.UUID) *DomainUpdateOne {
 	if duo.users == nil {
 		duo.users = make(map[uuid.UUID]struct{})
@@ -503,16 +503,16 @@ func (duo *DomainUpdateOne) AddUserIDs(ids ...uuid.UUID) *DomainUpdateOne {
 	return duo
 }
 
-// AddUsers adds the users edges to User.
-func (duo *DomainUpdateOne) AddUsers(u ...*User) *DomainUpdateOne {
-	ids := make([]uuid.UUID, len(u))
-	for i := range u {
-		ids[i] = u[i].ID
+// AddUsers adds the users edges to Person.
+func (duo *DomainUpdateOne) AddUsers(p ...*Person) *DomainUpdateOne {
+	ids := make([]uuid.UUID, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
 	}
 	return duo.AddUserIDs(ids...)
 }
 
-// AddAdminIDs adds the admins edge to User by ids.
+// AddAdminIDs adds the admins edge to Person by ids.
 func (duo *DomainUpdateOne) AddAdminIDs(ids ...uuid.UUID) *DomainUpdateOne {
 	if duo.admins == nil {
 		duo.admins = make(map[uuid.UUID]struct{})
@@ -523,11 +523,11 @@ func (duo *DomainUpdateOne) AddAdminIDs(ids ...uuid.UUID) *DomainUpdateOne {
 	return duo
 }
 
-// AddAdmins adds the admins edges to User.
-func (duo *DomainUpdateOne) AddAdmins(u ...*User) *DomainUpdateOne {
-	ids := make([]uuid.UUID, len(u))
-	for i := range u {
-		ids[i] = u[i].ID
+// AddAdmins adds the admins edges to Person.
+func (duo *DomainUpdateOne) AddAdmins(p ...*Person) *DomainUpdateOne {
+	ids := make([]uuid.UUID, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
 	}
 	return duo.AddAdminIDs(ids...)
 }
@@ -552,7 +552,7 @@ func (duo *DomainUpdateOne) RemoveSurveys(s ...*Survey) *DomainUpdateOne {
 	return duo.RemoveSurveyIDs(ids...)
 }
 
-// RemoveUserIDs removes the users edge to User by ids.
+// RemoveUserIDs removes the users edge to Person by ids.
 func (duo *DomainUpdateOne) RemoveUserIDs(ids ...uuid.UUID) *DomainUpdateOne {
 	if duo.removedUsers == nil {
 		duo.removedUsers = make(map[uuid.UUID]struct{})
@@ -563,16 +563,16 @@ func (duo *DomainUpdateOne) RemoveUserIDs(ids ...uuid.UUID) *DomainUpdateOne {
 	return duo
 }
 
-// RemoveUsers removes users edges to User.
-func (duo *DomainUpdateOne) RemoveUsers(u ...*User) *DomainUpdateOne {
-	ids := make([]uuid.UUID, len(u))
-	for i := range u {
-		ids[i] = u[i].ID
+// RemoveUsers removes users edges to Person.
+func (duo *DomainUpdateOne) RemoveUsers(p ...*Person) *DomainUpdateOne {
+	ids := make([]uuid.UUID, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
 	}
 	return duo.RemoveUserIDs(ids...)
 }
 
-// RemoveAdminIDs removes the admins edge to User by ids.
+// RemoveAdminIDs removes the admins edge to Person by ids.
 func (duo *DomainUpdateOne) RemoveAdminIDs(ids ...uuid.UUID) *DomainUpdateOne {
 	if duo.removedAdmins == nil {
 		duo.removedAdmins = make(map[uuid.UUID]struct{})
@@ -583,11 +583,11 @@ func (duo *DomainUpdateOne) RemoveAdminIDs(ids ...uuid.UUID) *DomainUpdateOne {
 	return duo
 }
 
-// RemoveAdmins removes admins edges to User.
-func (duo *DomainUpdateOne) RemoveAdmins(u ...*User) *DomainUpdateOne {
-	ids := make([]uuid.UUID, len(u))
-	for i := range u {
-		ids[i] = u[i].ID
+// RemoveAdmins removes admins edges to Person.
+func (duo *DomainUpdateOne) RemoveAdmins(p ...*Person) *DomainUpdateOne {
+	ids := make([]uuid.UUID, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
 	}
 	return duo.RemoveAdminIDs(ids...)
 }
@@ -731,7 +731,7 @@ func (duo *DomainUpdateOne) sqlSave(ctx context.Context) (d *Domain, err error) 
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
-					Column: user.FieldID,
+					Column: person.FieldID,
 				},
 			},
 		}
@@ -750,7 +750,7 @@ func (duo *DomainUpdateOne) sqlSave(ctx context.Context) (d *Domain, err error) 
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
-					Column: user.FieldID,
+					Column: person.FieldID,
 				},
 			},
 		}
@@ -769,7 +769,7 @@ func (duo *DomainUpdateOne) sqlSave(ctx context.Context) (d *Domain, err error) 
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
-					Column: user.FieldID,
+					Column: person.FieldID,
 				},
 			},
 		}
@@ -788,7 +788,7 @@ func (duo *DomainUpdateOne) sqlSave(ctx context.Context) (d *Domain, err error) 
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
-					Column: user.FieldID,
+					Column: person.FieldID,
 				},
 			},
 		}

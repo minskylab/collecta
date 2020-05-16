@@ -222,6 +222,19 @@ func (iq *IPQuery) Clone() *IPQuery {
 
 // GroupBy used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
+//
+// Example:
+//
+//	var v []struct {
+//		IP string `json:"ip,omitempty"`
+//		Count int `json:"count,omitempty"`
+//	}
+//
+//	client.IP.Query().
+//		GroupBy(ip.FieldIP).
+//		Aggregate(ent.Count()).
+//		Scan(ctx, &v)
+//
 func (iq *IPQuery) GroupBy(field string, fields ...string) *IPGroupBy {
 	group := &IPGroupBy{config: iq.config}
 	group.fields = append([]string{field}, fields...)
@@ -230,6 +243,17 @@ func (iq *IPQuery) GroupBy(field string, fields ...string) *IPGroupBy {
 }
 
 // Select one or more fields from the given query.
+//
+// Example:
+//
+//	var v []struct {
+//		IP string `json:"ip,omitempty"`
+//	}
+//
+//	client.IP.Query().
+//		Select(ip.FieldIP).
+//		Scan(ctx, &v)
+//
 func (iq *IPQuery) Select(field string, fields ...string) *IPSelect {
 	selector := &IPSelect{config: iq.config}
 	selector.fields = append([]string{field}, fields...)

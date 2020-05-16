@@ -12,8 +12,8 @@ import (
 	"github.com/facebookincubator/ent/schema/field"
 	"github.com/google/uuid"
 	"github.com/minskylab/collecta/ent/contact"
+	"github.com/minskylab/collecta/ent/person"
 	"github.com/minskylab/collecta/ent/predicate"
-	"github.com/minskylab/collecta/ent/user"
 )
 
 // ContactUpdate is the builder for updating Contact entities.
@@ -88,7 +88,7 @@ func (cu *ContactUpdate) SetNillableFromAccount(b *bool) *ContactUpdate {
 	return cu
 }
 
-// SetOwnerID sets the owner edge to User by id.
+// SetOwnerID sets the owner edge to Person by id.
 func (cu *ContactUpdate) SetOwnerID(id uuid.UUID) *ContactUpdate {
 	if cu.owner == nil {
 		cu.owner = make(map[uuid.UUID]struct{})
@@ -97,12 +97,12 @@ func (cu *ContactUpdate) SetOwnerID(id uuid.UUID) *ContactUpdate {
 	return cu
 }
 
-// SetOwner sets the owner edge to User.
-func (cu *ContactUpdate) SetOwner(u *User) *ContactUpdate {
-	return cu.SetOwnerID(u.ID)
+// SetOwner sets the owner edge to Person.
+func (cu *ContactUpdate) SetOwner(p *Person) *ContactUpdate {
+	return cu.SetOwnerID(p.ID)
 }
 
-// ClearOwner clears the owner edge to User.
+// ClearOwner clears the owner edge to Person.
 func (cu *ContactUpdate) ClearOwner() *ContactUpdate {
 	cu.clearedOwner = true
 	return cu
@@ -221,7 +221,7 @@ func (cu *ContactUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
-					Column: user.FieldID,
+					Column: person.FieldID,
 				},
 			},
 		}
@@ -237,7 +237,7 @@ func (cu *ContactUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
-					Column: user.FieldID,
+					Column: person.FieldID,
 				},
 			},
 		}
@@ -323,7 +323,7 @@ func (cuo *ContactUpdateOne) SetNillableFromAccount(b *bool) *ContactUpdateOne {
 	return cuo
 }
 
-// SetOwnerID sets the owner edge to User by id.
+// SetOwnerID sets the owner edge to Person by id.
 func (cuo *ContactUpdateOne) SetOwnerID(id uuid.UUID) *ContactUpdateOne {
 	if cuo.owner == nil {
 		cuo.owner = make(map[uuid.UUID]struct{})
@@ -332,12 +332,12 @@ func (cuo *ContactUpdateOne) SetOwnerID(id uuid.UUID) *ContactUpdateOne {
 	return cuo
 }
 
-// SetOwner sets the owner edge to User.
-func (cuo *ContactUpdateOne) SetOwner(u *User) *ContactUpdateOne {
-	return cuo.SetOwnerID(u.ID)
+// SetOwner sets the owner edge to Person.
+func (cuo *ContactUpdateOne) SetOwner(p *Person) *ContactUpdateOne {
+	return cuo.SetOwnerID(p.ID)
 }
 
-// ClearOwner clears the owner edge to User.
+// ClearOwner clears the owner edge to Person.
 func (cuo *ContactUpdateOne) ClearOwner() *ContactUpdateOne {
 	cuo.clearedOwner = true
 	return cuo
@@ -450,7 +450,7 @@ func (cuo *ContactUpdateOne) sqlSave(ctx context.Context) (c *Contact, err error
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
-					Column: user.FieldID,
+					Column: person.FieldID,
 				},
 			},
 		}
@@ -466,7 +466,7 @@ func (cuo *ContactUpdateOne) sqlSave(ctx context.Context) (c *Contact, err error
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
-					Column: user.FieldID,
+					Column: person.FieldID,
 				},
 			},
 		}

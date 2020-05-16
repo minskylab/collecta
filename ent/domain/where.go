@@ -723,7 +723,7 @@ func HasUsers() predicate.Domain {
 }
 
 // HasUsersWith applies the HasEdge predicate on the "users" edge with a given conditions (other predicates).
-func HasUsersWith(preds ...predicate.User) predicate.Domain {
+func HasUsersWith(preds ...predicate.Person) predicate.Domain {
 	return predicate.Domain(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
@@ -751,7 +751,7 @@ func HasAdmins() predicate.Domain {
 }
 
 // HasAdminsWith applies the HasEdge predicate on the "admins" edge with a given conditions (other predicates).
-func HasAdminsWith(preds ...predicate.User) predicate.Domain {
+func HasAdminsWith(preds ...predicate.Person) predicate.Domain {
 	return predicate.Domain(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),

@@ -30,11 +30,11 @@ const (
 	Table = "contacts"
 	// OwnerTable is the table the holds the owner relation/edge.
 	OwnerTable = "contacts"
-	// OwnerInverseTable is the table name for the User entity.
-	// It exists in this package in order to avoid circular dependency with the "user" package.
-	OwnerInverseTable = "users"
+	// OwnerInverseTable is the table name for the Person entity.
+	// It exists in this package in order to avoid circular dependency with the "person" package.
+	OwnerInverseTable = "persons"
 	// OwnerColumn is the table column denoting the owner relation/edge.
-	OwnerColumn = "user_contacts"
+	OwnerColumn = "person_contacts"
 )
 
 // Columns holds all SQL columns for contact fields.
@@ -50,7 +50,7 @@ var Columns = []string{
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the Contact type.
 var ForeignKeys = []string{
-	"user_contacts",
+	"person_contacts",
 }
 
 var (

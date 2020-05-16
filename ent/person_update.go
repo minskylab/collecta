@@ -14,13 +14,13 @@ import (
 	"github.com/minskylab/collecta/ent/account"
 	"github.com/minskylab/collecta/ent/contact"
 	"github.com/minskylab/collecta/ent/domain"
+	"github.com/minskylab/collecta/ent/person"
 	"github.com/minskylab/collecta/ent/predicate"
 	"github.com/minskylab/collecta/ent/survey"
-	"github.com/minskylab/collecta/ent/user"
 )
 
-// UserUpdate is the builder for updating User entities.
-type UserUpdate struct {
+// PersonUpdate is the builder for updating Person entities.
+type PersonUpdate struct {
 	config
 	name            *string
 	lastActivity    *time.Time
@@ -40,303 +40,303 @@ type UserUpdate struct {
 	removedSurveys  map[uuid.UUID]struct{}
 	removedDomains  map[uuid.UUID]struct{}
 	removedAdminOf  map[uuid.UUID]struct{}
-	predicates      []predicate.User
+	predicates      []predicate.Person
 }
 
 // Where adds a new predicate for the builder.
-func (uu *UserUpdate) Where(ps ...predicate.User) *UserUpdate {
-	uu.predicates = append(uu.predicates, ps...)
-	return uu
+func (pu *PersonUpdate) Where(ps ...predicate.Person) *PersonUpdate {
+	pu.predicates = append(pu.predicates, ps...)
+	return pu
 }
 
 // SetName sets the name field.
-func (uu *UserUpdate) SetName(s string) *UserUpdate {
-	uu.name = &s
-	return uu
+func (pu *PersonUpdate) SetName(s string) *PersonUpdate {
+	pu.name = &s
+	return pu
 }
 
 // SetLastActivity sets the lastActivity field.
-func (uu *UserUpdate) SetLastActivity(t time.Time) *UserUpdate {
-	uu.lastActivity = &t
-	return uu
+func (pu *PersonUpdate) SetLastActivity(t time.Time) *PersonUpdate {
+	pu.lastActivity = &t
+	return pu
 }
 
 // SetNillableLastActivity sets the lastActivity field if the given value is not nil.
-func (uu *UserUpdate) SetNillableLastActivity(t *time.Time) *UserUpdate {
+func (pu *PersonUpdate) SetNillableLastActivity(t *time.Time) *PersonUpdate {
 	if t != nil {
-		uu.SetLastActivity(*t)
+		pu.SetLastActivity(*t)
 	}
-	return uu
+	return pu
 }
 
 // SetUsername sets the username field.
-func (uu *UserUpdate) SetUsername(s string) *UserUpdate {
-	uu.username = &s
-	return uu
+func (pu *PersonUpdate) SetUsername(s string) *PersonUpdate {
+	pu.username = &s
+	return pu
 }
 
 // SetNillableUsername sets the username field if the given value is not nil.
-func (uu *UserUpdate) SetNillableUsername(s *string) *UserUpdate {
+func (pu *PersonUpdate) SetNillableUsername(s *string) *PersonUpdate {
 	if s != nil {
-		uu.SetUsername(*s)
+		pu.SetUsername(*s)
 	}
-	return uu
+	return pu
 }
 
 // ClearUsername clears the value of username.
-func (uu *UserUpdate) ClearUsername() *UserUpdate {
-	uu.username = nil
-	uu.clearusername = true
-	return uu
+func (pu *PersonUpdate) ClearUsername() *PersonUpdate {
+	pu.username = nil
+	pu.clearusername = true
+	return pu
 }
 
 // SetPicture sets the picture field.
-func (uu *UserUpdate) SetPicture(s string) *UserUpdate {
-	uu.picture = &s
-	return uu
+func (pu *PersonUpdate) SetPicture(s string) *PersonUpdate {
+	pu.picture = &s
+	return pu
 }
 
 // SetNillablePicture sets the picture field if the given value is not nil.
-func (uu *UserUpdate) SetNillablePicture(s *string) *UserUpdate {
+func (pu *PersonUpdate) SetNillablePicture(s *string) *PersonUpdate {
 	if s != nil {
-		uu.SetPicture(*s)
+		pu.SetPicture(*s)
 	}
-	return uu
+	return pu
 }
 
 // ClearPicture clears the value of picture.
-func (uu *UserUpdate) ClearPicture() *UserUpdate {
-	uu.picture = nil
-	uu.clearpicture = true
-	return uu
+func (pu *PersonUpdate) ClearPicture() *PersonUpdate {
+	pu.picture = nil
+	pu.clearpicture = true
+	return pu
 }
 
 // SetRoles sets the roles field.
-func (uu *UserUpdate) SetRoles(s []string) *UserUpdate {
-	uu.roles = &s
-	return uu
+func (pu *PersonUpdate) SetRoles(s []string) *PersonUpdate {
+	pu.roles = &s
+	return pu
 }
 
 // ClearRoles clears the value of roles.
-func (uu *UserUpdate) ClearRoles() *UserUpdate {
-	uu.roles = nil
-	uu.clearroles = true
-	return uu
+func (pu *PersonUpdate) ClearRoles() *PersonUpdate {
+	pu.roles = nil
+	pu.clearroles = true
+	return pu
 }
 
 // AddAccountIDs adds the accounts edge to Account by ids.
-func (uu *UserUpdate) AddAccountIDs(ids ...uuid.UUID) *UserUpdate {
-	if uu.accounts == nil {
-		uu.accounts = make(map[uuid.UUID]struct{})
+func (pu *PersonUpdate) AddAccountIDs(ids ...uuid.UUID) *PersonUpdate {
+	if pu.accounts == nil {
+		pu.accounts = make(map[uuid.UUID]struct{})
 	}
 	for i := range ids {
-		uu.accounts[ids[i]] = struct{}{}
+		pu.accounts[ids[i]] = struct{}{}
 	}
-	return uu
+	return pu
 }
 
 // AddAccounts adds the accounts edges to Account.
-func (uu *UserUpdate) AddAccounts(a ...*Account) *UserUpdate {
+func (pu *PersonUpdate) AddAccounts(a ...*Account) *PersonUpdate {
 	ids := make([]uuid.UUID, len(a))
 	for i := range a {
 		ids[i] = a[i].ID
 	}
-	return uu.AddAccountIDs(ids...)
+	return pu.AddAccountIDs(ids...)
 }
 
 // AddContactIDs adds the contacts edge to Contact by ids.
-func (uu *UserUpdate) AddContactIDs(ids ...uuid.UUID) *UserUpdate {
-	if uu.contacts == nil {
-		uu.contacts = make(map[uuid.UUID]struct{})
+func (pu *PersonUpdate) AddContactIDs(ids ...uuid.UUID) *PersonUpdate {
+	if pu.contacts == nil {
+		pu.contacts = make(map[uuid.UUID]struct{})
 	}
 	for i := range ids {
-		uu.contacts[ids[i]] = struct{}{}
+		pu.contacts[ids[i]] = struct{}{}
 	}
-	return uu
+	return pu
 }
 
 // AddContacts adds the contacts edges to Contact.
-func (uu *UserUpdate) AddContacts(c ...*Contact) *UserUpdate {
+func (pu *PersonUpdate) AddContacts(c ...*Contact) *PersonUpdate {
 	ids := make([]uuid.UUID, len(c))
 	for i := range c {
 		ids[i] = c[i].ID
 	}
-	return uu.AddContactIDs(ids...)
+	return pu.AddContactIDs(ids...)
 }
 
 // AddSurveyIDs adds the surveys edge to Survey by ids.
-func (uu *UserUpdate) AddSurveyIDs(ids ...uuid.UUID) *UserUpdate {
-	if uu.surveys == nil {
-		uu.surveys = make(map[uuid.UUID]struct{})
+func (pu *PersonUpdate) AddSurveyIDs(ids ...uuid.UUID) *PersonUpdate {
+	if pu.surveys == nil {
+		pu.surveys = make(map[uuid.UUID]struct{})
 	}
 	for i := range ids {
-		uu.surveys[ids[i]] = struct{}{}
+		pu.surveys[ids[i]] = struct{}{}
 	}
-	return uu
+	return pu
 }
 
 // AddSurveys adds the surveys edges to Survey.
-func (uu *UserUpdate) AddSurveys(s ...*Survey) *UserUpdate {
+func (pu *PersonUpdate) AddSurveys(s ...*Survey) *PersonUpdate {
 	ids := make([]uuid.UUID, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}
-	return uu.AddSurveyIDs(ids...)
+	return pu.AddSurveyIDs(ids...)
 }
 
 // AddDomainIDs adds the domains edge to Domain by ids.
-func (uu *UserUpdate) AddDomainIDs(ids ...uuid.UUID) *UserUpdate {
-	if uu.domains == nil {
-		uu.domains = make(map[uuid.UUID]struct{})
+func (pu *PersonUpdate) AddDomainIDs(ids ...uuid.UUID) *PersonUpdate {
+	if pu.domains == nil {
+		pu.domains = make(map[uuid.UUID]struct{})
 	}
 	for i := range ids {
-		uu.domains[ids[i]] = struct{}{}
+		pu.domains[ids[i]] = struct{}{}
 	}
-	return uu
+	return pu
 }
 
 // AddDomains adds the domains edges to Domain.
-func (uu *UserUpdate) AddDomains(d ...*Domain) *UserUpdate {
+func (pu *PersonUpdate) AddDomains(d ...*Domain) *PersonUpdate {
 	ids := make([]uuid.UUID, len(d))
 	for i := range d {
 		ids[i] = d[i].ID
 	}
-	return uu.AddDomainIDs(ids...)
+	return pu.AddDomainIDs(ids...)
 }
 
 // AddAdminOfIDs adds the adminOf edge to Domain by ids.
-func (uu *UserUpdate) AddAdminOfIDs(ids ...uuid.UUID) *UserUpdate {
-	if uu.adminOf == nil {
-		uu.adminOf = make(map[uuid.UUID]struct{})
+func (pu *PersonUpdate) AddAdminOfIDs(ids ...uuid.UUID) *PersonUpdate {
+	if pu.adminOf == nil {
+		pu.adminOf = make(map[uuid.UUID]struct{})
 	}
 	for i := range ids {
-		uu.adminOf[ids[i]] = struct{}{}
+		pu.adminOf[ids[i]] = struct{}{}
 	}
-	return uu
+	return pu
 }
 
 // AddAdminOf adds the adminOf edges to Domain.
-func (uu *UserUpdate) AddAdminOf(d ...*Domain) *UserUpdate {
+func (pu *PersonUpdate) AddAdminOf(d ...*Domain) *PersonUpdate {
 	ids := make([]uuid.UUID, len(d))
 	for i := range d {
 		ids[i] = d[i].ID
 	}
-	return uu.AddAdminOfIDs(ids...)
+	return pu.AddAdminOfIDs(ids...)
 }
 
 // RemoveAccountIDs removes the accounts edge to Account by ids.
-func (uu *UserUpdate) RemoveAccountIDs(ids ...uuid.UUID) *UserUpdate {
-	if uu.removedAccounts == nil {
-		uu.removedAccounts = make(map[uuid.UUID]struct{})
+func (pu *PersonUpdate) RemoveAccountIDs(ids ...uuid.UUID) *PersonUpdate {
+	if pu.removedAccounts == nil {
+		pu.removedAccounts = make(map[uuid.UUID]struct{})
 	}
 	for i := range ids {
-		uu.removedAccounts[ids[i]] = struct{}{}
+		pu.removedAccounts[ids[i]] = struct{}{}
 	}
-	return uu
+	return pu
 }
 
 // RemoveAccounts removes accounts edges to Account.
-func (uu *UserUpdate) RemoveAccounts(a ...*Account) *UserUpdate {
+func (pu *PersonUpdate) RemoveAccounts(a ...*Account) *PersonUpdate {
 	ids := make([]uuid.UUID, len(a))
 	for i := range a {
 		ids[i] = a[i].ID
 	}
-	return uu.RemoveAccountIDs(ids...)
+	return pu.RemoveAccountIDs(ids...)
 }
 
 // RemoveContactIDs removes the contacts edge to Contact by ids.
-func (uu *UserUpdate) RemoveContactIDs(ids ...uuid.UUID) *UserUpdate {
-	if uu.removedContacts == nil {
-		uu.removedContacts = make(map[uuid.UUID]struct{})
+func (pu *PersonUpdate) RemoveContactIDs(ids ...uuid.UUID) *PersonUpdate {
+	if pu.removedContacts == nil {
+		pu.removedContacts = make(map[uuid.UUID]struct{})
 	}
 	for i := range ids {
-		uu.removedContacts[ids[i]] = struct{}{}
+		pu.removedContacts[ids[i]] = struct{}{}
 	}
-	return uu
+	return pu
 }
 
 // RemoveContacts removes contacts edges to Contact.
-func (uu *UserUpdate) RemoveContacts(c ...*Contact) *UserUpdate {
+func (pu *PersonUpdate) RemoveContacts(c ...*Contact) *PersonUpdate {
 	ids := make([]uuid.UUID, len(c))
 	for i := range c {
 		ids[i] = c[i].ID
 	}
-	return uu.RemoveContactIDs(ids...)
+	return pu.RemoveContactIDs(ids...)
 }
 
 // RemoveSurveyIDs removes the surveys edge to Survey by ids.
-func (uu *UserUpdate) RemoveSurveyIDs(ids ...uuid.UUID) *UserUpdate {
-	if uu.removedSurveys == nil {
-		uu.removedSurveys = make(map[uuid.UUID]struct{})
+func (pu *PersonUpdate) RemoveSurveyIDs(ids ...uuid.UUID) *PersonUpdate {
+	if pu.removedSurveys == nil {
+		pu.removedSurveys = make(map[uuid.UUID]struct{})
 	}
 	for i := range ids {
-		uu.removedSurveys[ids[i]] = struct{}{}
+		pu.removedSurveys[ids[i]] = struct{}{}
 	}
-	return uu
+	return pu
 }
 
 // RemoveSurveys removes surveys edges to Survey.
-func (uu *UserUpdate) RemoveSurveys(s ...*Survey) *UserUpdate {
+func (pu *PersonUpdate) RemoveSurveys(s ...*Survey) *PersonUpdate {
 	ids := make([]uuid.UUID, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}
-	return uu.RemoveSurveyIDs(ids...)
+	return pu.RemoveSurveyIDs(ids...)
 }
 
 // RemoveDomainIDs removes the domains edge to Domain by ids.
-func (uu *UserUpdate) RemoveDomainIDs(ids ...uuid.UUID) *UserUpdate {
-	if uu.removedDomains == nil {
-		uu.removedDomains = make(map[uuid.UUID]struct{})
+func (pu *PersonUpdate) RemoveDomainIDs(ids ...uuid.UUID) *PersonUpdate {
+	if pu.removedDomains == nil {
+		pu.removedDomains = make(map[uuid.UUID]struct{})
 	}
 	for i := range ids {
-		uu.removedDomains[ids[i]] = struct{}{}
+		pu.removedDomains[ids[i]] = struct{}{}
 	}
-	return uu
+	return pu
 }
 
 // RemoveDomains removes domains edges to Domain.
-func (uu *UserUpdate) RemoveDomains(d ...*Domain) *UserUpdate {
+func (pu *PersonUpdate) RemoveDomains(d ...*Domain) *PersonUpdate {
 	ids := make([]uuid.UUID, len(d))
 	for i := range d {
 		ids[i] = d[i].ID
 	}
-	return uu.RemoveDomainIDs(ids...)
+	return pu.RemoveDomainIDs(ids...)
 }
 
 // RemoveAdminOfIDs removes the adminOf edge to Domain by ids.
-func (uu *UserUpdate) RemoveAdminOfIDs(ids ...uuid.UUID) *UserUpdate {
-	if uu.removedAdminOf == nil {
-		uu.removedAdminOf = make(map[uuid.UUID]struct{})
+func (pu *PersonUpdate) RemoveAdminOfIDs(ids ...uuid.UUID) *PersonUpdate {
+	if pu.removedAdminOf == nil {
+		pu.removedAdminOf = make(map[uuid.UUID]struct{})
 	}
 	for i := range ids {
-		uu.removedAdminOf[ids[i]] = struct{}{}
+		pu.removedAdminOf[ids[i]] = struct{}{}
 	}
-	return uu
+	return pu
 }
 
 // RemoveAdminOf removes adminOf edges to Domain.
-func (uu *UserUpdate) RemoveAdminOf(d ...*Domain) *UserUpdate {
+func (pu *PersonUpdate) RemoveAdminOf(d ...*Domain) *PersonUpdate {
 	ids := make([]uuid.UUID, len(d))
 	for i := range d {
 		ids[i] = d[i].ID
 	}
-	return uu.RemoveAdminOfIDs(ids...)
+	return pu.RemoveAdminOfIDs(ids...)
 }
 
 // Save executes the query and returns the number of rows/vertices matched by this operation.
-func (uu *UserUpdate) Save(ctx context.Context) (int, error) {
-	if uu.name != nil {
-		if err := user.NameValidator(*uu.name); err != nil {
+func (pu *PersonUpdate) Save(ctx context.Context) (int, error) {
+	if pu.name != nil {
+		if err := person.NameValidator(*pu.name); err != nil {
 			return 0, fmt.Errorf("ent: validator failed for field \"name\": %v", err)
 		}
 	}
-	return uu.sqlSave(ctx)
+	return pu.sqlSave(ctx)
 }
 
 // SaveX is like Save, but panics if an error occurs.
-func (uu *UserUpdate) SaveX(ctx context.Context) int {
-	affected, err := uu.Save(ctx)
+func (pu *PersonUpdate) SaveX(ctx context.Context) int {
+	affected, err := pu.Save(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -344,95 +344,95 @@ func (uu *UserUpdate) SaveX(ctx context.Context) int {
 }
 
 // Exec executes the query.
-func (uu *UserUpdate) Exec(ctx context.Context) error {
-	_, err := uu.Save(ctx)
+func (pu *PersonUpdate) Exec(ctx context.Context) error {
+	_, err := pu.Save(ctx)
 	return err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (uu *UserUpdate) ExecX(ctx context.Context) {
-	if err := uu.Exec(ctx); err != nil {
+func (pu *PersonUpdate) ExecX(ctx context.Context) {
+	if err := pu.Exec(ctx); err != nil {
 		panic(err)
 	}
 }
 
-func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
+func (pu *PersonUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	_spec := &sqlgraph.UpdateSpec{
 		Node: &sqlgraph.NodeSpec{
-			Table:   user.Table,
-			Columns: user.Columns,
+			Table:   person.Table,
+			Columns: person.Columns,
 			ID: &sqlgraph.FieldSpec{
 				Type:   field.TypeUUID,
-				Column: user.FieldID,
+				Column: person.FieldID,
 			},
 		},
 	}
-	if ps := uu.predicates; len(ps) > 0 {
+	if ps := pu.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
 	}
-	if value := uu.name; value != nil {
+	if value := pu.name; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
-			Column: user.FieldName,
+			Column: person.FieldName,
 		})
 	}
-	if value := uu.lastActivity; value != nil {
+	if value := pu.lastActivity; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  *value,
-			Column: user.FieldLastActivity,
+			Column: person.FieldLastActivity,
 		})
 	}
-	if value := uu.username; value != nil {
+	if value := pu.username; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
-			Column: user.FieldUsername,
+			Column: person.FieldUsername,
 		})
 	}
-	if uu.clearusername {
+	if pu.clearusername {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Column: user.FieldUsername,
+			Column: person.FieldUsername,
 		})
 	}
-	if value := uu.picture; value != nil {
+	if value := pu.picture; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
-			Column: user.FieldPicture,
+			Column: person.FieldPicture,
 		})
 	}
-	if uu.clearpicture {
+	if pu.clearpicture {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Column: user.FieldPicture,
+			Column: person.FieldPicture,
 		})
 	}
-	if value := uu.roles; value != nil {
+	if value := pu.roles; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeJSON,
 			Value:  *value,
-			Column: user.FieldRoles,
+			Column: person.FieldRoles,
 		})
 	}
-	if uu.clearroles {
+	if pu.clearroles {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeJSON,
-			Column: user.FieldRoles,
+			Column: person.FieldRoles,
 		})
 	}
-	if nodes := uu.removedAccounts; len(nodes) > 0 {
+	if nodes := pu.removedAccounts; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   user.AccountsTable,
-			Columns: []string{user.AccountsColumn},
+			Table:   person.AccountsTable,
+			Columns: []string{person.AccountsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -446,12 +446,12 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := uu.accounts; len(nodes) > 0 {
+	if nodes := pu.accounts; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   user.AccountsTable,
-			Columns: []string{user.AccountsColumn},
+			Table:   person.AccountsTable,
+			Columns: []string{person.AccountsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -465,12 +465,12 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if nodes := uu.removedContacts; len(nodes) > 0 {
+	if nodes := pu.removedContacts; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   user.ContactsTable,
-			Columns: []string{user.ContactsColumn},
+			Table:   person.ContactsTable,
+			Columns: []string{person.ContactsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -484,12 +484,12 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := uu.contacts; len(nodes) > 0 {
+	if nodes := pu.contacts; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   user.ContactsTable,
-			Columns: []string{user.ContactsColumn},
+			Table:   person.ContactsTable,
+			Columns: []string{person.ContactsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -503,12 +503,12 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if nodes := uu.removedSurveys; len(nodes) > 0 {
+	if nodes := pu.removedSurveys; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   user.SurveysTable,
-			Columns: []string{user.SurveysColumn},
+			Table:   person.SurveysTable,
+			Columns: []string{person.SurveysColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -522,12 +522,12 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := uu.surveys; len(nodes) > 0 {
+	if nodes := pu.surveys; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   user.SurveysTable,
-			Columns: []string{user.SurveysColumn},
+			Table:   person.SurveysTable,
+			Columns: []string{person.SurveysColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -541,12 +541,12 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if nodes := uu.removedDomains; len(nodes) > 0 {
+	if nodes := pu.removedDomains; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
 			Inverse: true,
-			Table:   user.DomainsTable,
-			Columns: user.DomainsPrimaryKey,
+			Table:   person.DomainsTable,
+			Columns: person.DomainsPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -560,12 +560,12 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := uu.domains; len(nodes) > 0 {
+	if nodes := pu.domains; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
 			Inverse: true,
-			Table:   user.DomainsTable,
-			Columns: user.DomainsPrimaryKey,
+			Table:   person.DomainsTable,
+			Columns: person.DomainsPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -579,12 +579,12 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if nodes := uu.removedAdminOf; len(nodes) > 0 {
+	if nodes := pu.removedAdminOf; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
 			Inverse: true,
-			Table:   user.AdminOfTable,
-			Columns: user.AdminOfPrimaryKey,
+			Table:   person.AdminOfTable,
+			Columns: person.AdminOfPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -598,12 +598,12 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := uu.adminOf; len(nodes) > 0 {
+	if nodes := pu.adminOf; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
 			Inverse: true,
-			Table:   user.AdminOfTable,
-			Columns: user.AdminOfPrimaryKey,
+			Table:   person.AdminOfTable,
+			Columns: person.AdminOfPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -617,9 +617,9 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if n, err = sqlgraph.UpdateNodes(ctx, uu.driver, _spec); err != nil {
+	if n, err = sqlgraph.UpdateNodes(ctx, pu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
-			err = &NotFoundError{user.Label}
+			err = &NotFoundError{person.Label}
 		} else if cerr, ok := isSQLConstraintError(err); ok {
 			err = cerr
 		}
@@ -628,8 +628,8 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	return n, nil
 }
 
-// UserUpdateOne is the builder for updating a single User entity.
-type UserUpdateOne struct {
+// PersonUpdateOne is the builder for updating a single Person entity.
+type PersonUpdateOne struct {
 	config
 	id              uuid.UUID
 	name            *string
@@ -653,383 +653,383 @@ type UserUpdateOne struct {
 }
 
 // SetName sets the name field.
-func (uuo *UserUpdateOne) SetName(s string) *UserUpdateOne {
-	uuo.name = &s
-	return uuo
+func (puo *PersonUpdateOne) SetName(s string) *PersonUpdateOne {
+	puo.name = &s
+	return puo
 }
 
 // SetLastActivity sets the lastActivity field.
-func (uuo *UserUpdateOne) SetLastActivity(t time.Time) *UserUpdateOne {
-	uuo.lastActivity = &t
-	return uuo
+func (puo *PersonUpdateOne) SetLastActivity(t time.Time) *PersonUpdateOne {
+	puo.lastActivity = &t
+	return puo
 }
 
 // SetNillableLastActivity sets the lastActivity field if the given value is not nil.
-func (uuo *UserUpdateOne) SetNillableLastActivity(t *time.Time) *UserUpdateOne {
+func (puo *PersonUpdateOne) SetNillableLastActivity(t *time.Time) *PersonUpdateOne {
 	if t != nil {
-		uuo.SetLastActivity(*t)
+		puo.SetLastActivity(*t)
 	}
-	return uuo
+	return puo
 }
 
 // SetUsername sets the username field.
-func (uuo *UserUpdateOne) SetUsername(s string) *UserUpdateOne {
-	uuo.username = &s
-	return uuo
+func (puo *PersonUpdateOne) SetUsername(s string) *PersonUpdateOne {
+	puo.username = &s
+	return puo
 }
 
 // SetNillableUsername sets the username field if the given value is not nil.
-func (uuo *UserUpdateOne) SetNillableUsername(s *string) *UserUpdateOne {
+func (puo *PersonUpdateOne) SetNillableUsername(s *string) *PersonUpdateOne {
 	if s != nil {
-		uuo.SetUsername(*s)
+		puo.SetUsername(*s)
 	}
-	return uuo
+	return puo
 }
 
 // ClearUsername clears the value of username.
-func (uuo *UserUpdateOne) ClearUsername() *UserUpdateOne {
-	uuo.username = nil
-	uuo.clearusername = true
-	return uuo
+func (puo *PersonUpdateOne) ClearUsername() *PersonUpdateOne {
+	puo.username = nil
+	puo.clearusername = true
+	return puo
 }
 
 // SetPicture sets the picture field.
-func (uuo *UserUpdateOne) SetPicture(s string) *UserUpdateOne {
-	uuo.picture = &s
-	return uuo
+func (puo *PersonUpdateOne) SetPicture(s string) *PersonUpdateOne {
+	puo.picture = &s
+	return puo
 }
 
 // SetNillablePicture sets the picture field if the given value is not nil.
-func (uuo *UserUpdateOne) SetNillablePicture(s *string) *UserUpdateOne {
+func (puo *PersonUpdateOne) SetNillablePicture(s *string) *PersonUpdateOne {
 	if s != nil {
-		uuo.SetPicture(*s)
+		puo.SetPicture(*s)
 	}
-	return uuo
+	return puo
 }
 
 // ClearPicture clears the value of picture.
-func (uuo *UserUpdateOne) ClearPicture() *UserUpdateOne {
-	uuo.picture = nil
-	uuo.clearpicture = true
-	return uuo
+func (puo *PersonUpdateOne) ClearPicture() *PersonUpdateOne {
+	puo.picture = nil
+	puo.clearpicture = true
+	return puo
 }
 
 // SetRoles sets the roles field.
-func (uuo *UserUpdateOne) SetRoles(s []string) *UserUpdateOne {
-	uuo.roles = &s
-	return uuo
+func (puo *PersonUpdateOne) SetRoles(s []string) *PersonUpdateOne {
+	puo.roles = &s
+	return puo
 }
 
 // ClearRoles clears the value of roles.
-func (uuo *UserUpdateOne) ClearRoles() *UserUpdateOne {
-	uuo.roles = nil
-	uuo.clearroles = true
-	return uuo
+func (puo *PersonUpdateOne) ClearRoles() *PersonUpdateOne {
+	puo.roles = nil
+	puo.clearroles = true
+	return puo
 }
 
 // AddAccountIDs adds the accounts edge to Account by ids.
-func (uuo *UserUpdateOne) AddAccountIDs(ids ...uuid.UUID) *UserUpdateOne {
-	if uuo.accounts == nil {
-		uuo.accounts = make(map[uuid.UUID]struct{})
+func (puo *PersonUpdateOne) AddAccountIDs(ids ...uuid.UUID) *PersonUpdateOne {
+	if puo.accounts == nil {
+		puo.accounts = make(map[uuid.UUID]struct{})
 	}
 	for i := range ids {
-		uuo.accounts[ids[i]] = struct{}{}
+		puo.accounts[ids[i]] = struct{}{}
 	}
-	return uuo
+	return puo
 }
 
 // AddAccounts adds the accounts edges to Account.
-func (uuo *UserUpdateOne) AddAccounts(a ...*Account) *UserUpdateOne {
+func (puo *PersonUpdateOne) AddAccounts(a ...*Account) *PersonUpdateOne {
 	ids := make([]uuid.UUID, len(a))
 	for i := range a {
 		ids[i] = a[i].ID
 	}
-	return uuo.AddAccountIDs(ids...)
+	return puo.AddAccountIDs(ids...)
 }
 
 // AddContactIDs adds the contacts edge to Contact by ids.
-func (uuo *UserUpdateOne) AddContactIDs(ids ...uuid.UUID) *UserUpdateOne {
-	if uuo.contacts == nil {
-		uuo.contacts = make(map[uuid.UUID]struct{})
+func (puo *PersonUpdateOne) AddContactIDs(ids ...uuid.UUID) *PersonUpdateOne {
+	if puo.contacts == nil {
+		puo.contacts = make(map[uuid.UUID]struct{})
 	}
 	for i := range ids {
-		uuo.contacts[ids[i]] = struct{}{}
+		puo.contacts[ids[i]] = struct{}{}
 	}
-	return uuo
+	return puo
 }
 
 // AddContacts adds the contacts edges to Contact.
-func (uuo *UserUpdateOne) AddContacts(c ...*Contact) *UserUpdateOne {
+func (puo *PersonUpdateOne) AddContacts(c ...*Contact) *PersonUpdateOne {
 	ids := make([]uuid.UUID, len(c))
 	for i := range c {
 		ids[i] = c[i].ID
 	}
-	return uuo.AddContactIDs(ids...)
+	return puo.AddContactIDs(ids...)
 }
 
 // AddSurveyIDs adds the surveys edge to Survey by ids.
-func (uuo *UserUpdateOne) AddSurveyIDs(ids ...uuid.UUID) *UserUpdateOne {
-	if uuo.surveys == nil {
-		uuo.surveys = make(map[uuid.UUID]struct{})
+func (puo *PersonUpdateOne) AddSurveyIDs(ids ...uuid.UUID) *PersonUpdateOne {
+	if puo.surveys == nil {
+		puo.surveys = make(map[uuid.UUID]struct{})
 	}
 	for i := range ids {
-		uuo.surveys[ids[i]] = struct{}{}
+		puo.surveys[ids[i]] = struct{}{}
 	}
-	return uuo
+	return puo
 }
 
 // AddSurveys adds the surveys edges to Survey.
-func (uuo *UserUpdateOne) AddSurveys(s ...*Survey) *UserUpdateOne {
+func (puo *PersonUpdateOne) AddSurveys(s ...*Survey) *PersonUpdateOne {
 	ids := make([]uuid.UUID, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}
-	return uuo.AddSurveyIDs(ids...)
+	return puo.AddSurveyIDs(ids...)
 }
 
 // AddDomainIDs adds the domains edge to Domain by ids.
-func (uuo *UserUpdateOne) AddDomainIDs(ids ...uuid.UUID) *UserUpdateOne {
-	if uuo.domains == nil {
-		uuo.domains = make(map[uuid.UUID]struct{})
+func (puo *PersonUpdateOne) AddDomainIDs(ids ...uuid.UUID) *PersonUpdateOne {
+	if puo.domains == nil {
+		puo.domains = make(map[uuid.UUID]struct{})
 	}
 	for i := range ids {
-		uuo.domains[ids[i]] = struct{}{}
+		puo.domains[ids[i]] = struct{}{}
 	}
-	return uuo
+	return puo
 }
 
 // AddDomains adds the domains edges to Domain.
-func (uuo *UserUpdateOne) AddDomains(d ...*Domain) *UserUpdateOne {
+func (puo *PersonUpdateOne) AddDomains(d ...*Domain) *PersonUpdateOne {
 	ids := make([]uuid.UUID, len(d))
 	for i := range d {
 		ids[i] = d[i].ID
 	}
-	return uuo.AddDomainIDs(ids...)
+	return puo.AddDomainIDs(ids...)
 }
 
 // AddAdminOfIDs adds the adminOf edge to Domain by ids.
-func (uuo *UserUpdateOne) AddAdminOfIDs(ids ...uuid.UUID) *UserUpdateOne {
-	if uuo.adminOf == nil {
-		uuo.adminOf = make(map[uuid.UUID]struct{})
+func (puo *PersonUpdateOne) AddAdminOfIDs(ids ...uuid.UUID) *PersonUpdateOne {
+	if puo.adminOf == nil {
+		puo.adminOf = make(map[uuid.UUID]struct{})
 	}
 	for i := range ids {
-		uuo.adminOf[ids[i]] = struct{}{}
+		puo.adminOf[ids[i]] = struct{}{}
 	}
-	return uuo
+	return puo
 }
 
 // AddAdminOf adds the adminOf edges to Domain.
-func (uuo *UserUpdateOne) AddAdminOf(d ...*Domain) *UserUpdateOne {
+func (puo *PersonUpdateOne) AddAdminOf(d ...*Domain) *PersonUpdateOne {
 	ids := make([]uuid.UUID, len(d))
 	for i := range d {
 		ids[i] = d[i].ID
 	}
-	return uuo.AddAdminOfIDs(ids...)
+	return puo.AddAdminOfIDs(ids...)
 }
 
 // RemoveAccountIDs removes the accounts edge to Account by ids.
-func (uuo *UserUpdateOne) RemoveAccountIDs(ids ...uuid.UUID) *UserUpdateOne {
-	if uuo.removedAccounts == nil {
-		uuo.removedAccounts = make(map[uuid.UUID]struct{})
+func (puo *PersonUpdateOne) RemoveAccountIDs(ids ...uuid.UUID) *PersonUpdateOne {
+	if puo.removedAccounts == nil {
+		puo.removedAccounts = make(map[uuid.UUID]struct{})
 	}
 	for i := range ids {
-		uuo.removedAccounts[ids[i]] = struct{}{}
+		puo.removedAccounts[ids[i]] = struct{}{}
 	}
-	return uuo
+	return puo
 }
 
 // RemoveAccounts removes accounts edges to Account.
-func (uuo *UserUpdateOne) RemoveAccounts(a ...*Account) *UserUpdateOne {
+func (puo *PersonUpdateOne) RemoveAccounts(a ...*Account) *PersonUpdateOne {
 	ids := make([]uuid.UUID, len(a))
 	for i := range a {
 		ids[i] = a[i].ID
 	}
-	return uuo.RemoveAccountIDs(ids...)
+	return puo.RemoveAccountIDs(ids...)
 }
 
 // RemoveContactIDs removes the contacts edge to Contact by ids.
-func (uuo *UserUpdateOne) RemoveContactIDs(ids ...uuid.UUID) *UserUpdateOne {
-	if uuo.removedContacts == nil {
-		uuo.removedContacts = make(map[uuid.UUID]struct{})
+func (puo *PersonUpdateOne) RemoveContactIDs(ids ...uuid.UUID) *PersonUpdateOne {
+	if puo.removedContacts == nil {
+		puo.removedContacts = make(map[uuid.UUID]struct{})
 	}
 	for i := range ids {
-		uuo.removedContacts[ids[i]] = struct{}{}
+		puo.removedContacts[ids[i]] = struct{}{}
 	}
-	return uuo
+	return puo
 }
 
 // RemoveContacts removes contacts edges to Contact.
-func (uuo *UserUpdateOne) RemoveContacts(c ...*Contact) *UserUpdateOne {
+func (puo *PersonUpdateOne) RemoveContacts(c ...*Contact) *PersonUpdateOne {
 	ids := make([]uuid.UUID, len(c))
 	for i := range c {
 		ids[i] = c[i].ID
 	}
-	return uuo.RemoveContactIDs(ids...)
+	return puo.RemoveContactIDs(ids...)
 }
 
 // RemoveSurveyIDs removes the surveys edge to Survey by ids.
-func (uuo *UserUpdateOne) RemoveSurveyIDs(ids ...uuid.UUID) *UserUpdateOne {
-	if uuo.removedSurveys == nil {
-		uuo.removedSurveys = make(map[uuid.UUID]struct{})
+func (puo *PersonUpdateOne) RemoveSurveyIDs(ids ...uuid.UUID) *PersonUpdateOne {
+	if puo.removedSurveys == nil {
+		puo.removedSurveys = make(map[uuid.UUID]struct{})
 	}
 	for i := range ids {
-		uuo.removedSurveys[ids[i]] = struct{}{}
+		puo.removedSurveys[ids[i]] = struct{}{}
 	}
-	return uuo
+	return puo
 }
 
 // RemoveSurveys removes surveys edges to Survey.
-func (uuo *UserUpdateOne) RemoveSurveys(s ...*Survey) *UserUpdateOne {
+func (puo *PersonUpdateOne) RemoveSurveys(s ...*Survey) *PersonUpdateOne {
 	ids := make([]uuid.UUID, len(s))
 	for i := range s {
 		ids[i] = s[i].ID
 	}
-	return uuo.RemoveSurveyIDs(ids...)
+	return puo.RemoveSurveyIDs(ids...)
 }
 
 // RemoveDomainIDs removes the domains edge to Domain by ids.
-func (uuo *UserUpdateOne) RemoveDomainIDs(ids ...uuid.UUID) *UserUpdateOne {
-	if uuo.removedDomains == nil {
-		uuo.removedDomains = make(map[uuid.UUID]struct{})
+func (puo *PersonUpdateOne) RemoveDomainIDs(ids ...uuid.UUID) *PersonUpdateOne {
+	if puo.removedDomains == nil {
+		puo.removedDomains = make(map[uuid.UUID]struct{})
 	}
 	for i := range ids {
-		uuo.removedDomains[ids[i]] = struct{}{}
+		puo.removedDomains[ids[i]] = struct{}{}
 	}
-	return uuo
+	return puo
 }
 
 // RemoveDomains removes domains edges to Domain.
-func (uuo *UserUpdateOne) RemoveDomains(d ...*Domain) *UserUpdateOne {
+func (puo *PersonUpdateOne) RemoveDomains(d ...*Domain) *PersonUpdateOne {
 	ids := make([]uuid.UUID, len(d))
 	for i := range d {
 		ids[i] = d[i].ID
 	}
-	return uuo.RemoveDomainIDs(ids...)
+	return puo.RemoveDomainIDs(ids...)
 }
 
 // RemoveAdminOfIDs removes the adminOf edge to Domain by ids.
-func (uuo *UserUpdateOne) RemoveAdminOfIDs(ids ...uuid.UUID) *UserUpdateOne {
-	if uuo.removedAdminOf == nil {
-		uuo.removedAdminOf = make(map[uuid.UUID]struct{})
+func (puo *PersonUpdateOne) RemoveAdminOfIDs(ids ...uuid.UUID) *PersonUpdateOne {
+	if puo.removedAdminOf == nil {
+		puo.removedAdminOf = make(map[uuid.UUID]struct{})
 	}
 	for i := range ids {
-		uuo.removedAdminOf[ids[i]] = struct{}{}
+		puo.removedAdminOf[ids[i]] = struct{}{}
 	}
-	return uuo
+	return puo
 }
 
 // RemoveAdminOf removes adminOf edges to Domain.
-func (uuo *UserUpdateOne) RemoveAdminOf(d ...*Domain) *UserUpdateOne {
+func (puo *PersonUpdateOne) RemoveAdminOf(d ...*Domain) *PersonUpdateOne {
 	ids := make([]uuid.UUID, len(d))
 	for i := range d {
 		ids[i] = d[i].ID
 	}
-	return uuo.RemoveAdminOfIDs(ids...)
+	return puo.RemoveAdminOfIDs(ids...)
 }
 
 // Save executes the query and returns the updated entity.
-func (uuo *UserUpdateOne) Save(ctx context.Context) (*User, error) {
-	if uuo.name != nil {
-		if err := user.NameValidator(*uuo.name); err != nil {
+func (puo *PersonUpdateOne) Save(ctx context.Context) (*Person, error) {
+	if puo.name != nil {
+		if err := person.NameValidator(*puo.name); err != nil {
 			return nil, fmt.Errorf("ent: validator failed for field \"name\": %v", err)
 		}
 	}
-	return uuo.sqlSave(ctx)
+	return puo.sqlSave(ctx)
 }
 
 // SaveX is like Save, but panics if an error occurs.
-func (uuo *UserUpdateOne) SaveX(ctx context.Context) *User {
-	u, err := uuo.Save(ctx)
+func (puo *PersonUpdateOne) SaveX(ctx context.Context) *Person {
+	pe, err := puo.Save(ctx)
 	if err != nil {
 		panic(err)
 	}
-	return u
+	return pe
 }
 
 // Exec executes the query on the entity.
-func (uuo *UserUpdateOne) Exec(ctx context.Context) error {
-	_, err := uuo.Save(ctx)
+func (puo *PersonUpdateOne) Exec(ctx context.Context) error {
+	_, err := puo.Save(ctx)
 	return err
 }
 
 // ExecX is like Exec, but panics if an error occurs.
-func (uuo *UserUpdateOne) ExecX(ctx context.Context) {
-	if err := uuo.Exec(ctx); err != nil {
+func (puo *PersonUpdateOne) ExecX(ctx context.Context) {
+	if err := puo.Exec(ctx); err != nil {
 		panic(err)
 	}
 }
 
-func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (u *User, err error) {
+func (puo *PersonUpdateOne) sqlSave(ctx context.Context) (pe *Person, err error) {
 	_spec := &sqlgraph.UpdateSpec{
 		Node: &sqlgraph.NodeSpec{
-			Table:   user.Table,
-			Columns: user.Columns,
+			Table:   person.Table,
+			Columns: person.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Value:  uuo.id,
+				Value:  puo.id,
 				Type:   field.TypeUUID,
-				Column: user.FieldID,
+				Column: person.FieldID,
 			},
 		},
 	}
-	if value := uuo.name; value != nil {
+	if value := puo.name; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
-			Column: user.FieldName,
+			Column: person.FieldName,
 		})
 	}
-	if value := uuo.lastActivity; value != nil {
+	if value := puo.lastActivity; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  *value,
-			Column: user.FieldLastActivity,
+			Column: person.FieldLastActivity,
 		})
 	}
-	if value := uuo.username; value != nil {
+	if value := puo.username; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
-			Column: user.FieldUsername,
+			Column: person.FieldUsername,
 		})
 	}
-	if uuo.clearusername {
+	if puo.clearusername {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Column: user.FieldUsername,
+			Column: person.FieldUsername,
 		})
 	}
-	if value := uuo.picture; value != nil {
+	if value := puo.picture; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  *value,
-			Column: user.FieldPicture,
+			Column: person.FieldPicture,
 		})
 	}
-	if uuo.clearpicture {
+	if puo.clearpicture {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Column: user.FieldPicture,
+			Column: person.FieldPicture,
 		})
 	}
-	if value := uuo.roles; value != nil {
+	if value := puo.roles; value != nil {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeJSON,
 			Value:  *value,
-			Column: user.FieldRoles,
+			Column: person.FieldRoles,
 		})
 	}
-	if uuo.clearroles {
+	if puo.clearroles {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeJSON,
-			Column: user.FieldRoles,
+			Column: person.FieldRoles,
 		})
 	}
-	if nodes := uuo.removedAccounts; len(nodes) > 0 {
+	if nodes := puo.removedAccounts; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   user.AccountsTable,
-			Columns: []string{user.AccountsColumn},
+			Table:   person.AccountsTable,
+			Columns: []string{person.AccountsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -1043,12 +1043,12 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (u *User, err error) {
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := uuo.accounts; len(nodes) > 0 {
+	if nodes := puo.accounts; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   user.AccountsTable,
-			Columns: []string{user.AccountsColumn},
+			Table:   person.AccountsTable,
+			Columns: []string{person.AccountsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -1062,12 +1062,12 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (u *User, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if nodes := uuo.removedContacts; len(nodes) > 0 {
+	if nodes := puo.removedContacts; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   user.ContactsTable,
-			Columns: []string{user.ContactsColumn},
+			Table:   person.ContactsTable,
+			Columns: []string{person.ContactsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -1081,12 +1081,12 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (u *User, err error) {
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := uuo.contacts; len(nodes) > 0 {
+	if nodes := puo.contacts; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   user.ContactsTable,
-			Columns: []string{user.ContactsColumn},
+			Table:   person.ContactsTable,
+			Columns: []string{person.ContactsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -1100,12 +1100,12 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (u *User, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if nodes := uuo.removedSurveys; len(nodes) > 0 {
+	if nodes := puo.removedSurveys; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   user.SurveysTable,
-			Columns: []string{user.SurveysColumn},
+			Table:   person.SurveysTable,
+			Columns: []string{person.SurveysColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -1119,12 +1119,12 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (u *User, err error) {
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := uuo.surveys; len(nodes) > 0 {
+	if nodes := puo.surveys; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   user.SurveysTable,
-			Columns: []string{user.SurveysColumn},
+			Table:   person.SurveysTable,
+			Columns: []string{person.SurveysColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -1138,12 +1138,12 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (u *User, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if nodes := uuo.removedDomains; len(nodes) > 0 {
+	if nodes := puo.removedDomains; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
 			Inverse: true,
-			Table:   user.DomainsTable,
-			Columns: user.DomainsPrimaryKey,
+			Table:   person.DomainsTable,
+			Columns: person.DomainsPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -1157,12 +1157,12 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (u *User, err error) {
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := uuo.domains; len(nodes) > 0 {
+	if nodes := puo.domains; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
 			Inverse: true,
-			Table:   user.DomainsTable,
-			Columns: user.DomainsPrimaryKey,
+			Table:   person.DomainsTable,
+			Columns: person.DomainsPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -1176,12 +1176,12 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (u *User, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if nodes := uuo.removedAdminOf; len(nodes) > 0 {
+	if nodes := puo.removedAdminOf; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
 			Inverse: true,
-			Table:   user.AdminOfTable,
-			Columns: user.AdminOfPrimaryKey,
+			Table:   person.AdminOfTable,
+			Columns: person.AdminOfPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -1195,12 +1195,12 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (u *User, err error) {
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := uuo.adminOf; len(nodes) > 0 {
+	if nodes := puo.adminOf; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
 			Inverse: true,
-			Table:   user.AdminOfTable,
-			Columns: user.AdminOfPrimaryKey,
+			Table:   person.AdminOfTable,
+			Columns: person.AdminOfPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -1214,16 +1214,16 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (u *User, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	u = &User{config: uuo.config}
-	_spec.Assign = u.assignValues
-	_spec.ScanValues = u.scanValues()
-	if err = sqlgraph.UpdateNode(ctx, uuo.driver, _spec); err != nil {
+	pe = &Person{config: puo.config}
+	_spec.Assign = pe.assignValues
+	_spec.ScanValues = pe.scanValues()
+	if err = sqlgraph.UpdateNode(ctx, puo.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
-			err = &NotFoundError{user.Label}
+			err = &NotFoundError{person.Label}
 		} else if cerr, ok := isSQLConstraintError(err); ok {
 			err = cerr
 		}
 		return nil, err
 	}
-	return u, nil
+	return pe, nil
 }

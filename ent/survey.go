@@ -12,8 +12,8 @@ import (
 	"github.com/google/uuid"
 	"github.com/minskylab/collecta/ent/domain"
 	"github.com/minskylab/collecta/ent/flow"
+	"github.com/minskylab/collecta/ent/person"
 	"github.com/minskylab/collecta/ent/survey"
-	"github.com/minskylab/collecta/ent/user"
 )
 
 // Survey is the model entity for the Survey schema.
@@ -41,7 +41,7 @@ type Survey struct {
 	// The values are being populated by the SurveyQuery when eager-loading is set.
 	Edges          SurveyEdges `json:"edges"`
 	domain_surveys *uuid.UUID
-	user_surveys   *uuid.UUID
+	person_surveys *uuid.UUID
 }
 
 // SurveyEdges holds the relations/edges for other nodes in the graph.
@@ -49,7 +49,7 @@ type SurveyEdges struct {
 	// Flow holds the value of the flow edge.
 	Flow *Flow
 	// For holds the value of the for edge.
-	For *User
+	For *Person
 	// Owner holds the value of the owner edge.
 	Owner *Domain
 	// loadedTypes holds the information for reporting if a
@@ -73,12 +73,12 @@ func (e SurveyEdges) FlowOrErr() (*Flow, error) {
 
 // ForOrErr returns the For value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
-func (e SurveyEdges) ForOrErr() (*User, error) {
+func (e SurveyEdges) ForOrErr() (*Person, error) {
 	if e.loadedTypes[1] {
 		if e.For == nil {
 			// The edge for was loaded in eager-loading,
 			// but was not found.
-			return nil, &NotFoundError{label: user.Label}
+			return nil, &NotFoundError{label: person.Label}
 		}
 		return e.For, nil
 	}
@@ -118,7 +118,7 @@ func (*Survey) scanValues() []interface{} {
 func (*Survey) fkValues() []interface{} {
 	return []interface{}{
 		&uuid.UUID{}, // domain_surveys
-		&uuid.UUID{}, // user_surveys
+		&uuid.UUID{}, // person_surveys
 	}
 }
 
@@ -188,9 +188,9 @@ func (s *Survey) assignValues(values ...interface{}) error {
 			s.domain_surveys = value
 		}
 		if value, ok := values[0].(*uuid.UUID); !ok {
-			return fmt.Errorf("unexpected type %T for field user_surveys", values[0])
+			return fmt.Errorf("unexpected type %T for field person_surveys", values[0])
 		} else if value != nil {
-			s.user_surveys = value
+			s.person_surveys = value
 		}
 	}
 	return nil
@@ -202,7 +202,7 @@ func (s *Survey) QueryFlow() *FlowQuery {
 }
 
 // QueryFor queries the for edge of the Survey.
-func (s *Survey) QueryFor() *UserQuery {
+func (s *Survey) QueryFor() *PersonQuery {
 	return (&SurveyClient{config: s.config}).QueryFor(s)
 }
 

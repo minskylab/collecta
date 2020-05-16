@@ -14,9 +14,9 @@ import (
 	"github.com/google/uuid"
 	"github.com/minskylab/collecta/ent/domain"
 	"github.com/minskylab/collecta/ent/flow"
+	"github.com/minskylab/collecta/ent/person"
 	"github.com/minskylab/collecta/ent/predicate"
 	"github.com/minskylab/collecta/ent/survey"
-	"github.com/minskylab/collecta/ent/user"
 )
 
 // SurveyUpdate is the builder for updating Survey entities.
@@ -157,7 +157,7 @@ func (su *SurveyUpdate) SetFlow(f *Flow) *SurveyUpdate {
 	return su.SetFlowID(f.ID)
 }
 
-// SetForID sets the for edge to User by id.
+// SetForID sets the for edge to Person by id.
 func (su *SurveyUpdate) SetForID(id uuid.UUID) *SurveyUpdate {
 	if su._for == nil {
 		su._for = make(map[uuid.UUID]struct{})
@@ -166,9 +166,9 @@ func (su *SurveyUpdate) SetForID(id uuid.UUID) *SurveyUpdate {
 	return su
 }
 
-// SetFor sets the for edge to User.
-func (su *SurveyUpdate) SetFor(u *User) *SurveyUpdate {
-	return su.SetForID(u.ID)
+// SetFor sets the for edge to Person.
+func (su *SurveyUpdate) SetFor(p *Person) *SurveyUpdate {
+	return su.SetForID(p.ID)
 }
 
 // SetOwnerID sets the owner edge to Domain by id.
@@ -199,7 +199,7 @@ func (su *SurveyUpdate) ClearFlow() *SurveyUpdate {
 	return su
 }
 
-// ClearFor clears the for edge to User.
+// ClearFor clears the for edge to Person.
 func (su *SurveyUpdate) ClearFor() *SurveyUpdate {
 	su.clearedFor = true
 	return su
@@ -394,7 +394,7 @@ func (su *SurveyUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
-					Column: user.FieldID,
+					Column: person.FieldID,
 				},
 			},
 		}
@@ -410,7 +410,7 @@ func (su *SurveyUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
-					Column: user.FieldID,
+					Column: person.FieldID,
 				},
 			},
 		}
@@ -597,7 +597,7 @@ func (suo *SurveyUpdateOne) SetFlow(f *Flow) *SurveyUpdateOne {
 	return suo.SetFlowID(f.ID)
 }
 
-// SetForID sets the for edge to User by id.
+// SetForID sets the for edge to Person by id.
 func (suo *SurveyUpdateOne) SetForID(id uuid.UUID) *SurveyUpdateOne {
 	if suo._for == nil {
 		suo._for = make(map[uuid.UUID]struct{})
@@ -606,9 +606,9 @@ func (suo *SurveyUpdateOne) SetForID(id uuid.UUID) *SurveyUpdateOne {
 	return suo
 }
 
-// SetFor sets the for edge to User.
-func (suo *SurveyUpdateOne) SetFor(u *User) *SurveyUpdateOne {
-	return suo.SetForID(u.ID)
+// SetFor sets the for edge to Person.
+func (suo *SurveyUpdateOne) SetFor(p *Person) *SurveyUpdateOne {
+	return suo.SetForID(p.ID)
 }
 
 // SetOwnerID sets the owner edge to Domain by id.
@@ -639,7 +639,7 @@ func (suo *SurveyUpdateOne) ClearFlow() *SurveyUpdateOne {
 	return suo
 }
 
-// ClearFor clears the for edge to User.
+// ClearFor clears the for edge to Person.
 func (suo *SurveyUpdateOne) ClearFor() *SurveyUpdateOne {
 	suo.clearedFor = true
 	return suo
@@ -828,7 +828,7 @@ func (suo *SurveyUpdateOne) sqlSave(ctx context.Context) (s *Survey, err error) 
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
-					Column: user.FieldID,
+					Column: person.FieldID,
 				},
 			},
 		}
@@ -844,7 +844,7 @@ func (suo *SurveyUpdateOne) sqlSave(ctx context.Context) (s *Survey, err error) 
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
-					Column: user.FieldID,
+					Column: person.FieldID,
 				},
 			},
 		}

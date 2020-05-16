@@ -9,7 +9,7 @@ import (
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/google/uuid"
 	"github.com/minskylab/collecta/ent/account"
-	"github.com/minskylab/collecta/ent/user"
+	"github.com/minskylab/collecta/ent/person"
 )
 
 // Account is the model entity for the Account schema.
@@ -27,14 +27,14 @@ type Account struct {
 	Secret string `json:"secret,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the AccountQuery when eager-loading is set.
-	Edges         AccountEdges `json:"edges"`
-	user_accounts *uuid.UUID
+	Edges           AccountEdges `json:"edges"`
+	person_accounts *uuid.UUID
 }
 
 // AccountEdges holds the relations/edges for other nodes in the graph.
 type AccountEdges struct {
 	// Owner holds the value of the owner edge.
-	Owner *User
+	Owner *Person
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
 	loadedTypes [1]bool
@@ -42,12 +42,12 @@ type AccountEdges struct {
 
 // OwnerOrErr returns the Owner value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
-func (e AccountEdges) OwnerOrErr() (*User, error) {
+func (e AccountEdges) OwnerOrErr() (*Person, error) {
 	if e.loadedTypes[0] {
 		if e.Owner == nil {
 			// The edge owner was loaded in eager-loading,
 			// but was not found.
-			return nil, &NotFoundError{label: user.Label}
+			return nil, &NotFoundError{label: person.Label}
 		}
 		return e.Owner, nil
 	}
@@ -68,7 +68,7 @@ func (*Account) scanValues() []interface{} {
 // fkValues returns the types for scanning foreign-keys values from sql.Rows.
 func (*Account) fkValues() []interface{} {
 	return []interface{}{
-		&uuid.UUID{}, // user_accounts
+		&uuid.UUID{}, // person_accounts
 	}
 }
 
@@ -107,16 +107,16 @@ func (a *Account) assignValues(values ...interface{}) error {
 	values = values[4:]
 	if len(values) == len(account.ForeignKeys) {
 		if value, ok := values[0].(*uuid.UUID); !ok {
-			return fmt.Errorf("unexpected type %T for field user_accounts", values[0])
+			return fmt.Errorf("unexpected type %T for field person_accounts", values[0])
 		} else if value != nil {
-			a.user_accounts = value
+			a.person_accounts = value
 		}
 	}
 	return nil
 }
 
 // QueryOwner queries the owner edge of the Account.
-func (a *Account) QueryOwner() *UserQuery {
+func (a *Account) QueryOwner() *PersonQuery {
 	return (&AccountClient{config: a.config}).QueryOwner(a)
 }
 

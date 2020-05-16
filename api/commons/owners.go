@@ -7,9 +7,9 @@ import (
 	"github.com/minskylab/collecta/ent/answer"
 	"github.com/minskylab/collecta/ent/flow"
 	"github.com/minskylab/collecta/ent/input"
+	"github.com/minskylab/collecta/ent/person"
 	"github.com/minskylab/collecta/ent/question"
 	"github.com/minskylab/collecta/ent/survey"
-	"github.com/minskylab/collecta/ent/user"
 	"github.com/minskylab/collecta/errors"
 	"golang.org/x/net/context"
 )
@@ -103,7 +103,7 @@ func OwnerOfInput(ctx context.Context, db *db.DB, obj *model.Input) (uuid.UUID, 
 }
 
 func OwnerOfSurvey(ctx context.Context, db *db.DB, obj *model.Survey) (uuid.UUID, error) {
-	u, err := db.Ent.User.Query().Where(user.HasSurveysWith(survey.ID(uuid.MustParse(obj.ID)))).Only(ctx)
+	u, err := db.Ent.Person.Query().Where(person.HasSurveysWith(survey.ID(uuid.MustParse(obj.ID)))).Only(ctx)
 	if err != nil {
 		return uuid.Nil, errors.Wrap(err, "error at fetch your user")
 	}

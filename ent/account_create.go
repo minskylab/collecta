@@ -11,7 +11,7 @@ import (
 	"github.com/facebookincubator/ent/schema/field"
 	"github.com/google/uuid"
 	"github.com/minskylab/collecta/ent/account"
-	"github.com/minskylab/collecta/ent/user"
+	"github.com/minskylab/collecta/ent/person"
 )
 
 // AccountCreate is the builder for creating a Account entity.
@@ -63,7 +63,7 @@ func (ac *AccountCreate) SetID(u uuid.UUID) *AccountCreate {
 	return ac
 }
 
-// SetOwnerID sets the owner edge to User by id.
+// SetOwnerID sets the owner edge to Person by id.
 func (ac *AccountCreate) SetOwnerID(id uuid.UUID) *AccountCreate {
 	if ac.owner == nil {
 		ac.owner = make(map[uuid.UUID]struct{})
@@ -72,7 +72,7 @@ func (ac *AccountCreate) SetOwnerID(id uuid.UUID) *AccountCreate {
 	return ac
 }
 
-// SetNillableOwnerID sets the owner edge to User by id if the given value is not nil.
+// SetNillableOwnerID sets the owner edge to Person by id if the given value is not nil.
 func (ac *AccountCreate) SetNillableOwnerID(id *uuid.UUID) *AccountCreate {
 	if id != nil {
 		ac = ac.SetOwnerID(*id)
@@ -80,9 +80,9 @@ func (ac *AccountCreate) SetNillableOwnerID(id *uuid.UUID) *AccountCreate {
 	return ac
 }
 
-// SetOwner sets the owner edge to User.
-func (ac *AccountCreate) SetOwner(u *User) *AccountCreate {
-	return ac.SetOwnerID(u.ID)
+// SetOwner sets the owner edge to Person.
+func (ac *AccountCreate) SetOwner(p *Person) *AccountCreate {
+	return ac.SetOwnerID(p.ID)
 }
 
 // Save creates the Account in the database.
@@ -174,7 +174,7 @@ func (ac *AccountCreate) sqlSave(ctx context.Context) (*Account, error) {
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
-					Column: user.FieldID,
+					Column: person.FieldID,
 				},
 			},
 		}

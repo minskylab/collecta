@@ -1,0 +1,12 @@
+type Question {
+    id: ID!
+    hash: String!
+    title: String!
+    description: String!
+    metadata: Map
+    validator: String
+    anonymous: Boolean!
+    answers: [Answer!]!
+    input: Input!
+    flow: Flow!
+}

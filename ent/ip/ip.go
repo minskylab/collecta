@@ -7,6 +7,8 @@ const (
 	Label = "ip"
 	// FieldID holds the string denoting the id field in the database.
 	FieldID = "id"
+	// FieldIP holds the string denoting the ip vertex property in the database.
+	FieldIP = "ip"
 
 	// Table holds the table name of the ip in the database.
 	Table = "i_ps"
@@ -15,4 +17,5 @@ const (
 // Columns holds all SQL columns for ip fields.
 var Columns = []string{
 	FieldID,
+	FieldIP,
 }

@@ -1,0 +1,11 @@
+type Flow {
+    id: ID!
+    state: ID!
+    stateTable: String!
+    initialState: ID!
+    terminationState: ID!
+    pastState: ID
+    inputs: [String!]
+    survey: Survey!
+    questions: [Question]!
+}

@@ -13,11 +13,9 @@ import (
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
 	"github.com/facebookincubator/ent/schema/field"
 	"github.com/google/uuid"
-	"github.com/minskylab/collecta/ent/domain"
 	"github.com/minskylab/collecta/ent/flow"
 	"github.com/minskylab/collecta/ent/predicate"
 	"github.com/minskylab/collecta/ent/survey"
-	"github.com/minskylab/collecta/ent/user"
 )
 
 // SurveyQuery is the builder for querying Survey entities.
@@ -30,7 +28,7 @@ type SurveyQuery struct {
 	predicates []predicate.Survey
 	// eager-loading edges.
 	withFlow  *FlowQuery
-	withFor   *UserQuery
+	withFor   *PersonQuery
 	withOwner *DomainQuery
 	withFKs   bool
 	// intermediate query.
@@ -74,11 +72,11 @@ func (sq *SurveyQuery) QueryFlow() *FlowQuery {
 }
 
 // QueryFor chains the current query on the for edge.
-func (sq *SurveyQuery) QueryFor() *UserQuery {
-	query := &UserQuery{config: sq.config}
+func (sq *SurveyQuery) QueryFor() *PersonQuery {
+	query := &PersonQuery{config: sq.config}
 	step := sqlgraph.NewStep(
 		sqlgraph.From(survey.Table, survey.FieldID, sq.sqlQuery()),
-		sqlgraph.To(user.Table, user.FieldID),
+		sqlgraph.To(person.Table, person.FieldID),
 		sqlgraph.Edge(sqlgraph.M2O, true, survey.ForTable, survey.ForColumn),
 	)
 	query.sql = sqlgraph.SetNeighbors(sq.driver.Dialect(), step)
@@ -279,8 +277,8 @@ func (sq *SurveyQuery) WithFlow(opts ...func(*FlowQuery)) *SurveyQuery {
 
 //  WithFor tells the query-builder to eager-loads the nodes that are connected to
 // the "for" edge. The optional arguments used to configure the query builder of the edge.
-func (sq *SurveyQuery) WithFor(opts ...func(*UserQuery)) *SurveyQuery {
-	query := &UserQuery{config: sq.config}
+func (sq *SurveyQuery) WithFor(opts ...func(*PersonQuery)) *SurveyQuery {
+	query := &PersonQuery{config: sq.config}
 	for _, opt := range opts {
 		opt(query)
 	}
@@ -413,12 +411,12 @@ func (sq *SurveyQuery) sqlAll(ctx context.Context) ([]*Survey, error) {
 		ids := make([]uuid.UUID, 0, len(nodes))
 		nodeids := make(map[uuid.UUID][]*Survey)
 		for i := range nodes {
-			if fk := nodes[i].user_surveys; fk != nil {
+			if fk := nodes[i].person_surveys; fk != nil {
 				ids = append(ids, *fk)
 				nodeids[*fk] = append(nodeids[*fk], nodes[i])
 			}
 		}
-		query.Where(user.IDIn(ids...))
+		query.Where(person.IDIn(ids...))
 		neighbors, err := query.All(ctx)
 		if err != nil {
 			return nil, err
@@ -426,7 +424,7 @@ func (sq *SurveyQuery) sqlAll(ctx context.Context) ([]*Survey, error) {
 		for _, n := range neighbors {
 			nodes, ok := nodeids[n.ID]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "user_surveys" returned %v`, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "person_surveys" returned %v`, n.ID)
 			}
 			for i := range nodes {
 				nodes[i].Edges.For = n

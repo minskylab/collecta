@@ -6,6 +6,8 @@ package graph
 import (
 	"context"
 
+	"github.com/minskylab/collecta/errors"
+
 	"github.com/google/uuid"
 	"github.com/minskylab/collecta/api/commons"
 	"github.com/minskylab/collecta/api/graph/generated"
@@ -14,8 +16,7 @@ import (
 	"github.com/minskylab/collecta/ent/flow"
 	"github.com/minskylab/collecta/ent/question"
 	"github.com/minskylab/collecta/ent/survey"
-	"github.com/minskylab/collecta/ent/user"
-	"github.com/minskylab/collecta/errors"
+	"github.com/minskylab/collecta/ent/person"
 )
 
 func (r *queryResolver) Domain(ctx context.Context, id string) (*model.Domain, error) {
@@ -136,7 +137,7 @@ func (r *queryResolver) User(ctx context.Context, id string) (*model.User, error
 	}
 
 	if userRequester.ID != userID {
-		requesterIsOwnerOfUser, err := userRequester.QueryAdminOf().Where(domain.HasUsersWith(user.ID(userID))).Exist(ctx)
+		requesterIsOwnerOfUser, err := userRequester.QueryAdminOf().Where(domain.HasUsersWith(person.ID(userID))).Exist(ctx)
 		if err != nil {
 			return nil, errors.Wrap(err, "error at request resource to verify credentials")
 		}
@@ -145,12 +146,12 @@ func (r *queryResolver) User(ctx context.Context, id string) (*model.User, error
 		}
 	}
 
-	e, err := r.DB.Ent.User.Get(ctx, userID)
+	e, err := r.DB.Ent.Person.Get(ctx, userID)
 	if err != nil {
 		return nil, errors.Wrap(err, "error at try to get from ent")
 	}
 
-	return commons.UserToGQL(e), nil
+	return commons.PersonToGQL(e), nil
 }
 
 func (r *queryResolver) Profile(ctx context.Context) (*model.User, error) {
@@ -159,7 +160,7 @@ func (r *queryResolver) Profile(ctx context.Context) (*model.User, error) {
 		return nil, errors.New("unauthorized, please include a valid token in your header")
 	}
 
-	return commons.UserToGQL(userRequester), nil
+	return commons.PersonToGQL(userRequester), nil
 }
 
 func (r *queryResolver) IsFirstQuestion(ctx context.Context, questionID string) (bool, error) {
