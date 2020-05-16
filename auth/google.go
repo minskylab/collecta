@@ -50,8 +50,7 @@ func (collectaAuth *Auth) startGoogleAuth(callbackURL string) {
 
 		// TODO: Verify the correctness of the google auth token
 		// TODO: Above TODO it's necessary
-
-		log.Info(user)
+		
 		jwtToken, err := collectaAuth.ingressWithGoogle(c, user)
 		if err != nil {
 			log.WithError(err).Info("error at try to ingress with user")

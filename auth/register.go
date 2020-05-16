@@ -1,6 +1,8 @@
 package auth
 
 import (
+	"fmt"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -16,9 +18,18 @@ import (
 
 func (collectaAuth *Auth) registerNewUserFromGoogle(ctx context.Context, rawUser goth.User) (*ent.Person, error) {
 	domainHost, ok := rawUser.RawData["hd"].(string)
+	fmt.Println("domainHost, ok: ", domainHost, ok)
 	if !ok {
-		return nil, errors.New("invalid domain in raw rawUser data")
+		fmt.Println("email: " + rawUser.Email)
+		parts := strings.Split(rawUser.Email, "@")
+		fmt.Println("parts: ", parts)
+		if len(parts) != 2 {
+			return nil, errors.New("invalid domain in raw rawUser data")
+		}
+		domainHost = strings.TrimSpace(parts[1])
 	}
+
+	fmt.Println("domainHost: "+domainHost)
 
 	domainExists, err := collectaAuth.db.Ent.Domain.Query().
 		Where(domain.Domain(domainHost)).
