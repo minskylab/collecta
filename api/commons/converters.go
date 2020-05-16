@@ -12,7 +12,7 @@ func DomainToGQL(e *ent.Domain) *model.Domain {
 		Name:           e.Name,
 		Email:          e.Email,
 		Domain:         e.Domain,
-		CollectaDomain: e.CollectaDomain,
+		Callback: 		e.Callback,
 	}
 }
 

@@ -8,6 +8,8 @@ import (
 
 	"github.com/minskylab/collecta/errors"
 
+	"fmt"
+
 	"github.com/google/uuid"
 	"github.com/minskylab/collecta/api/commons"
 	"github.com/minskylab/collecta/api/graph/generated"
@@ -125,33 +127,8 @@ func (r *queryResolver) Question(ctx context.Context, id string) (*model.Questio
 	return commons.QuestionToGQL(e), nil
 }
 
-func (r *queryResolver) User(ctx context.Context, id string) (*model.Person, error) {
-	userRequester := r.Auth.UserOfContext(ctx)
-	if userRequester == nil {
-		return nil, errors.New("unauthorized, please include a valid token in your header")
-	}
-
-	userID, err := uuid.Parse(id)
-	if err != nil {
-		return nil, errors.Wrap(err, "error at try to parse the domain id")
-	}
-
-	if userRequester.ID != userID {
-		requesterIsOwnerOfUser, err := userRequester.QueryAdminOf().Where(domain.HasUsersWith(person.ID(userID))).Exist(ctx)
-		if err != nil {
-			return nil, errors.Wrap(err, "error at request resource to verify credentials")
-		}
-		if !requesterIsOwnerOfUser {
-			return nil, errors.New("you don't allowed to consume this resource")
-		}
-	}
-
-	e, err := r.DB.Ent.Person.Get(ctx, userID)
-	if err != nil {
-		return nil, errors.Wrap(err, "error at try to get from ent")
-	}
-
-	return commons.PersonToGQL(e), nil
+func (r *queryResolver) Person(ctx context.Context, id string) (*model.Person, error) {
+	panic(fmt.Errorf("not implemented"))
 }
 
 func (r *queryResolver) Profile(ctx context.Context) (*model.Person, error) {
@@ -370,3 +347,38 @@ func (r *queryResolver) LastQuestionOfSurvey(ctx context.Context, surveyID strin
 func (r *Resolver) Query() generated.QueryResolver { return &queryResolver{r} }
 
 type queryResolver struct{ *Resolver }
+
+// !!! WARNING !!!
+// The code below was going to be deleted when updating resolvers. It has been copied here so you have
+// one last chance to move it out of harms way if you want. There are two reasons this happens:
+//  - When renaming or deleting a resolver the old code will be put in here. You can safely delete
+//    it when you're done.
+//  - You have helper methods in this file. Move them out to keep these resolver files clean.
+func (r *queryResolver) User(ctx context.Context, id string) (*model.Person, error) {
+	userRequester := r.Auth.UserOfContext(ctx)
+	if userRequester == nil {
+		return nil, errors.New("unauthorized, please include a valid token in your header")
+	}
+
+	userID, err := uuid.Parse(id)
+	if err != nil {
+		return nil, errors.Wrap(err, "error at try to parse the domain id")
+	}
+
+	if userRequester.ID != userID {
+		requesterIsOwnerOfUser, err := userRequester.QueryAdminOf().Where(domain.HasUsersWith(person.ID(userID))).Exist(ctx)
+		if err != nil {
+			return nil, errors.Wrap(err, "error at request resource to verify credentials")
+		}
+		if !requesterIsOwnerOfUser {
+			return nil, errors.New("you don't allowed to consume this resource")
+		}
+	}
+
+	e, err := r.DB.Ent.Person.Get(ctx, userID)
+	if err != nil {
+		return nil, errors.Wrap(err, "error at try to get from ent")
+	}
+
+	return commons.PersonToGQL(e), nil
+}

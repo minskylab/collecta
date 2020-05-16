@@ -86,16 +86,15 @@ type ComplexityRoot struct {
 	}
 
 	Domain struct {
-		Admins                 func(childComplexity int) int
-		CollectaClientCallback func(childComplexity int) int
-		CollectaDomain         func(childComplexity int) int
-		Domain                 func(childComplexity int) int
-		Email                  func(childComplexity int) int
-		ID                     func(childComplexity int) int
-		Name                   func(childComplexity int) int
-		Surveys                func(childComplexity int) int
-		Tags                   func(childComplexity int) int
-		Users                  func(childComplexity int) int
+		Admins   func(childComplexity int) int
+		Callback func(childComplexity int) int
+		Domain   func(childComplexity int) int
+		Email    func(childComplexity int) int
+		ID       func(childComplexity int) int
+		Name     func(childComplexity int) int
+		Surveys  func(childComplexity int) int
+		Tags     func(childComplexity int) int
+		Users    func(childComplexity int) int
 	}
 
 	Flow struct {
@@ -169,11 +168,11 @@ type ComplexityRoot struct {
 		IsFinalQuestion      func(childComplexity int, questionID string) int
 		IsFirstQuestion      func(childComplexity int, questionID string) int
 		LastQuestionOfSurvey func(childComplexity int, surveyID string) int
+		Person               func(childComplexity int, id string) int
 		Profile              func(childComplexity int) int
 		Question             func(childComplexity int, id string) int
 		Survey               func(childComplexity int, id string) int
 		SurveyPercent        func(childComplexity int, surveyID string) int
-		User                 func(childComplexity int, id string) int
 	}
 
 	Question struct {
@@ -255,7 +254,7 @@ type QueryResolver interface {
 	Domain(ctx context.Context, id string) (*model.Domain, error)
 	Survey(ctx context.Context, id string) (*model.Survey, error)
 	Question(ctx context.Context, id string) (*model.Question, error)
-	User(ctx context.Context, id string) (*model.Person, error)
+	Person(ctx context.Context, id string) (*model.Person, error)
 	Profile(ctx context.Context) (*model.Person, error)
 	IsFirstQuestion(ctx context.Context, questionID string) (bool, error)
 	IsFinalQuestion(ctx context.Context, questionID string) (bool, error)
@@ -435,19 +434,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Domain.Admins(childComplexity), true
 
-	case "Domain.collectaClientCallback":
-		if e.complexity.Domain.CollectaClientCallback == nil {
+	case "Domain.callback":
+		if e.complexity.Domain.Callback == nil {
 			break
 		}
 
-		return e.complexity.Domain.CollectaClientCallback(childComplexity), true
-
-	case "Domain.collectaDomain":
-		if e.complexity.Domain.CollectaDomain == nil {
-			break
-		}
-
-		return e.complexity.Domain.CollectaDomain(childComplexity), true
+		return e.complexity.Domain.Callback(childComplexity), true
 
 	case "Domain.domain":
 		if e.complexity.Domain.Domain == nil {
@@ -849,6 +841,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.LastQuestionOfSurvey(childComplexity, args["surveyID"].(string)), true
 
+	case "Query.person":
+		if e.complexity.Query.Person == nil {
+			break
+		}
+
+		args, err := ec.field_Query_person_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.Person(childComplexity, args["id"].(string)), true
+
 	case "Query.profile":
 		if e.complexity.Query.Profile == nil {
 			break
@@ -891,18 +895,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.SurveyPercent(childComplexity, args["surveyID"].(string)), true
-
-	case "Query.user":
-		if e.complexity.Query.User == nil {
-			break
-		}
-
-		args, err := ec.field_Query_user_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Query.User(childComplexity, args["id"].(string)), true
 
 	case "Question.anonymous":
 		if e.complexity.Question.Anonymous == nil {
@@ -1205,8 +1197,7 @@ type Contact {
     name: String!
     email: String!
     domain: String!
-    collectaDomain: String!
-    collectaClientCallback: String!
+    callback: String!
     tags: [String!]!
     surveys: [Survey!]!
     users: [Person!]!
@@ -1285,7 +1276,7 @@ input DomainCreator {
     name: String!
     email: String!
     domain: String!
-    collectaDomain: String!
+    callback: String!
     tags: [String!]
 }
 
@@ -1342,7 +1333,7 @@ type Input {
     domain(id: ID!): Domain!
     survey(id: ID!): Survey!
     question(id: ID!): Question!
-    user(id: ID!): Person!
+    person(id: ID!): Person!
 
     profile: Person!
 
@@ -1579,6 +1570,20 @@ func (ec *executionContext) field_Query_lastQuestionOfSurvey_args(ctx context.Co
 	return args, nil
 }
 
+func (ec *executionContext) field_Query_person_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["id"]; ok {
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Query_question_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -1608,20 +1613,6 @@ func (ec *executionContext) field_Query_surveyPercent_args(ctx context.Context, 
 }
 
 func (ec *executionContext) field_Query_survey_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 string
-	if tmp, ok := rawArgs["id"]; ok {
-		arg0, err = ec.unmarshalNID2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["id"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Query_user_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 string
@@ -2475,7 +2466,7 @@ func (ec *executionContext) _Domain_domain(ctx context.Context, field graphql.Co
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Domain_collectaDomain(ctx context.Context, field graphql.CollectedField, obj *model.Domain) (ret graphql.Marshaler) {
+func (ec *executionContext) _Domain_callback(ctx context.Context, field graphql.CollectedField, obj *model.Domain) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -2492,41 +2483,7 @@ func (ec *executionContext) _Domain_collectaDomain(ctx context.Context, field gr
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.CollectaDomain, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Domain_collectaClientCallback(ctx context.Context, field graphql.CollectedField, obj *model.Domain) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:   "Domain",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.CollectaClientCallback, nil
+		return obj.Callback, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -4143,7 +4100,7 @@ func (ec *executionContext) _Query_question(ctx context.Context, field graphql.C
 	return ec.marshalNQuestion2ᚖgithubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐQuestion(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Query_user(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+func (ec *executionContext) _Query_person(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -4159,7 +4116,7 @@ func (ec *executionContext) _Query_user(ctx context.Context, field graphql.Colle
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Query_user_args(ctx, rawArgs)
+	args, err := ec.field_Query_person_args(ctx, rawArgs)
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
@@ -4167,7 +4124,7 @@ func (ec *executionContext) _Query_user(ctx context.Context, field graphql.Colle
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().User(rctx, args["id"].(string))
+		return ec.resolvers.Query().Person(rctx, args["id"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -6390,9 +6347,9 @@ func (ec *executionContext) unmarshalInputDomainCreator(ctx context.Context, obj
 			if err != nil {
 				return it, err
 			}
-		case "collectaDomain":
+		case "callback":
 			var err error
-			it.CollectaDomain, err = ec.unmarshalNString2string(ctx, v)
+			it.Callback, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -6830,13 +6787,8 @@ func (ec *executionContext) _Domain(ctx context.Context, sel ast.SelectionSet, o
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
-		case "collectaDomain":
-			out.Values[i] = ec._Domain_collectaDomain(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
-		case "collectaClientCallback":
-			out.Values[i] = ec._Domain_collectaClientCallback(ctx, field, obj)
+		case "callback":
+			out.Values[i] = ec._Domain_callback(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
@@ -7397,7 +7349,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 				}
 				return res
 			})
-		case "user":
+		case "person":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
 				defer func() {
@@ -7405,7 +7357,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._Query_user(ctx, field)
+				res = ec._Query_person(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}

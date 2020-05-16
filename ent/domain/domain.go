@@ -6,13 +6,12 @@ const (
 	// Label holds the string label denoting the domain type in the database.
 	Label = "domain"
 	// FieldID holds the string denoting the id field in the database.
-	FieldID                     = "id"                       // FieldName holds the string denoting the name vertex property in the database.
-	FieldName                   = "name"                     // FieldEmail holds the string denoting the email vertex property in the database.
-	FieldEmail                  = "email"                    // FieldDomain holds the string denoting the domain vertex property in the database.
-	FieldDomain                 = "domain"                   // FieldCollectaDomain holds the string denoting the collectadomain vertex property in the database.
-	FieldCollectaDomain         = "collecta_domain"          // FieldCollectaClientCallback holds the string denoting the collectaclientcallback vertex property in the database.
-	FieldCollectaClientCallback = "collecta_client_callback" // FieldTags holds the string denoting the tags vertex property in the database.
-	FieldTags                   = "tags"
+	FieldID       = "id"       // FieldName holds the string denoting the name vertex property in the database.
+	FieldName     = "name"     // FieldEmail holds the string denoting the email vertex property in the database.
+	FieldEmail    = "email"    // FieldDomain holds the string denoting the domain vertex property in the database.
+	FieldDomain   = "domain"   // FieldCallback holds the string denoting the callback vertex property in the database.
+	FieldCallback = "callback" // FieldTags holds the string denoting the tags vertex property in the database.
+	FieldTags     = "tags"
 
 	// EdgeSurveys holds the string denoting the surveys edge name in mutations.
 	EdgeSurveys = "surveys"
@@ -48,8 +47,7 @@ var Columns = []string{
 	FieldName,
 	FieldEmail,
 	FieldDomain,
-	FieldCollectaDomain,
-	FieldCollectaClientCallback,
+	FieldCallback,
 	FieldTags,
 }
 

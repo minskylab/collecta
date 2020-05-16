@@ -3,8 +3,7 @@ type Domain {
     name: String!
     email: String!
     domain: String!
-    collectaDomain: String!
-    collectaClientCallback: String!
+    callback: String!
     tags: [String!]!
     surveys: [Survey!]!
     users: [Person!]!

@@ -13,7 +13,6 @@ import (
 	"github.com/minskylab/collecta/ent/account"
 	"github.com/minskylab/collecta/ent/answer"
 	"github.com/minskylab/collecta/ent/contact"
-	"github.com/minskylab/collecta/ent/datum"
 	"github.com/minskylab/collecta/ent/device"
 	"github.com/minskylab/collecta/ent/domain"
 	"github.com/minskylab/collecta/ent/flow"
@@ -40,8 +39,6 @@ type Client struct {
 	Answer *AnswerClient
 	// Contact is the client for interacting with the Contact builders.
 	Contact *ContactClient
-	// Datum is the client for interacting with the Datum builders.
-	Datum *DatumClient
 	// Device is the client for interacting with the Device builders.
 	Device *DeviceClient
 	// Domain is the client for interacting with the Domain builders.
@@ -76,7 +73,6 @@ func (c *Client) init() {
 	c.Account = NewAccountClient(c.config)
 	c.Answer = NewAnswerClient(c.config)
 	c.Contact = NewContactClient(c.config)
-	c.Datum = NewDatumClient(c.config)
 	c.Device = NewDeviceClient(c.config)
 	c.Domain = NewDomainClient(c.config)
 	c.Flow = NewFlowClient(c.config)
@@ -119,7 +115,6 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		Account:  NewAccountClient(cfg),
 		Answer:   NewAnswerClient(cfg),
 		Contact:  NewContactClient(cfg),
-		Datum:    NewDatumClient(cfg),
 		Device:   NewDeviceClient(cfg),
 		Domain:   NewDomainClient(cfg),
 		Flow:     NewFlowClient(cfg),
@@ -147,7 +142,6 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		Account:  NewAccountClient(cfg),
 		Answer:   NewAnswerClient(cfg),
 		Contact:  NewContactClient(cfg),
-		Datum:    NewDatumClient(cfg),
 		Device:   NewDeviceClient(cfg),
 		Domain:   NewDomainClient(cfg),
 		Flow:     NewFlowClient(cfg),
@@ -188,7 +182,6 @@ func (c *Client) Use(hooks ...Hook) {
 	c.Account.Use(hooks...)
 	c.Answer.Use(hooks...)
 	c.Contact.Use(hooks...)
-	c.Datum.Use(hooks...)
 	c.Device.Use(hooks...)
 	c.Domain.Use(hooks...)
 	c.Flow.Use(hooks...)
@@ -495,89 +488,6 @@ func (c *ContactClient) QueryOwner(co *Contact) *PersonQuery {
 // Hooks returns the client hooks.
 func (c *ContactClient) Hooks() []Hook {
 	return c.hooks.Contact
-}
-
-// DatumClient is a client for the Datum schema.
-type DatumClient struct {
-	config
-}
-
-// NewDatumClient returns a client for the Datum from the given config.
-func NewDatumClient(c config) *DatumClient {
-	return &DatumClient{config: c}
-}
-
-// Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `datum.Hooks(f(g(h())))`.
-func (c *DatumClient) Use(hooks ...Hook) {
-	c.hooks.Datum = append(c.hooks.Datum, hooks...)
-}
-
-// Create returns a create builder for Datum.
-func (c *DatumClient) Create() *DatumCreate {
-	mutation := newDatumMutation(c.config, OpCreate)
-	return &DatumCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// Update returns an update builder for Datum.
-func (c *DatumClient) Update() *DatumUpdate {
-	mutation := newDatumMutation(c.config, OpUpdate)
-	return &DatumUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOne returns an update builder for the given entity.
-func (c *DatumClient) UpdateOne(d *Datum) *DatumUpdateOne {
-	return c.UpdateOneID(d.ID)
-}
-
-// UpdateOneID returns an update builder for the given id.
-func (c *DatumClient) UpdateOneID(id int) *DatumUpdateOne {
-	mutation := newDatumMutation(c.config, OpUpdateOne)
-	mutation.id = &id
-	return &DatumUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// Delete returns a delete builder for Datum.
-func (c *DatumClient) Delete() *DatumDelete {
-	mutation := newDatumMutation(c.config, OpDelete)
-	return &DatumDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// DeleteOne returns a delete builder for the given entity.
-func (c *DatumClient) DeleteOne(d *Datum) *DatumDeleteOne {
-	return c.DeleteOneID(d.ID)
-}
-
-// DeleteOneID returns a delete builder for the given id.
-func (c *DatumClient) DeleteOneID(id int) *DatumDeleteOne {
-	builder := c.Delete().Where(datum.ID(id))
-	builder.mutation.id = &id
-	builder.mutation.op = OpDeleteOne
-	return &DatumDeleteOne{builder}
-}
-
-// Create returns a query builder for Datum.
-func (c *DatumClient) Query() *DatumQuery {
-	return &DatumQuery{config: c.config}
-}
-
-// Get returns a Datum entity by its id.
-func (c *DatumClient) Get(ctx context.Context, id int) (*Datum, error) {
-	return c.Query().Where(datum.ID(id)).Only(ctx)
-}
-
-// GetX is like Get, but panics if an error occurs.
-func (c *DatumClient) GetX(ctx context.Context, id int) *Datum {
-	d, err := c.Get(ctx, id)
-	if err != nil {
-		panic(err)
-	}
-	return d
-}
-
-// Hooks returns the client hooks.
-func (c *DatumClient) Hooks() []Hook {
-	return c.hooks.Datum
 }
 
 // DeviceClient is a client for the Device schema.

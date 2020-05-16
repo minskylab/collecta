@@ -48,15 +48,9 @@ func (du *DomainUpdate) SetDomain(s string) *DomainUpdate {
 	return du
 }
 
-// SetCollectaDomain sets the collectaDomain field.
-func (du *DomainUpdate) SetCollectaDomain(s string) *DomainUpdate {
-	du.mutation.SetCollectaDomain(s)
-	return du
-}
-
-// SetCollectaClientCallback sets the collectaClientCallback field.
-func (du *DomainUpdate) SetCollectaClientCallback(s string) *DomainUpdate {
-	du.mutation.SetCollectaClientCallback(s)
+// SetCallback sets the callback field.
+func (du *DomainUpdate) SetCallback(s string) *DomainUpdate {
+	du.mutation.SetCallback(s)
 	return du
 }
 
@@ -256,18 +250,11 @@ func (du *DomainUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Column: domain.FieldDomain,
 		})
 	}
-	if value, ok := du.mutation.CollectaDomain(); ok {
+	if value, ok := du.mutation.Callback(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  value,
-			Column: domain.FieldCollectaDomain,
-		})
-	}
-	if value, ok := du.mutation.CollectaClientCallback(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: domain.FieldCollectaClientCallback,
+			Column: domain.FieldCallback,
 		})
 	}
 	if value, ok := du.mutation.Tags(); ok {
@@ -427,15 +414,9 @@ func (duo *DomainUpdateOne) SetDomain(s string) *DomainUpdateOne {
 	return duo
 }
 
-// SetCollectaDomain sets the collectaDomain field.
-func (duo *DomainUpdateOne) SetCollectaDomain(s string) *DomainUpdateOne {
-	duo.mutation.SetCollectaDomain(s)
-	return duo
-}
-
-// SetCollectaClientCallback sets the collectaClientCallback field.
-func (duo *DomainUpdateOne) SetCollectaClientCallback(s string) *DomainUpdateOne {
-	duo.mutation.SetCollectaClientCallback(s)
+// SetCallback sets the callback field.
+func (duo *DomainUpdateOne) SetCallback(s string) *DomainUpdateOne {
+	duo.mutation.SetCallback(s)
 	return duo
 }
 
@@ -633,18 +614,11 @@ func (duo *DomainUpdateOne) sqlSave(ctx context.Context) (d *Domain, err error) 
 			Column: domain.FieldDomain,
 		})
 	}
-	if value, ok := duo.mutation.CollectaDomain(); ok {
+	if value, ok := duo.mutation.Callback(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  value,
-			Column: domain.FieldCollectaDomain,
-		})
-	}
-	if value, ok := duo.mutation.CollectaClientCallback(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: domain.FieldCollectaClientCallback,
+			Column: domain.FieldCallback,
 		})
 	}
 	if value, ok := duo.mutation.Tags(); ok {

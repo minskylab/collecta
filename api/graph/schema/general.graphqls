@@ -60,7 +60,7 @@ input DomainCreator {
     name: String!
     email: String!
     domain: String!
-    collectaDomain: String!
+    callback: String!
     tags: [String!]
 }
 

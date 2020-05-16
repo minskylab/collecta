@@ -18,8 +18,6 @@ type Tx struct {
 	Answer *AnswerClient
 	// Contact is the client for interacting with the Contact builders.
 	Contact *ContactClient
-	// Datum is the client for interacting with the Datum builders.
-	Datum *DatumClient
 	// Device is the client for interacting with the Device builders.
 	Device *DeviceClient
 	// Domain is the client for interacting with the Domain builders.
@@ -98,7 +96,6 @@ func (tx *Tx) init() {
 	tx.Account = NewAccountClient(tx.config)
 	tx.Answer = NewAnswerClient(tx.config)
 	tx.Contact = NewContactClient(tx.config)
-	tx.Datum = NewDatumClient(tx.config)
 	tx.Device = NewDeviceClient(tx.config)
 	tx.Domain = NewDomainClient(tx.config)
 	tx.Flow = NewFlowClient(tx.config)

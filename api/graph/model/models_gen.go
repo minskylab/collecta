@@ -42,24 +42,23 @@ type Device struct {
 }
 
 type Domain struct {
-	ID                     string    `json:"id"`
-	Name                   string    `json:"name"`
-	Email                  string    `json:"email"`
-	Domain                 string    `json:"domain"`
-	CollectaDomain         string    `json:"collectaDomain"`
-	CollectaClientCallback string    `json:"collectaClientCallback"`
-	Tags                   []string  `json:"tags"`
-	Surveys                []*Survey `json:"surveys"`
-	Users                  []*Person `json:"users"`
-	Admins                 []*Person `json:"admins"`
+	ID       string    `json:"id"`
+	Name     string    `json:"name"`
+	Email    string    `json:"email"`
+	Domain   string    `json:"domain"`
+	Callback string    `json:"callback"`
+	Tags     []string  `json:"tags"`
+	Surveys  []*Survey `json:"surveys"`
+	Users    []*Person `json:"users"`
+	Admins   []*Person `json:"admins"`
 }
 
 type DomainCreator struct {
-	Name           string   `json:"name"`
-	Email          string   `json:"email"`
-	Domain         string   `json:"domain"`
-	CollectaDomain string   `json:"collectaDomain"`
-	Tags           []string `json:"tags"`
+	Name     string   `json:"name"`
+	Email    string   `json:"email"`
+	Domain   string   `json:"domain"`
+	Callback string   `json:"callback"`
+	Tags     []string `json:"tags"`
 }
 
 type Flow struct {

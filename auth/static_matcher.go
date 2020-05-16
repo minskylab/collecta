@@ -33,5 +33,5 @@ func (collectaAuth *Auth) matchGoogleUserWithCollectaDomain(ctx context.Context,
 		return "", errors.Wrap(err, "error at fetch domain")
 	}
 
-	return dom.CollectaDomain, nil
+	return dom.Callback, nil
 }

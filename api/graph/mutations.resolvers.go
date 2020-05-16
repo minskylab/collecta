@@ -247,7 +247,7 @@ func (r *mutationResolver) CreateNewDomain(ctx context.Context, draft model.Doma
 		SetName(draft.Name).
 		SetEmail(draft.Email).
 		SetDomain(draft.Domain).
-		SetCollectaDomain(draft.CollectaDomain).
+		SetCallback(draft.Callback).
 		SetTags(draft.Tags).
 		AddAdmins(userRequester).
 		Save(ctx)

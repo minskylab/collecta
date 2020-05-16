@@ -48,19 +48,6 @@ func (f ContactFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, err
 	return f(ctx, mv)
 }
 
-// The DatumFunc type is an adapter to allow the use of ordinary
-// function as Datum mutator.
-type DatumFunc func(context.Context, *ent.DatumMutation) (ent.Value, error)
-
-// Mutate calls f(ctx, m).
-func (f DatumFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	mv, ok := m.(*ent.DatumMutation)
-	if !ok {
-		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.DatumMutation", m)
-	}
-	return f(ctx, mv)
-}
-
 // The DeviceFunc type is an adapter to allow the use of ordinary
 // function as Device mutator.
 type DeviceFunc func(context.Context, *ent.DeviceMutation) (ent.Value, error)

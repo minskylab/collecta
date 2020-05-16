@@ -23,10 +23,8 @@ type Domain struct {
 	Email string `json:"email,omitempty"`
 	// Domain holds the value of the "domain" field.
 	Domain string `json:"domain,omitempty"`
-	// CollectaDomain holds the value of the "collectaDomain" field.
-	CollectaDomain string `json:"collectaDomain,omitempty"`
-	// CollectaClientCallback holds the value of the "collectaClientCallback" field.
-	CollectaClientCallback string `json:"collectaClientCallback,omitempty"`
+	// Callback holds the value of the "callback" field.
+	Callback string `json:"callback,omitempty"`
 	// Tags holds the value of the "tags" field.
 	Tags []string `json:"tags,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
@@ -81,8 +79,7 @@ func (*Domain) scanValues() []interface{} {
 		&sql.NullString{}, // name
 		&sql.NullString{}, // email
 		&sql.NullString{}, // domain
-		&sql.NullString{}, // collectaDomain
-		&sql.NullString{}, // collectaClientCallback
+		&sql.NullString{}, // callback
 		&[]byte{},         // tags
 	}
 }
@@ -115,18 +112,13 @@ func (d *Domain) assignValues(values ...interface{}) error {
 		d.Domain = value.String
 	}
 	if value, ok := values[3].(*sql.NullString); !ok {
-		return fmt.Errorf("unexpected type %T for field collectaDomain", values[3])
+		return fmt.Errorf("unexpected type %T for field callback", values[3])
 	} else if value.Valid {
-		d.CollectaDomain = value.String
-	}
-	if value, ok := values[4].(*sql.NullString); !ok {
-		return fmt.Errorf("unexpected type %T for field collectaClientCallback", values[4])
-	} else if value.Valid {
-		d.CollectaClientCallback = value.String
+		d.Callback = value.String
 	}
 
-	if value, ok := values[5].(*[]byte); !ok {
-		return fmt.Errorf("unexpected type %T for field tags", values[5])
+	if value, ok := values[4].(*[]byte); !ok {
+		return fmt.Errorf("unexpected type %T for field tags", values[4])
 	} else if value != nil && len(*value) > 0 {
 		if err := json.Unmarshal(*value, &d.Tags); err != nil {
 			return fmt.Errorf("unmarshal field tags: %v", err)
@@ -179,10 +171,8 @@ func (d *Domain) String() string {
 	builder.WriteString(d.Email)
 	builder.WriteString(", domain=")
 	builder.WriteString(d.Domain)
-	builder.WriteString(", collectaDomain=")
-	builder.WriteString(d.CollectaDomain)
-	builder.WriteString(", collectaClientCallback=")
-	builder.WriteString(d.CollectaClientCallback)
+	builder.WriteString(", callback=")
+	builder.WriteString(d.Callback)
 	builder.WriteString(", tags=")
 	builder.WriteString(fmt.Sprintf("%v", d.Tags))
 	builder.WriteByte(')')

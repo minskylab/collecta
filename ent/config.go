@@ -27,7 +27,6 @@ type hooks struct {
 	Account  []ent.Hook
 	Answer   []ent.Hook
 	Contact  []ent.Hook
-	Datum    []ent.Hook
 	Device   []ent.Hook
 	Domain   []ent.Hook
 	Flow     []ent.Hook

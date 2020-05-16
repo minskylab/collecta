@@ -3,7 +3,7 @@ type Query {
     domain(id: ID!): Domain!
     survey(id: ID!): Survey!
     question(id: ID!): Question!
-    user(id: ID!): Person!
+    person(id: ID!): Person!
 
     profile: Person!
 

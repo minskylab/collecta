@@ -113,17 +113,10 @@ func Domain(v string) predicate.Domain {
 	})
 }
 
-// CollectaDomain applies equality check predicate on the "collectaDomain" field. It's identical to CollectaDomainEQ.
-func CollectaDomain(v string) predicate.Domain {
+// Callback applies equality check predicate on the "callback" field. It's identical to CallbackEQ.
+func Callback(v string) predicate.Domain {
 	return predicate.Domain(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldCollectaDomain), v))
-	})
-}
-
-// CollectaClientCallback applies equality check predicate on the "collectaClientCallback" field. It's identical to CollectaClientCallbackEQ.
-func CollectaClientCallback(v string) predicate.Domain {
-	return predicate.Domain(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldCollectaClientCallback), v))
+		s.Where(sql.EQ(s.C(FieldCallback), v))
 	})
 }
 
@@ -460,22 +453,22 @@ func DomainContainsFold(v string) predicate.Domain {
 	})
 }
 
-// CollectaDomainEQ applies the EQ predicate on the "collectaDomain" field.
-func CollectaDomainEQ(v string) predicate.Domain {
+// CallbackEQ applies the EQ predicate on the "callback" field.
+func CallbackEQ(v string) predicate.Domain {
 	return predicate.Domain(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldCollectaDomain), v))
+		s.Where(sql.EQ(s.C(FieldCallback), v))
 	})
 }
 
-// CollectaDomainNEQ applies the NEQ predicate on the "collectaDomain" field.
-func CollectaDomainNEQ(v string) predicate.Domain {
+// CallbackNEQ applies the NEQ predicate on the "callback" field.
+func CallbackNEQ(v string) predicate.Domain {
 	return predicate.Domain(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldCollectaDomain), v))
+		s.Where(sql.NEQ(s.C(FieldCallback), v))
 	})
 }
 
-// CollectaDomainIn applies the In predicate on the "collectaDomain" field.
-func CollectaDomainIn(vs ...string) predicate.Domain {
+// CallbackIn applies the In predicate on the "callback" field.
+func CallbackIn(vs ...string) predicate.Domain {
 	v := make([]interface{}, len(vs))
 	for i := range v {
 		v[i] = vs[i]
@@ -487,12 +480,12 @@ func CollectaDomainIn(vs ...string) predicate.Domain {
 			s.Where(sql.False())
 			return
 		}
-		s.Where(sql.In(s.C(FieldCollectaDomain), v...))
+		s.Where(sql.In(s.C(FieldCallback), v...))
 	})
 }
 
-// CollectaDomainNotIn applies the NotIn predicate on the "collectaDomain" field.
-func CollectaDomainNotIn(vs ...string) predicate.Domain {
+// CallbackNotIn applies the NotIn predicate on the "callback" field.
+func CallbackNotIn(vs ...string) predicate.Domain {
 	v := make([]interface{}, len(vs))
 	for i := range v {
 		v[i] = vs[i]
@@ -504,181 +497,70 @@ func CollectaDomainNotIn(vs ...string) predicate.Domain {
 			s.Where(sql.False())
 			return
 		}
-		s.Where(sql.NotIn(s.C(FieldCollectaDomain), v...))
+		s.Where(sql.NotIn(s.C(FieldCallback), v...))
 	})
 }
 
-// CollectaDomainGT applies the GT predicate on the "collectaDomain" field.
-func CollectaDomainGT(v string) predicate.Domain {
+// CallbackGT applies the GT predicate on the "callback" field.
+func CallbackGT(v string) predicate.Domain {
 	return predicate.Domain(func(s *sql.Selector) {
-		s.Where(sql.GT(s.C(FieldCollectaDomain), v))
+		s.Where(sql.GT(s.C(FieldCallback), v))
 	})
 }
 
-// CollectaDomainGTE applies the GTE predicate on the "collectaDomain" field.
-func CollectaDomainGTE(v string) predicate.Domain {
+// CallbackGTE applies the GTE predicate on the "callback" field.
+func CallbackGTE(v string) predicate.Domain {
 	return predicate.Domain(func(s *sql.Selector) {
-		s.Where(sql.GTE(s.C(FieldCollectaDomain), v))
+		s.Where(sql.GTE(s.C(FieldCallback), v))
 	})
 }
 
-// CollectaDomainLT applies the LT predicate on the "collectaDomain" field.
-func CollectaDomainLT(v string) predicate.Domain {
+// CallbackLT applies the LT predicate on the "callback" field.
+func CallbackLT(v string) predicate.Domain {
 	return predicate.Domain(func(s *sql.Selector) {
-		s.Where(sql.LT(s.C(FieldCollectaDomain), v))
+		s.Where(sql.LT(s.C(FieldCallback), v))
 	})
 }
 
-// CollectaDomainLTE applies the LTE predicate on the "collectaDomain" field.
-func CollectaDomainLTE(v string) predicate.Domain {
+// CallbackLTE applies the LTE predicate on the "callback" field.
+func CallbackLTE(v string) predicate.Domain {
 	return predicate.Domain(func(s *sql.Selector) {
-		s.Where(sql.LTE(s.C(FieldCollectaDomain), v))
+		s.Where(sql.LTE(s.C(FieldCallback), v))
 	})
 }
 
-// CollectaDomainContains applies the Contains predicate on the "collectaDomain" field.
-func CollectaDomainContains(v string) predicate.Domain {
+// CallbackContains applies the Contains predicate on the "callback" field.
+func CallbackContains(v string) predicate.Domain {
 	return predicate.Domain(func(s *sql.Selector) {
-		s.Where(sql.Contains(s.C(FieldCollectaDomain), v))
+		s.Where(sql.Contains(s.C(FieldCallback), v))
 	})
 }
 
-// CollectaDomainHasPrefix applies the HasPrefix predicate on the "collectaDomain" field.
-func CollectaDomainHasPrefix(v string) predicate.Domain {
+// CallbackHasPrefix applies the HasPrefix predicate on the "callback" field.
+func CallbackHasPrefix(v string) predicate.Domain {
 	return predicate.Domain(func(s *sql.Selector) {
-		s.Where(sql.HasPrefix(s.C(FieldCollectaDomain), v))
+		s.Where(sql.HasPrefix(s.C(FieldCallback), v))
 	})
 }
 
-// CollectaDomainHasSuffix applies the HasSuffix predicate on the "collectaDomain" field.
-func CollectaDomainHasSuffix(v string) predicate.Domain {
+// CallbackHasSuffix applies the HasSuffix predicate on the "callback" field.
+func CallbackHasSuffix(v string) predicate.Domain {
 	return predicate.Domain(func(s *sql.Selector) {
-		s.Where(sql.HasSuffix(s.C(FieldCollectaDomain), v))
+		s.Where(sql.HasSuffix(s.C(FieldCallback), v))
 	})
 }
 
-// CollectaDomainEqualFold applies the EqualFold predicate on the "collectaDomain" field.
-func CollectaDomainEqualFold(v string) predicate.Domain {
+// CallbackEqualFold applies the EqualFold predicate on the "callback" field.
+func CallbackEqualFold(v string) predicate.Domain {
 	return predicate.Domain(func(s *sql.Selector) {
-		s.Where(sql.EqualFold(s.C(FieldCollectaDomain), v))
+		s.Where(sql.EqualFold(s.C(FieldCallback), v))
 	})
 }
 
-// CollectaDomainContainsFold applies the ContainsFold predicate on the "collectaDomain" field.
-func CollectaDomainContainsFold(v string) predicate.Domain {
+// CallbackContainsFold applies the ContainsFold predicate on the "callback" field.
+func CallbackContainsFold(v string) predicate.Domain {
 	return predicate.Domain(func(s *sql.Selector) {
-		s.Where(sql.ContainsFold(s.C(FieldCollectaDomain), v))
-	})
-}
-
-// CollectaClientCallbackEQ applies the EQ predicate on the "collectaClientCallback" field.
-func CollectaClientCallbackEQ(v string) predicate.Domain {
-	return predicate.Domain(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldCollectaClientCallback), v))
-	})
-}
-
-// CollectaClientCallbackNEQ applies the NEQ predicate on the "collectaClientCallback" field.
-func CollectaClientCallbackNEQ(v string) predicate.Domain {
-	return predicate.Domain(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldCollectaClientCallback), v))
-	})
-}
-
-// CollectaClientCallbackIn applies the In predicate on the "collectaClientCallback" field.
-func CollectaClientCallbackIn(vs ...string) predicate.Domain {
-	v := make([]interface{}, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.Domain(func(s *sql.Selector) {
-		// if not arguments were provided, append the FALSE constants,
-		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
-			s.Where(sql.False())
-			return
-		}
-		s.Where(sql.In(s.C(FieldCollectaClientCallback), v...))
-	})
-}
-
-// CollectaClientCallbackNotIn applies the NotIn predicate on the "collectaClientCallback" field.
-func CollectaClientCallbackNotIn(vs ...string) predicate.Domain {
-	v := make([]interface{}, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.Domain(func(s *sql.Selector) {
-		// if not arguments were provided, append the FALSE constants,
-		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
-			s.Where(sql.False())
-			return
-		}
-		s.Where(sql.NotIn(s.C(FieldCollectaClientCallback), v...))
-	})
-}
-
-// CollectaClientCallbackGT applies the GT predicate on the "collectaClientCallback" field.
-func CollectaClientCallbackGT(v string) predicate.Domain {
-	return predicate.Domain(func(s *sql.Selector) {
-		s.Where(sql.GT(s.C(FieldCollectaClientCallback), v))
-	})
-}
-
-// CollectaClientCallbackGTE applies the GTE predicate on the "collectaClientCallback" field.
-func CollectaClientCallbackGTE(v string) predicate.Domain {
-	return predicate.Domain(func(s *sql.Selector) {
-		s.Where(sql.GTE(s.C(FieldCollectaClientCallback), v))
-	})
-}
-
-// CollectaClientCallbackLT applies the LT predicate on the "collectaClientCallback" field.
-func CollectaClientCallbackLT(v string) predicate.Domain {
-	return predicate.Domain(func(s *sql.Selector) {
-		s.Where(sql.LT(s.C(FieldCollectaClientCallback), v))
-	})
-}
-
-// CollectaClientCallbackLTE applies the LTE predicate on the "collectaClientCallback" field.
-func CollectaClientCallbackLTE(v string) predicate.Domain {
-	return predicate.Domain(func(s *sql.Selector) {
-		s.Where(sql.LTE(s.C(FieldCollectaClientCallback), v))
-	})
-}
-
-// CollectaClientCallbackContains applies the Contains predicate on the "collectaClientCallback" field.
-func CollectaClientCallbackContains(v string) predicate.Domain {
-	return predicate.Domain(func(s *sql.Selector) {
-		s.Where(sql.Contains(s.C(FieldCollectaClientCallback), v))
-	})
-}
-
-// CollectaClientCallbackHasPrefix applies the HasPrefix predicate on the "collectaClientCallback" field.
-func CollectaClientCallbackHasPrefix(v string) predicate.Domain {
-	return predicate.Domain(func(s *sql.Selector) {
-		s.Where(sql.HasPrefix(s.C(FieldCollectaClientCallback), v))
-	})
-}
-
-// CollectaClientCallbackHasSuffix applies the HasSuffix predicate on the "collectaClientCallback" field.
-func CollectaClientCallbackHasSuffix(v string) predicate.Domain {
-	return predicate.Domain(func(s *sql.Selector) {
-		s.Where(sql.HasSuffix(s.C(FieldCollectaClientCallback), v))
-	})
-}
-
-// CollectaClientCallbackEqualFold applies the EqualFold predicate on the "collectaClientCallback" field.
-func CollectaClientCallbackEqualFold(v string) predicate.Domain {
-	return predicate.Domain(func(s *sql.Selector) {
-		s.Where(sql.EqualFold(s.C(FieldCollectaClientCallback), v))
-	})
-}
-
-// CollectaClientCallbackContainsFold applies the ContainsFold predicate on the "collectaClientCallback" field.
-func CollectaClientCallbackContainsFold(v string) predicate.Domain {
-	return predicate.Domain(func(s *sql.Selector) {
-		s.Where(sql.ContainsFold(s.C(FieldCollectaClientCallback), v))
+		s.Where(sql.ContainsFold(s.C(FieldCallback), v))
 	})
 }
 

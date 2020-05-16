@@ -81,17 +81,6 @@ var (
 			},
 		},
 	}
-	// DataColumns holds the columns for the "data" table.
-	DataColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeInt, Increment: true},
-	}
-	// DataTable holds the schema information for the "data" table.
-	DataTable = &schema.Table{
-		Name:        "data",
-		Columns:     DataColumns,
-		PrimaryKey:  []*schema.Column{DataColumns[0]},
-		ForeignKeys: []*schema.ForeignKey{},
-	}
 	// DevicesColumns holds the columns for the "devices" table.
 	DevicesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -110,8 +99,7 @@ var (
 		{Name: "name", Type: field.TypeString},
 		{Name: "email", Type: field.TypeString, Unique: true},
 		{Name: "domain", Type: field.TypeString, Unique: true},
-		{Name: "collecta_domain", Type: field.TypeString},
-		{Name: "collecta_client_callback", Type: field.TypeString},
+		{Name: "callback", Type: field.TypeString},
 		{Name: "tags", Type: field.TypeJSON},
 	}
 	// DomainsTable holds the schema information for the "domains" table.
@@ -333,7 +321,6 @@ var (
 		AccountsTable,
 		AnswersTable,
 		ContactsTable,
-		DataTable,
 		DevicesTable,
 		DomainsTable,
 		FlowsTable,

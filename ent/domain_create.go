@@ -40,15 +40,9 @@ func (dc *DomainCreate) SetDomain(s string) *DomainCreate {
 	return dc
 }
 
-// SetCollectaDomain sets the collectaDomain field.
-func (dc *DomainCreate) SetCollectaDomain(s string) *DomainCreate {
-	dc.mutation.SetCollectaDomain(s)
-	return dc
-}
-
-// SetCollectaClientCallback sets the collectaClientCallback field.
-func (dc *DomainCreate) SetCollectaClientCallback(s string) *DomainCreate {
-	dc.mutation.SetCollectaClientCallback(s)
+// SetCallback sets the callback field.
+func (dc *DomainCreate) SetCallback(s string) *DomainCreate {
+	dc.mutation.SetCallback(s)
 	return dc
 }
 
@@ -130,11 +124,8 @@ func (dc *DomainCreate) Save(ctx context.Context) (*Domain, error) {
 	if _, ok := dc.mutation.Domain(); !ok {
 		return nil, errors.New("ent: missing required field \"domain\"")
 	}
-	if _, ok := dc.mutation.CollectaDomain(); !ok {
-		return nil, errors.New("ent: missing required field \"collectaDomain\"")
-	}
-	if _, ok := dc.mutation.CollectaClientCallback(); !ok {
-		return nil, errors.New("ent: missing required field \"collectaClientCallback\"")
+	if _, ok := dc.mutation.Callback(); !ok {
+		return nil, errors.New("ent: missing required field \"callback\"")
 	}
 	if _, ok := dc.mutation.Tags(); !ok {
 		return nil, errors.New("ent: missing required field \"tags\"")
@@ -213,21 +204,13 @@ func (dc *DomainCreate) sqlSave(ctx context.Context) (*Domain, error) {
 		})
 		d.Domain = value
 	}
-	if value, ok := dc.mutation.CollectaDomain(); ok {
+	if value, ok := dc.mutation.Callback(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  value,
-			Column: domain.FieldCollectaDomain,
+			Column: domain.FieldCallback,
 		})
-		d.CollectaDomain = value
-	}
-	if value, ok := dc.mutation.CollectaClientCallback(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: domain.FieldCollectaClientCallback,
-		})
-		d.CollectaClientCallback = value
+		d.Callback = value
 	}
 	if value, ok := dc.mutation.Tags(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{

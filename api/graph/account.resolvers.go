@@ -6,13 +6,14 @@ package graph
 import (
 	"context"
 
+	"github.com/minskylab/collecta/errors"
+
 	"github.com/google/uuid"
 	"github.com/minskylab/collecta/api/commons"
 	"github.com/minskylab/collecta/api/graph/generated"
 	"github.com/minskylab/collecta/api/graph/model"
 	"github.com/minskylab/collecta/ent/account"
 	"github.com/minskylab/collecta/ent/person"
-	"github.com/minskylab/collecta/errors"
 )
 
 func (r *accountResolver) Owner(ctx context.Context, obj *model.Account) (*model.Person, error) {

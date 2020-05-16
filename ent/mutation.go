@@ -35,7 +35,6 @@ const (
 	TypeAccount  = "Account"
 	TypeAnswer   = "Answer"
 	TypeContact  = "Contact"
-	TypeDatum    = "Datum"
 	TypeDevice   = "Device"
 	TypeDomain   = "Domain"
 	TypeFlow     = "Flow"
@@ -1335,202 +1334,6 @@ func (m *ContactMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown Contact edge %s", name)
 }
 
-// DatumMutation represents an operation that mutate the Data
-// nodes in the graph.
-type DatumMutation struct {
-	config
-	op            Op
-	typ           string
-	id            *int
-	clearedFields map[string]struct{}
-}
-
-var _ ent.Mutation = (*DatumMutation)(nil)
-
-// newDatumMutation creates new mutation for $n.Name.
-func newDatumMutation(c config, op Op) *DatumMutation {
-	return &DatumMutation{
-		config:        c,
-		op:            op,
-		typ:           TypeDatum,
-		clearedFields: make(map[string]struct{}),
-	}
-}
-
-// Client returns a new `ent.Client` from the mutation. If the mutation was
-// executed in a transaction (ent.Tx), a transactional client is returned.
-func (m DatumMutation) Client() *Client {
-	client := &Client{config: m.config}
-	client.init()
-	return client
-}
-
-// Tx returns an `ent.Tx` for mutations that were executed in transactions;
-// it returns an error otherwise.
-func (m DatumMutation) Tx() (*Tx, error) {
-	if _, ok := m.driver.(*txDriver); !ok {
-		return nil, fmt.Errorf("ent: mutation is not running in a transaction")
-	}
-	tx := &Tx{config: m.config}
-	tx.init()
-	return tx, nil
-}
-
-// ID returns the id value in the mutation. Note that, the id
-// is available only if it was provided to the builder.
-func (m *DatumMutation) ID() (id int, exists bool) {
-	if m.id == nil {
-		return
-	}
-	return *m.id, true
-}
-
-// Op returns the operation name.
-func (m *DatumMutation) Op() Op {
-	return m.op
-}
-
-// Type returns the node type of this mutation (Datum).
-func (m *DatumMutation) Type() string {
-	return m.typ
-}
-
-// Fields returns all fields that were changed during
-// this mutation. Note that, in order to get all numeric
-// fields that were in/decremented, call AddedFields().
-func (m *DatumMutation) Fields() []string {
-	fields := make([]string, 0, 0)
-	return fields
-}
-
-// Field returns the value of a field with the given name.
-// The second boolean value indicates that this field was
-// not set, or was not define in the schema.
-func (m *DatumMutation) Field(name string) (ent.Value, bool) {
-	switch name {
-	}
-	return nil, false
-}
-
-// SetField sets the value for the given name. It returns an
-// error if the field is not defined in the schema, or if the
-// type mismatch the field type.
-func (m *DatumMutation) SetField(name string, value ent.Value) error {
-	switch name {
-	}
-	return fmt.Errorf("unknown Datum field %s", name)
-}
-
-// AddedFields returns all numeric fields that were incremented
-// or decremented during this mutation.
-func (m *DatumMutation) AddedFields() []string {
-	return nil
-}
-
-// AddedField returns the numeric value that was in/decremented
-// from a field with the given name. The second value indicates
-// that this field was not set, or was not define in the schema.
-func (m *DatumMutation) AddedField(name string) (ent.Value, bool) {
-	return nil, false
-}
-
-// AddField adds the value for the given name. It returns an
-// error if the field is not defined in the schema, or if the
-// type mismatch the field type.
-func (m *DatumMutation) AddField(name string, value ent.Value) error {
-	switch name {
-	}
-	return fmt.Errorf("unknown Datum numeric field %s", name)
-}
-
-// ClearedFields returns all nullable fields that were cleared
-// during this mutation.
-func (m *DatumMutation) ClearedFields() []string {
-	return nil
-}
-
-// FieldCleared returns a boolean indicates if this field was
-// cleared in this mutation.
-func (m *DatumMutation) FieldCleared(name string) bool {
-	_, ok := m.clearedFields[name]
-	return ok
-}
-
-// ClearField clears the value for the given name. It returns an
-// error if the field is not defined in the schema.
-func (m *DatumMutation) ClearField(name string) error {
-	return fmt.Errorf("unknown Datum nullable field %s", name)
-}
-
-// ResetField resets all changes in the mutation regarding the
-// given field name. It returns an error if the field is not
-// defined in the schema.
-func (m *DatumMutation) ResetField(name string) error {
-	switch name {
-	}
-	return fmt.Errorf("unknown Datum field %s", name)
-}
-
-// AddedEdges returns all edge names that were set/added in this
-// mutation.
-func (m *DatumMutation) AddedEdges() []string {
-	edges := make([]string, 0, 0)
-	return edges
-}
-
-// AddedIDs returns all ids (to other nodes) that were added for
-// the given edge name.
-func (m *DatumMutation) AddedIDs(name string) []ent.Value {
-	switch name {
-	}
-	return nil
-}
-
-// RemovedEdges returns all edge names that were removed in this
-// mutation.
-func (m *DatumMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 0)
-	return edges
-}
-
-// RemovedIDs returns all ids (to other nodes) that were removed for
-// the given edge name.
-func (m *DatumMutation) RemovedIDs(name string) []ent.Value {
-	switch name {
-	}
-	return nil
-}
-
-// ClearedEdges returns all edge names that were cleared in this
-// mutation.
-func (m *DatumMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 0)
-	return edges
-}
-
-// EdgeCleared returns a boolean indicates if this edge was
-// cleared in this mutation.
-func (m *DatumMutation) EdgeCleared(name string) bool {
-	switch name {
-	}
-	return false
-}
-
-// ClearEdge clears the value for the given name. It returns an
-// error if the edge name is not defined in the schema.
-func (m *DatumMutation) ClearEdge(name string) error {
-	return fmt.Errorf("unknown Datum unique edge %s", name)
-}
-
-// ResetEdge resets all changes in the mutation regarding the
-// given edge name. It returns an error if the edge is not
-// defined in the schema.
-func (m *DatumMutation) ResetEdge(name string) error {
-	switch name {
-	}
-	return fmt.Errorf("unknown Datum edge %s", name)
-}
-
 // DeviceMutation represents an operation that mutate the Devices
 // nodes in the graph.
 type DeviceMutation struct {
@@ -1766,22 +1569,21 @@ func (m *DeviceMutation) ResetEdge(name string) error {
 // nodes in the graph.
 type DomainMutation struct {
 	config
-	op                     Op
-	typ                    string
-	id                     *uuid.UUID
-	name                   *string
-	email                  *string
-	domain                 *string
-	collectaDomain         *string
-	collectaClientCallback *string
-	tags                   *[]string
-	clearedFields          map[string]struct{}
-	surveys                map[uuid.UUID]struct{}
-	removedsurveys         map[uuid.UUID]struct{}
-	users                  map[uuid.UUID]struct{}
-	removedusers           map[uuid.UUID]struct{}
-	admins                 map[uuid.UUID]struct{}
-	removedadmins          map[uuid.UUID]struct{}
+	op             Op
+	typ            string
+	id             *uuid.UUID
+	name           *string
+	email          *string
+	domain         *string
+	callback       *string
+	tags           *[]string
+	clearedFields  map[string]struct{}
+	surveys        map[uuid.UUID]struct{}
+	removedsurveys map[uuid.UUID]struct{}
+	users          map[uuid.UUID]struct{}
+	removedusers   map[uuid.UUID]struct{}
+	admins         map[uuid.UUID]struct{}
+	removedadmins  map[uuid.UUID]struct{}
 }
 
 var _ ent.Mutation = (*DomainMutation)(nil)
@@ -1887,42 +1689,23 @@ func (m *DomainMutation) ResetDomain() {
 	m.domain = nil
 }
 
-// SetCollectaDomain sets the collectaDomain field.
-func (m *DomainMutation) SetCollectaDomain(s string) {
-	m.collectaDomain = &s
+// SetCallback sets the callback field.
+func (m *DomainMutation) SetCallback(s string) {
+	m.callback = &s
 }
 
-// CollectaDomain returns the collectaDomain value in the mutation.
-func (m *DomainMutation) CollectaDomain() (r string, exists bool) {
-	v := m.collectaDomain
+// Callback returns the callback value in the mutation.
+func (m *DomainMutation) Callback() (r string, exists bool) {
+	v := m.callback
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// ResetCollectaDomain reset all changes of the collectaDomain field.
-func (m *DomainMutation) ResetCollectaDomain() {
-	m.collectaDomain = nil
-}
-
-// SetCollectaClientCallback sets the collectaClientCallback field.
-func (m *DomainMutation) SetCollectaClientCallback(s string) {
-	m.collectaClientCallback = &s
-}
-
-// CollectaClientCallback returns the collectaClientCallback value in the mutation.
-func (m *DomainMutation) CollectaClientCallback() (r string, exists bool) {
-	v := m.collectaClientCallback
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// ResetCollectaClientCallback reset all changes of the collectaClientCallback field.
-func (m *DomainMutation) ResetCollectaClientCallback() {
-	m.collectaClientCallback = nil
+// ResetCallback reset all changes of the callback field.
+func (m *DomainMutation) ResetCallback() {
+	m.callback = nil
 }
 
 // SetTags sets the tags field.
@@ -2084,7 +1867,7 @@ func (m *DomainMutation) Type() string {
 // this mutation. Note that, in order to get all numeric
 // fields that were in/decremented, call AddedFields().
 func (m *DomainMutation) Fields() []string {
-	fields := make([]string, 0, 6)
+	fields := make([]string, 0, 5)
 	if m.name != nil {
 		fields = append(fields, domain.FieldName)
 	}
@@ -2094,11 +1877,8 @@ func (m *DomainMutation) Fields() []string {
 	if m.domain != nil {
 		fields = append(fields, domain.FieldDomain)
 	}
-	if m.collectaDomain != nil {
-		fields = append(fields, domain.FieldCollectaDomain)
-	}
-	if m.collectaClientCallback != nil {
-		fields = append(fields, domain.FieldCollectaClientCallback)
+	if m.callback != nil {
+		fields = append(fields, domain.FieldCallback)
 	}
 	if m.tags != nil {
 		fields = append(fields, domain.FieldTags)
@@ -2117,10 +1897,8 @@ func (m *DomainMutation) Field(name string) (ent.Value, bool) {
 		return m.Email()
 	case domain.FieldDomain:
 		return m.Domain()
-	case domain.FieldCollectaDomain:
-		return m.CollectaDomain()
-	case domain.FieldCollectaClientCallback:
-		return m.CollectaClientCallback()
+	case domain.FieldCallback:
+		return m.Callback()
 	case domain.FieldTags:
 		return m.Tags()
 	}
@@ -2153,19 +1931,12 @@ func (m *DomainMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetDomain(v)
 		return nil
-	case domain.FieldCollectaDomain:
+	case domain.FieldCallback:
 		v, ok := value.(string)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetCollectaDomain(v)
-		return nil
-	case domain.FieldCollectaClientCallback:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetCollectaClientCallback(v)
+		m.SetCallback(v)
 		return nil
 	case domain.FieldTags:
 		v, ok := value.([]string)
@@ -2233,11 +2004,8 @@ func (m *DomainMutation) ResetField(name string) error {
 	case domain.FieldDomain:
 		m.ResetDomain()
 		return nil
-	case domain.FieldCollectaDomain:
-		m.ResetCollectaDomain()
-		return nil
-	case domain.FieldCollectaClientCallback:
-		m.ResetCollectaClientCallback()
+	case domain.FieldCallback:
+		m.ResetCallback()
 		return nil
 	case domain.FieldTags:
 		m.ResetTags()

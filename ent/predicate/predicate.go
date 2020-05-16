@@ -15,9 +15,6 @@ type Answer func(*sql.Selector)
 // Contact is the predicate function for contact builders.
 type Contact func(*sql.Selector)
 
-// Datum is the predicate function for datum builders.
-type Datum func(*sql.Selector)
-
 // Device is the predicate function for device builders.
 type Device func(*sql.Selector)
 
