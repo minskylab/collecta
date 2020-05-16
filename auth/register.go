@@ -5,7 +5,6 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/markbates/goth"
-	"github.com/minskylab/collecta/drafts"
 	"github.com/minskylab/collecta/ent"
 	"github.com/minskylab/collecta/ent/account"
 	"github.com/minskylab/collecta/ent/contact"
@@ -77,12 +76,12 @@ func (collectaAuth *Auth) registerNewUserFromGoogle(ctx context.Context, rawUser
 
 	log.Info("generating demo survey")
 	// TODO: refactoring
-	surv, err := drafts.GenerateUTECDemo(ctx, collectaAuth.db, userDomain.ID, newUser.ID)
-	if err != nil {
-		return nil, errors.Wrap(err, "error at utec demo generator")
-	}
+	// surv, err := drafts.GenerateUTECDemo(ctx, collectaAuth.db, userDomain.ID, newUser.ID)
+	// if err != nil {
+	// 	return nil, errors.Wrap(err, "error at utec demo generator")
+	// }
 
-	log.WithField("survey", surv).Info("demo generated ")
+	// log.WithField("survey", surv).Info("demo generated ")
 
 	return newUser, nil
 }

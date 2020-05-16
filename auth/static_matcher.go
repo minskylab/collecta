@@ -3,12 +3,15 @@ package auth
 import (
 	"context"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/markbates/goth"
 	"github.com/minskylab/collecta/ent/domain"
 	"github.com/pkg/errors"
 )
 
 func (collectaAuth *Auth) matchGoogleUserWithCollectaDomain(ctx context.Context, rawUser goth.User) (string, error) {
+	spew.Dump(rawUser)
+	
 	domainHost, ok := rawUser.RawData["hd"].(string)
 	if !ok {
 		return "", errors.New("invalid domain in raw rawUser data")
