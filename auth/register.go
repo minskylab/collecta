@@ -17,8 +17,8 @@ import (
 )
 
 func (collectaAuth *Auth) registerNewUserFromGoogle(ctx context.Context, rawUser goth.User) (*ent.Person, error) {
+	name := rawUser.Name
 	domainHost, ok := rawUser.RawData["hd"].(string)
-	fmt.Println("domainHost, ok: ", domainHost, ok)
 	if !ok {
 		fmt.Println("email: " + rawUser.Email)
 		parts := strings.Split(rawUser.Email, "@")
@@ -27,6 +27,9 @@ func (collectaAuth *Auth) registerNewUserFromGoogle(ctx context.Context, rawUser
 			return nil, errors.New("invalid domain in raw rawUser data")
 		}
 		domainHost = strings.TrimSpace(parts[1])
+		if name == "" {
+			name = parts[0]
+		}
 	}
 
 	fmt.Println("domainHost: "+domainHost)
@@ -49,8 +52,8 @@ func (collectaAuth *Auth) registerNewUserFromGoogle(ctx context.Context, rawUser
 
 	newUser, err := collectaAuth.db.Ent.Person.Create().
 		SetID(uuid.New()).
-		SetName(rawUser.Name).
-		SetUsername(rawUser.Name).
+		SetName(name).
+		SetUsername(name).
 		SetLastActivity(time.Now()).
 		SetPicture(rawUser.AvatarURL).
 		SetRoles([]string{"user"}).
