@@ -45,22 +45,38 @@ autobind:
 models:
   ID:
     model:
-      - github.com/99designs/gqlgen/graphql.ID
+      - github.com/google/uuid.UUID
+  AccountType:
+    model:
+      - github.com/minskylab/collecta/ent/account.Type
   Account:
+    model:
+      - github.com/minskylab/collecta/ent.Account
     fields:
       owner:
         resolver: true
   Answer:
+    model:
+      - github.com/minskylab/collecta/ent.Answer
     fields:
       question:
         resolver: true
+  ContactKind:
+    model:
+      - github.com/minskylab/collecta/ent/contact.Kind
   Contact:
+    model:
+      - github.com/minskylab/collecta/ent.Contact
     fields:
       owner:
         resolver: true
   Device:
+    model:
+      - github.com/minskylab/collecta/ent.Device
     fields:
   Domain:
+    model:
+      - github.com/minskylab/collecta/ent.Domain
     fields:
       surveys:
         resolver: true
@@ -69,18 +85,29 @@ models:
       admins:
         resolver: true
   Flow:
+    model:
+      - github.com/minskylab/collecta/ent.Flow
     fields:
       survey:
         resolver: true
       questions:
         resolver: true
   IP:
+    model:
+      - github.com/minskylab/collecta/ent.IP
     fields:
+  InputKind:
+    model:
+      - github.com/minskylab/collecta/ent/input.Kind
   Input:
+    model:
+      - github.com/minskylab/collecta/ent.Input
     fields:
       question:
         resolver: true
   Person:
+    model:
+      - github.com/minskylab/collecta/ent.Person
     fields:
       accounts:
         resolver: true
@@ -93,6 +120,8 @@ models:
       adminOf:
         resolver: true
   Question:
+    model:
+      - github.com/minskylab/collecta/ent.Question
     fields:
       answers:
         resolver: true
@@ -101,8 +130,12 @@ models:
       flow:
         resolver: true
   Short:
+    model:
+      - github.com/minskylab/collecta/ent.Short
     fields:
   Survey:
+    model:
+      - github.com/minskylab/collecta/ent.Survey
     fields:
       flow:
         resolver: true

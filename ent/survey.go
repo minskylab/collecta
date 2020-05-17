@@ -32,7 +32,7 @@ type Survey struct {
 	// Description holds the value of the "description" field.
 	Description string `json:"description,omitempty"`
 	// Metadata holds the value of the "metadata" field.
-	Metadata map[string]string `json:"metadata,omitempty"`
+	Metadata map[string]interface{} `json:"metadata,omitempty"`
 	// Done holds the value of the "done" field.
 	Done bool `json:"done,omitempty"`
 	// IsPublic holds the value of the "isPublic" field.

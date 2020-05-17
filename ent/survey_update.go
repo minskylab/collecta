@@ -72,7 +72,7 @@ func (su *SurveyUpdate) ClearDescription() *SurveyUpdate {
 }
 
 // SetMetadata sets the metadata field.
-func (su *SurveyUpdate) SetMetadata(m map[string]string) *SurveyUpdate {
+func (su *SurveyUpdate) SetMetadata(m map[string]interface{}) *SurveyUpdate {
 	su.mutation.SetMetadata(m)
 	return su
 }
@@ -499,7 +499,7 @@ func (suo *SurveyUpdateOne) ClearDescription() *SurveyUpdateOne {
 }
 
 // SetMetadata sets the metadata field.
-func (suo *SurveyUpdateOne) SetMetadata(m map[string]string) *SurveyUpdateOne {
+func (suo *SurveyUpdateOne) SetMetadata(m map[string]interface{}) *SurveyUpdateOne {
 	suo.mutation.SetMetadata(m)
 	return suo
 }

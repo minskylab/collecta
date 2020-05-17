@@ -25,7 +25,7 @@ type Input struct {
 	// Defaults holds the value of the "defaults" field.
 	Defaults []string `json:"defaults,omitempty"`
 	// Options holds the value of the "options" field.
-	Options map[string]string `json:"options,omitempty"`
+	Options map[string]interface{} `json:"options,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the InputQuery when eager-loading is set.
 	Edges          InputEdges `json:"edges"`

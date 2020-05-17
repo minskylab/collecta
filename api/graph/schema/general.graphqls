@@ -15,6 +15,11 @@ enum SurveyAudenceKind {
     CLOSE # CLOSE only open the survey a determinated whitelist passed by the user
 }
 
+input Pair {
+    key: String!
+    value: String!
+}
+
 input QuestionCreator {
     title: String!
     description: String!
@@ -32,11 +37,6 @@ input SurveyTargetUsers {
 input SurveyDomain {
     byID: ID
     byDomainName: String
-}
-
-input Pair {
-    key: String!
-    value: String!
 }
 
 input SurveyGenerator {

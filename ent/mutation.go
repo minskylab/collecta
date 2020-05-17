@@ -2959,7 +2959,7 @@ type InputMutation struct {
 	kind            *input.Kind
 	multiple        *bool
 	defaults        *[]string
-	options         *map[string]string
+	options         *map[string]interface{}
 	clearedFields   map[string]struct{}
 	question        *uuid.UUID
 	clearedquestion bool
@@ -3095,12 +3095,12 @@ func (m *InputMutation) ResetDefaults() {
 }
 
 // SetOptions sets the options field.
-func (m *InputMutation) SetOptions(value map[string]string) {
+func (m *InputMutation) SetOptions(value map[string]interface{}) {
 	m.options = &value
 }
 
 // Options returns the options value in the mutation.
-func (m *InputMutation) Options() (r map[string]string, exists bool) {
+func (m *InputMutation) Options() (r map[string]interface{}, exists bool) {
 	v := m.options
 	if v == nil {
 		return
@@ -3239,7 +3239,7 @@ func (m *InputMutation) SetField(name string, value ent.Value) error {
 		m.SetDefaults(v)
 		return nil
 	case input.FieldOptions:
-		v, ok := value.(map[string]string)
+		v, ok := value.(map[string]interface{})
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
@@ -4186,7 +4186,7 @@ type QuestionMutation struct {
 	hash           *string
 	title          *string
 	description    *string
-	metadata       *map[string]string
+	metadata       *map[string]interface{}
 	validator      *string
 	anonymous      *bool
 	clearedFields  map[string]struct{}
@@ -4302,12 +4302,12 @@ func (m *QuestionMutation) ResetDescription() {
 }
 
 // SetMetadata sets the metadata field.
-func (m *QuestionMutation) SetMetadata(value map[string]string) {
+func (m *QuestionMutation) SetMetadata(value map[string]interface{}) {
 	m.metadata = &value
 }
 
 // Metadata returns the metadata value in the mutation.
-func (m *QuestionMutation) Metadata() (r map[string]string, exists bool) {
+func (m *QuestionMutation) Metadata() (r map[string]interface{}, exists bool) {
 	v := m.metadata
 	if v == nil {
 		return
@@ -4588,7 +4588,7 @@ func (m *QuestionMutation) SetField(name string, value ent.Value) error {
 		m.SetDescription(v)
 		return nil
 	case question.FieldMetadata:
-		v, ok := value.(map[string]string)
+		v, ok := value.(map[string]interface{})
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
@@ -5092,7 +5092,7 @@ type SurveyMutation struct {
 	dueDate         *time.Time
 	title           *string
 	description     *string
-	metadata        *map[string]string
+	metadata        *map[string]interface{}
 	done            *bool
 	isPublic        *bool
 	clearedFields   map[string]struct{}
@@ -5259,12 +5259,12 @@ func (m *SurveyMutation) ResetDescription() {
 }
 
 // SetMetadata sets the metadata field.
-func (m *SurveyMutation) SetMetadata(value map[string]string) {
+func (m *SurveyMutation) SetMetadata(value map[string]interface{}) {
 	m.metadata = &value
 }
 
 // Metadata returns the metadata value in the mutation.
-func (m *SurveyMutation) Metadata() (r map[string]string, exists bool) {
+func (m *SurveyMutation) Metadata() (r map[string]interface{}, exists bool) {
 	v := m.metadata
 	if v == nil {
 		return
@@ -5579,7 +5579,7 @@ func (m *SurveyMutation) SetField(name string, value ent.Value) error {
 		m.SetDescription(v)
 		return nil
 	case survey.FieldMetadata:
-		v, ok := value.(map[string]string)
+		v, ok := value.(map[string]interface{})
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}

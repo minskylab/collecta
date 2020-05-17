@@ -11,6 +11,7 @@ import (
 	"github.com/facebookincubator/ent/entc"
 	"github.com/facebookincubator/ent/entc/gen"
 	"github.com/facebookincubator/ent/schema/field"
+
 	"github.com/minskylab/collecta/errors"
 )
 
@@ -145,8 +146,6 @@ func generateGQLGenFromEntSchema(entSchemaPath string, gqlgenAPIPath string) {
 
 	}
 
-
-
 	gqlConfig := path.Join(gqlgenAPIPath, "gqlgen.yml")
 	data, err := ioutil.ReadFile(gqlConfig)
 	if err != nil {
@@ -162,18 +161,61 @@ func generateGQLGenFromEntSchema(entSchemaPath string, gqlgenAPIPath string) {
 
 	id := strings.Repeat("  ", indent) + "ID:\n" +
 		strings.Repeat("  ", indent+1) + "model:\n" +
-		strings.Repeat("  ", indent+2) + "- github.com/99designs/gqlgen/graphql.ID\n"
+		strings.Repeat("  ", indent+2) + "- github.com/google/uuid.UUID\n"
 
 	if _, err = fmt.Fprint(yamlConfigBuffer, id); err != nil {
 		panic(errors.Wrap(err, "error at write buffer"))
 	}
 
 	for _, sch := range graph.Schemas {
+		for _, f := range sch.Fields { // Validate if it has a enum field
+			if f.Info.Type == field.TypeEnum {
+				// to enum buffer
+				// enumName := strings.TrimPrefix(sch.Name, strings.ToLower(sch.Name) + ".")
+
+				rawEnumName := strings.ToUpper(string(f.Name[0])) + f.Name[1:]
+				enumName := sch.Name + rawEnumName
+
+				if _, err = fmt.Fprintf(yamlConfigBuffer,"%s%s:\n", strings.Repeat("  ", indent), enumName); err != nil {
+					panic(errors.Wrap(err, "error at write buffer"))
+				}
+
+				indent += 1
+
+				if _, err = fmt.Fprintf(yamlConfigBuffer,"%s%s:\n", strings.Repeat("  ", indent), "model"); err != nil {
+					panic(errors.Wrap(err, "error at write buffer"))
+				}
+
+				indent += 1
+
+				rootPackagePath := "github.com/minskylab/collecta/ent/" + strings.ToLower(sch.Name) + "." + rawEnumName
+				if _, err = fmt.Fprintf(yamlConfigBuffer,"%s%s\n", strings.Repeat("  ", indent), "- "+rootPackagePath); err != nil {
+					panic(errors.Wrap(err, "error at write buffer"))
+				}
+
+				indent -= 2
+			}
+		}
+
 		if _, err = fmt.Fprintf(yamlConfigBuffer,"%s%s:\n", strings.Repeat("  ", indent), sch.Name); err != nil {
 			panic(errors.Wrap(err, "error at write buffer"))
 		}
 
 		indent += 1
+
+		if _, err = fmt.Fprintf(yamlConfigBuffer,"%s%s:\n", strings.Repeat("  ", indent), "model"); err != nil {
+			panic(errors.Wrap(err, "error at write buffer"))
+		}
+
+		indent += 1
+
+		rootPackagePath := "github.com/minskylab/collecta/ent." + sch.Name
+
+		if _, err = fmt.Fprintf(yamlConfigBuffer,"%s%s\n", strings.Repeat("  ", indent), "- "+rootPackagePath); err != nil {
+			panic(errors.Wrap(err, "error at write buffer"))
+		}
+
+		indent -= 1
 
 		if _, err = fmt.Fprintf(yamlConfigBuffer,"%s%s:\n", strings.Repeat("  ", indent), "fields"); err != nil {
 			panic(errors.Wrap(err, "error at write buffer"))

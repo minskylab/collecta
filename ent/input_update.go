@@ -63,7 +63,7 @@ func (iu *InputUpdate) ClearDefaults() *InputUpdate {
 }
 
 // SetOptions sets the options field.
-func (iu *InputUpdate) SetOptions(m map[string]string) *InputUpdate {
+func (iu *InputUpdate) SetOptions(m map[string]interface{}) *InputUpdate {
 	iu.mutation.SetOptions(m)
 	return iu
 }
@@ -288,7 +288,7 @@ func (iuo *InputUpdateOne) ClearDefaults() *InputUpdateOne {
 }
 
 // SetOptions sets the options field.
-func (iuo *InputUpdateOne) SetOptions(m map[string]string) *InputUpdateOne {
+func (iuo *InputUpdateOne) SetOptions(m map[string]interface{}) *InputUpdateOne {
 	iuo.mutation.SetOptions(m)
 	return iuo
 }

@@ -71,7 +71,7 @@ func (sc *SurveyCreate) SetNillableDescription(s *string) *SurveyCreate {
 }
 
 // SetMetadata sets the metadata field.
-func (sc *SurveyCreate) SetMetadata(m map[string]string) *SurveyCreate {
+func (sc *SurveyCreate) SetMetadata(m map[string]interface{}) *SurveyCreate {
 	sc.mutation.SetMetadata(m)
 	return sc
 }

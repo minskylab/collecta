@@ -42,7 +42,7 @@ func (qc *QuestionCreate) SetDescription(s string) *QuestionCreate {
 }
 
 // SetMetadata sets the metadata field.
-func (qc *QuestionCreate) SetMetadata(m map[string]string) *QuestionCreate {
+func (qc *QuestionCreate) SetMetadata(m map[string]interface{}) *QuestionCreate {
 	qc.mutation.SetMetadata(m)
 	return qc
 }

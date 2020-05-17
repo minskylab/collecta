@@ -26,7 +26,7 @@ type Question struct {
 	// Description holds the value of the "description" field.
 	Description string `json:"description,omitempty"`
 	// Metadata holds the value of the "metadata" field.
-	Metadata map[string]string `json:"metadata,omitempty"`
+	Metadata map[string]interface{} `json:"metadata,omitempty"`
 	// Validator holds the value of the "validator" field.
 	Validator string `json:"validator,omitempty"`
 	// Anonymous holds the value of the "anonymous" field.

@@ -111,12 +111,7 @@ func createSurveysFromAPI(ctx context.Context, db *db.DB, domainID uuid.UUID, dr
 			return nil, errors.New("you cannot create a close survey without specify the whitelist")
 		}
 		for _, uID := range draft.Target.Whitelist {
-			userID, err := uuid.Parse(uID)
-			if err != nil {
-				return nil, errors.Wrap(err, "error at parse one user ID from your audience")
-			}
-
-			u, err := db.Ent.Person.Get(ctx, userID)
+			u, err := db.Ent.Person.Get(ctx, uID)
 			if err != nil {
 				return nil, errors.Wrap(err, "error at get user ")
 			}

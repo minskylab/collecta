@@ -50,7 +50,7 @@ func (qu *QuestionUpdate) SetDescription(s string) *QuestionUpdate {
 }
 
 // SetMetadata sets the metadata field.
-func (qu *QuestionUpdate) SetMetadata(m map[string]string) *QuestionUpdate {
+func (qu *QuestionUpdate) SetMetadata(m map[string]interface{}) *QuestionUpdate {
 	qu.mutation.SetMetadata(m)
 	return qu
 }
@@ -421,7 +421,7 @@ func (quo *QuestionUpdateOne) SetDescription(s string) *QuestionUpdateOne {
 }
 
 // SetMetadata sets the metadata field.
-func (quo *QuestionUpdateOne) SetMetadata(m map[string]string) *QuestionUpdateOne {
+func (quo *QuestionUpdateOne) SetMetadata(m map[string]interface{}) *QuestionUpdateOne {
 	quo.mutation.SetMetadata(m)
 	return quo
 }

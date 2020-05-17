@@ -48,7 +48,7 @@ func (ic *InputCreate) SetDefaults(s []string) *InputCreate {
 }
 
 // SetOptions sets the options field.
-func (ic *InputCreate) SetOptions(m map[string]string) *InputCreate {
+func (ic *InputCreate) SetOptions(m map[string]interface{}) *InputCreate {
 	ic.mutation.SetOptions(m)
 	return ic
 }

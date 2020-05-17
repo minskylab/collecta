@@ -1,10 +1,12 @@
 scalar Time
 
-type PairMap {
-    key: String!
-    value: String!
-}
+#type PairMap {
+#    key: String!
+#    value: String!
+#}
+#
+#type Map {
+#    content: [PairMap!]!
+#}
 
-type Map {
-    content: [PairMap!]!
-}
+scalar Map

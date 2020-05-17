@@ -8,14 +8,13 @@ import (
 
 	"github.com/minskylab/collecta/errors"
 
-	"github.com/google/uuid"
 	"github.com/minskylab/collecta/api/commons"
 	"github.com/minskylab/collecta/api/graph/generated"
-	"github.com/minskylab/collecta/api/graph/model"
+	"github.com/minskylab/collecta/ent"
 	"github.com/minskylab/collecta/ent/domain"
 )
 
-func (r *domainResolver) Surveys(ctx context.Context, obj *model.Domain) ([]*model.Survey, error) {
+func (r *domainResolver) Surveys(ctx context.Context, obj *ent.Domain) ([]*ent.Survey, error) {
 	ownerResID, err := commons.OwnerOfDomain(ctx, r.DB, obj)
 	if err != nil {
 		return nil, errors.Wrap(err, "error at extract owner of resource")
@@ -25,26 +24,13 @@ func (r *domainResolver) Surveys(ctx context.Context, obj *model.Domain) ([]*mod
 		return nil, errors.Wrap(err, "error at validate your credentials")
 	}
 
-	e, err := r.DB.Ent.Domain.Query().
-		Where(domain.ID(uuid.MustParse(obj.ID))).
+	return r.DB.Ent.Domain.Query().
+		Where(domain.ID(obj.ID)).
 		QuerySurveys().
 		All(ctx)
-
-	if err != nil {
-		return nil, errors.Wrap(err, "error at ent query")
-	}
-
-	arr := make([]*model.Survey, 0)
-	for _, a := range e {
-		if a != nil {
-			arr = append(arr, commons.SurveyToGQL(a))
-		}
-	}
-
-	return arr, nil
 }
 
-func (r *domainResolver) Users(ctx context.Context, obj *model.Domain) ([]*model.Person, error) {
+func (r *domainResolver) Users(ctx context.Context, obj *ent.Domain) ([]*ent.Person, error) {
 	ownerResID, err := commons.OwnerOfDomain(ctx, r.DB, obj)
 	if err != nil {
 		return nil, errors.Wrap(err, "error at extract owner of resource")
@@ -54,26 +40,13 @@ func (r *domainResolver) Users(ctx context.Context, obj *model.Domain) ([]*model
 		return nil, errors.Wrap(err, "error at validate your credentials")
 	}
 
-	e, err := r.DB.Ent.Domain.Query().
-		Where(domain.ID(uuid.MustParse(obj.ID))).
+	return r.DB.Ent.Domain.Query().
+		Where(domain.ID(obj.ID)).
 		QueryUsers().
 		All(ctx)
-
-	if err != nil {
-		return nil, errors.Wrap(err, "error at ent query")
-	}
-
-	arr := make([]*model.Person, 0)
-	for _, a := range e {
-		if a != nil {
-			arr = append(arr, commons.PersonToGQL(a))
-		}
-	}
-
-	return arr, nil
 }
 
-func (r *domainResolver) Admins(ctx context.Context, obj *model.Domain) ([]*model.Person, error) {
+func (r *domainResolver) Admins(ctx context.Context, obj *ent.Domain) ([]*ent.Person, error) {
 	ownerResID, err := commons.OwnerOfDomain(ctx, r.DB, obj)
 	if err != nil {
 		return nil, errors.Wrap(err, "error at extract owner of resource")
@@ -83,23 +56,10 @@ func (r *domainResolver) Admins(ctx context.Context, obj *model.Domain) ([]*mode
 		return nil, errors.Wrap(err, "error at validate your credentials")
 	}
 
-	e, err := r.DB.Ent.Domain.Query().
-		Where(domain.ID(uuid.MustParse(obj.ID))).
+	return r.DB.Ent.Domain.Query().
+		Where(domain.ID(obj.ID)).
 		QueryAdmins().
 		All(ctx)
-
-	if err != nil {
-		return nil, errors.Wrap(err, "error at ent query")
-	}
-
-	arr := make([]*model.Person, 0)
-	for _, a := range e {
-		if a != nil {
-			arr = append(arr, commons.PersonToGQL(a))
-		}
-	}
-
-	return arr, nil
 }
 
 // Domain returns generated.DomainResolver implementation.

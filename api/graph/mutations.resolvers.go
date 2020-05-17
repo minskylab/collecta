@@ -14,7 +14,6 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/microcosm-cc/bluemonday"
-	"github.com/minskylab/collecta/api/commons"
 	"github.com/minskylab/collecta/api/graph/generated"
 	"github.com/minskylab/collecta/api/graph/model"
 	"github.com/minskylab/collecta/collecta/answers"
@@ -30,15 +29,10 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-func (r *mutationResolver) AnswerQuestion(ctx context.Context, questionID string, answer []string) (*model.Survey, error) {
+func (r *mutationResolver) AnswerQuestion(ctx context.Context, questionID uuid.UUID, answer []string) (*ent.Survey, error) {
 	userRequester := r.Auth.UserOfContext(ctx)
 	if userRequester == nil {
 		return nil, errors.New("unauthorized, please include a valid token in your header")
-	}
-
-	qID, err := uuid.Parse(questionID)
-	if err != nil {
-		return nil, errors.Wrap(err, "error at try to parse the domain id")
 	}
 
 	isOwnerOfQuestionSurveyDomain, err := userRequester.
@@ -46,7 +40,7 @@ func (r *mutationResolver) AnswerQuestion(ctx context.Context, questionID string
 		Where(
 			domain.HasSurveysWith(
 				survey.HasFlowWith(
-					flow.HasQuestionsWith(question.ID(qID)),
+					flow.HasQuestionsWith(question.ID(questionID)),
 				),
 			),
 		).Exist(ctx)
@@ -55,7 +49,7 @@ func (r *mutationResolver) AnswerQuestion(ctx context.Context, questionID string
 	}
 
 	if !isOwnerOfQuestionSurveyDomain {
-		isQuestionOwner, err := userRequester.QuerySurveys().QueryFlow().QueryQuestions().Where(question.ID(qID)).Exist(ctx)
+		isQuestionOwner, err := userRequester.QuerySurveys().QueryFlow().QueryQuestions().Where(question.ID(questionID)).Exist(ctx)
 		if err != nil {
 			return nil, errors.Wrap(err, "question cannot be fetch")
 		}
@@ -64,7 +58,7 @@ func (r *mutationResolver) AnswerQuestion(ctx context.Context, questionID string
 		}
 	}
 
-	q, err := r.DB.Ent.Question.Get(ctx, qID)
+	q, err := r.DB.Ent.Question.Get(ctx, questionID)
 	if err != nil {
 		return nil, errors.Wrap(err, "error at try to fetch question")
 	}
@@ -84,7 +78,12 @@ func (r *mutationResolver) AnswerQuestion(ctx context.Context, questionID string
 		answer[i] = policy.Sanitize(v)
 	}
 
-	answerIsOk, err := answers.AnswerIsKind(in.Kind, answer, in.Options) // TODO, optimize: only pass a *Input
+	opts := map[string]string{}
+	for k, v := range in.Options {
+		opts[k], _ = v.(string)
+	}
+
+	answerIsOk, err := answers.AnswerIsKind(in.Kind, answer, opts) // TODO, optimize: only pass a *Input
 
 	if !answerIsOk {
 		return nil, errors.New("invalid answer, please choose a correct one")
@@ -122,37 +121,20 @@ func (r *mutationResolver) AnswerQuestion(ctx context.Context, questionID string
 		return nil, errors.Wrap(err, "error at update flow with the next state")
 	}
 
-	surv, err = r.DB.Ent.Survey.UpdateOneID(surv.ID).SetLastInteraction(time.Now()).Save(ctx)
-	if err != nil {
-		return nil, errors.Wrap(err, "error at update last interaction of the survey")
-	}
-
-	return &model.Survey{
-		ID:              surv.ID.String(),
-		Tags:            surv.Tags,
-		LastInteraction: surv.LastInteraction,
-		DueDate:         surv.DueDate,
-		Title:           surv.Title,
-		Description:     &surv.Description,
-	}, nil
+	return r.DB.Ent.Survey.UpdateOneID(surv.ID).SetLastInteraction(time.Now()).Save(ctx)
 }
 
-func (r *mutationResolver) BackwardSurvey(ctx context.Context, surveyID string) (*model.Survey, error) {
+func (r *mutationResolver) BackwardSurvey(ctx context.Context, surveyID uuid.UUID) (*ent.Survey, error) {
 	userRequester := r.Auth.UserOfContext(ctx)
 	if userRequester == nil {
 		return nil, errors.New("unauthorized, please include a valid token in your header")
-	}
-
-	sID, err := uuid.Parse(surveyID)
-	if err != nil {
-		return nil, errors.Wrap(err, "error at try to parse the domain id")
 	}
 
 	isOwnerOfSurveyDomain, err := userRequester.
 		QueryAdminOf().
 		Where(
 			domain.HasSurveysWith(
-				survey.ID(sID),
+				survey.ID(surveyID),
 			),
 		).Exist(ctx)
 	if err != nil {
@@ -160,7 +142,7 @@ func (r *mutationResolver) BackwardSurvey(ctx context.Context, surveyID string) 
 	}
 
 	if !isOwnerOfSurveyDomain {
-		ownerOfSurvey, err := userRequester.QuerySurveys().Where(survey.ID(sID)).Exist(ctx)
+		ownerOfSurvey, err := userRequester.QuerySurveys().Where(survey.ID(surveyID)).Exist(ctx)
 		if err != nil {
 			return nil, errors.Wrap(err, "error at try to search survey from owns")
 		}
@@ -170,12 +152,12 @@ func (r *mutationResolver) BackwardSurvey(ctx context.Context, surveyID string) 
 		}
 	}
 
-	lastState, err := flows.LastState(ctx, r.DB, sID)
+	lastState, err := flows.LastState(ctx, r.DB, surveyID)
 	if err != nil {
 		return nil, errors.Wrap(err, "error at calculate the last state")
 	}
 
-	currentFlow, err := r.DB.Ent.Flow.Query().Where(flow.HasSurveyWith(survey.ID(sID))).Only(ctx)
+	currentFlow, err := r.DB.Ent.Flow.Query().Where(flow.HasSurveyWith(survey.ID(surveyID))).Only(ctx)
 	if err != nil {
 		return nil, errors.Wrap(err, "error at fetch the flow of your survey")
 	}
@@ -188,14 +170,9 @@ func (r *mutationResolver) BackwardSurvey(ctx context.Context, surveyID string) 
 		return nil, errors.Wrap(err, "error at update your survey flow")
 	}
 
-	surv, err := currentFlow.QuerySurvey().Only(ctx)
-	if err != nil {
-		return nil, errors.Wrap(err, "error at fetch your survey")
-	}
-
 	// TODO: Update now or create hook to update the survey last interaction, that is important
 
-	return commons.SurveyToGQL(surv), nil
+	return currentFlow.QuerySurvey().Only(ctx)
 }
 
 func (r *mutationResolver) LoginByPassword(ctx context.Context, username string, password string) (*model.LoginResponse, error) {
@@ -230,7 +207,7 @@ func (r *mutationResolver) UpdatePassword(ctx context.Context, oldPassword strin
 	panic(fmt.Errorf("not implemented"))
 }
 
-func (r *mutationResolver) CreateNewDomain(ctx context.Context, draft model.DomainCreator) (*model.Domain, error) {
+func (r *mutationResolver) CreateNewDomain(ctx context.Context, draft model.DomainCreator) (*ent.Domain, error) {
 	userRequester := r.Auth.UserOfContext(ctx)
 	if userRequester == nil {
 		return nil, errors.New("unauthorized, please include a valid token in your header")
@@ -242,7 +219,7 @@ func (r *mutationResolver) CreateNewDomain(ctx context.Context, draft model.Doma
 
 	// continue if user is an admin
 
-	newDomain, err := r.DB.Ent.Domain.Create().
+	return r.DB.Ent.Domain.Create().
 		SetID(uuid.New()).
 		SetName(draft.Name).
 		SetEmail(draft.Email).
@@ -251,11 +228,6 @@ func (r *mutationResolver) CreateNewDomain(ctx context.Context, draft model.Doma
 		SetTags(draft.Tags).
 		AddAdmins(userRequester).
 		Save(ctx)
-	if err != nil {
-		return nil, errors.Wrap(err, "error at try to create a new domain")
-	}
-
-	return commons.DomainToGQL(newDomain), nil
 }
 
 func (r *mutationResolver) GenerateSurveys(ctx context.Context, domainSelector model.SurveyDomain, draft model.SurveyGenerator) (*model.SuveyGenerationResult, error) {
@@ -268,11 +240,7 @@ func (r *mutationResolver) GenerateSurveys(ctx context.Context, domainSelector m
 	var err error
 	if strings.Contains(strings.Join(userRequester.Roles, " "), "admin") { // if is super admin
 		if domainSelector.ByID != nil {
-			dID, err := uuid.Parse(*domainSelector.ByID)
-			if err != nil {
-				return nil, errors.Wrap(err, "error at parse your domain ID")
-			}
-			targetDomain, err = r.DB.Ent.Domain.Get(ctx, dID)
+			targetDomain, err = r.DB.Ent.Domain.Get(ctx, *domainSelector.ByID)
 			if err != nil {
 				return nil, errors.Wrap(err, "error at fetch domain")
 			}
@@ -288,13 +256,8 @@ func (r *mutationResolver) GenerateSurveys(ctx context.Context, domainSelector m
 		}
 	} else { // or if admin of the related domain
 		if domainSelector.ByID != nil { // by id
-			dID, err := uuid.Parse(*domainSelector.ByID)
-			if err != nil {
-				return nil, errors.Wrap(err, "error at parse your domain ID")
-			}
-
 			targetDomain, err = r.DB.Ent.Domain.Query().
-				Where(domain.And(domain.ID(dID), domain.HasAdminsWith(person.ID(userRequester.ID)))).
+				Where(domain.And(domain.ID(*domainSelector.ByID), domain.HasAdminsWith(person.ID(userRequester.ID)))).
 				Only(ctx)
 			if err != nil {
 				return nil, errors.Wrap(err, "error at fetch domain, probably you aren't an admin for this domain ")
@@ -324,14 +287,9 @@ func (r *mutationResolver) GenerateSurveys(ctx context.Context, domainSelector m
 		return nil, errors.Wrap(err, "error at try to generate your surveys")
 	}
 
-	convertedSurveys := make([]*model.Survey, 0)
-	for _, s := range generatedSurveys {
-		convertedSurveys = append(convertedSurveys, commons.SurveyToGQL(s))
-	}
-
 	return &model.SuveyGenerationResult{
 		How:     len(generatedSurveys),
-		Surveys: convertedSurveys,
+		Surveys: generatedSurveys,
 	}, nil
 }
 

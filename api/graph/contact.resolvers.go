@@ -8,15 +8,14 @@ import (
 
 	"github.com/minskylab/collecta/errors"
 
-	"github.com/google/uuid"
 	"github.com/minskylab/collecta/api/commons"
 	"github.com/minskylab/collecta/api/graph/generated"
-	"github.com/minskylab/collecta/api/graph/model"
+	"github.com/minskylab/collecta/ent"
 	"github.com/minskylab/collecta/ent/contact"
 	"github.com/minskylab/collecta/ent/person"
 )
 
-func (r *contactResolver) Owner(ctx context.Context, obj *model.Contact) (*model.Person, error) {
+func (r *contactResolver) Owner(ctx context.Context, obj *ent.Contact) (*ent.Person, error) {
 	ownerResID, err := commons.OwnerOfContact(ctx, r.DB, obj)
 	if err != nil {
 		return nil, errors.Wrap(err, "error at extract owner of resource")
@@ -26,15 +25,9 @@ func (r *contactResolver) Owner(ctx context.Context, obj *model.Contact) (*model
 		return nil, errors.Wrap(err, "error at validate your credentials")
 	}
 
-	e, err := r.DB.Ent.Person.Query().
-		Where(person.HasContactsWith(contact.ID(uuid.MustParse(obj.ID)))).
+	return r.DB.Ent.Person.Query().
+		Where(person.HasContactsWith(contact.ID(obj.ID))).
 		Only(ctx)
-
-	if err != nil {
-		return nil, errors.Wrap(err, "error at ent query")
-	}
-
-	return commons.PersonToGQL(e), nil
 }
 
 // Contact returns generated.ContactResolver implementation.
