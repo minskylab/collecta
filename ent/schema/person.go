@@ -6,7 +6,7 @@ import (
 	"github.com/facebookincubator/ent"
 	"github.com/facebookincubator/ent/schema/edge"
 	"github.com/facebookincubator/ent/schema/field"
-	"github.com/google/uuid"
+	"github.com/minskylab/collecta/uuid"
 )
 
 // Person holds the schema definition for the Person entity.

@@ -4,7 +4,7 @@ import (
 	"strings"
 
 	"github.com/d5/tengo/v2"
-	"github.com/google/uuid"
+	"github.com/minskylab/collecta/uuid"
 	"github.com/pkg/errors"
 	"golang.org/x/net/context"
 )

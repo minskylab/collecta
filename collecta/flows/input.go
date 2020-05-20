@@ -1,10 +1,11 @@
 package flows
 
 import (
-	"github.com/google/uuid"
+	"context"
+
 	"github.com/minskylab/collecta/db"
-	"github.com/pkg/errors"
-	"golang.org/x/net/context"
+	"github.com/minskylab/collecta/errors"
+	"github.com/minskylab/collecta/uuid"
 )
 
 // NextState run the flow script program and calculates the next question id

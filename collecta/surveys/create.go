@@ -5,7 +5,7 @@ import (
 	"encoding/hex"
 	"time"
 
-	"github.com/google/uuid"
+	"github.com/minskylab/collecta/uuid"
 	"github.com/microcosm-cc/bluemonday"
 	"github.com/minskylab/collecta/api/graph/model"
 	"github.com/minskylab/collecta/collecta/flows"
@@ -62,7 +62,7 @@ func createQuestion(ctx context.Context, db *db.DB, q model.QuestionCreator) (*e
 		isMultiple = *q.Multiple
 	}
 
-	options := map[string]string{}
+	options := map[string]interface{}{}
 
 	for _, pair := range q.Options {
 		options[pair.Key] = policy.Sanitize(pair.Value)
@@ -137,7 +137,7 @@ func createSurveysFromAPI(ctx context.Context, db *db.DB, domainID uuid.UUID, dr
 			tags = append(tags, policy.Sanitize(t))
 		}
 
-		metadata := map[string]string{}
+		metadata := map[string]interface{}{}
 		for _, pair := range draft.Metadata {
 			metadata[pair.Key] = pair.Value
 		}

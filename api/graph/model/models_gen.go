@@ -8,8 +8,8 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/google/uuid"
 	"github.com/minskylab/collecta/ent"
+	"github.com/minskylab/collecta/uuid"
 )
 
 type DomainCreator struct {

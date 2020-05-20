@@ -1,7 +1,6 @@
 package commons
 
 import (
-	"github.com/google/uuid"
 	"github.com/minskylab/collecta/db"
 	"github.com/minskylab/collecta/ent"
 	"github.com/minskylab/collecta/ent/answer"
@@ -11,6 +10,7 @@ import (
 	"github.com/minskylab/collecta/ent/question"
 	"github.com/minskylab/collecta/ent/survey"
 	"github.com/minskylab/collecta/errors"
+	"github.com/minskylab/collecta/uuid"
 	"golang.org/x/net/context"
 )
 

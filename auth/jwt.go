@@ -5,8 +5,8 @@ import (
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
-	"github.com/google/uuid"
 	"github.com/minskylab/collecta/ent"
+	"github.com/minskylab/collecta/uuid"
 	"github.com/pkg/errors"
 )
 

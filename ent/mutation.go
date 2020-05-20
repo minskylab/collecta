@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/google/uuid"
 	"github.com/minskylab/collecta/ent/account"
 	"github.com/minskylab/collecta/ent/answer"
 	"github.com/minskylab/collecta/ent/contact"
@@ -19,6 +18,7 @@ import (
 	"github.com/minskylab/collecta/ent/question"
 	"github.com/minskylab/collecta/ent/short"
 	"github.com/minskylab/collecta/ent/survey"
+	"github.com/minskylab/collecta/uuid"
 
 	"github.com/facebookincubator/ent"
 )

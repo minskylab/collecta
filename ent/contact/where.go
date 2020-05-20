@@ -5,8 +5,8 @@ package contact
 import (
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
-	"github.com/google/uuid"
 	"github.com/minskylab/collecta/ent/predicate"
+	"github.com/minskylab/collecta/uuid"
 )
 
 // ID filters vertices based on their identifier.

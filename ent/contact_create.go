@@ -9,9 +9,9 @@ import (
 
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
 	"github.com/facebookincubator/ent/schema/field"
-	"github.com/google/uuid"
 	"github.com/minskylab/collecta/ent/contact"
 	"github.com/minskylab/collecta/ent/person"
+	"github.com/minskylab/collecta/uuid"
 )
 
 // ContactCreate is the builder for creating a Contact entity.

@@ -7,8 +7,8 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/google/uuid"
 	"github.com/minskylab/collecta/ent/migrate"
+	"github.com/minskylab/collecta/uuid"
 
 	"github.com/minskylab/collecta/ent/account"
 	"github.com/minskylab/collecta/ent/answer"

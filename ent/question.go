@@ -8,10 +8,10 @@ import (
 	"strings"
 
 	"github.com/facebookincubator/ent/dialect/sql"
-	"github.com/google/uuid"
 	"github.com/minskylab/collecta/ent/flow"
 	"github.com/minskylab/collecta/ent/input"
 	"github.com/minskylab/collecta/ent/question"
+	"github.com/minskylab/collecta/uuid"
 )
 
 // Question is the model entity for the Question schema.

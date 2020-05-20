@@ -9,8 +9,8 @@ import (
 
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
 	"github.com/facebookincubator/ent/schema/field"
-	"github.com/google/uuid"
 	"github.com/minskylab/collecta/ent/short"
+	"github.com/minskylab/collecta/uuid"
 )
 
 // ShortCreate is the builder for creating a Short entity.

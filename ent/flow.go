@@ -8,9 +8,9 @@ import (
 	"strings"
 
 	"github.com/facebookincubator/ent/dialect/sql"
-	"github.com/google/uuid"
 	"github.com/minskylab/collecta/ent/flow"
 	"github.com/minskylab/collecta/ent/survey"
+	"github.com/minskylab/collecta/uuid"
 )
 
 // Flow is the model entity for the Flow schema.

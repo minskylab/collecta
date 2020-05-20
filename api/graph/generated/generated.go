@@ -13,12 +13,12 @@ import (
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/introspection"
-	"github.com/google/uuid"
 	"github.com/minskylab/collecta/api/graph/model"
 	"github.com/minskylab/collecta/ent"
 	"github.com/minskylab/collecta/ent/account"
 	"github.com/minskylab/collecta/ent/contact"
 	"github.com/minskylab/collecta/ent/input"
+	"github.com/minskylab/collecta/uuid"
 	gqlparser "github.com/vektah/gqlparser/v2"
 	"github.com/vektah/gqlparser/v2/ast"
 )
@@ -1144,7 +1144,7 @@ type Account {
 #    key: String!
 #    value: String!
 #}
-#
+
 #type Map {
 #    content: [PairMap!]!
 #}
@@ -1365,7 +1365,7 @@ func (ec *executionContext) field_Mutation_answerQuestion_args(ctx context.Conte
 	args := map[string]interface{}{}
 	var arg0 uuid.UUID
 	if tmp, ok := rawArgs["questionID"]; ok {
-		arg0, err = ec.unmarshalNID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, tmp)
+		arg0, err = ec.unmarshalNID2githubᚗcomᚋminskylabᚋcollectaᚋuuidᚐUUID(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -1387,7 +1387,7 @@ func (ec *executionContext) field_Mutation_backwardSurvey_args(ctx context.Conte
 	args := map[string]interface{}{}
 	var arg0 uuid.UUID
 	if tmp, ok := rawArgs["surveyID"]; ok {
-		arg0, err = ec.unmarshalNID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, tmp)
+		arg0, err = ec.unmarshalNID2githubᚗcomᚋminskylabᚋcollectaᚋuuidᚐUUID(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -1495,7 +1495,7 @@ func (ec *executionContext) field_Query_domain_args(ctx context.Context, rawArgs
 	args := map[string]interface{}{}
 	var arg0 uuid.UUID
 	if tmp, ok := rawArgs["id"]; ok {
-		arg0, err = ec.unmarshalNID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, tmp)
+		arg0, err = ec.unmarshalNID2githubᚗcomᚋminskylabᚋcollectaᚋuuidᚐUUID(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -1509,7 +1509,7 @@ func (ec *executionContext) field_Query_isFinalQuestion_args(ctx context.Context
 	args := map[string]interface{}{}
 	var arg0 uuid.UUID
 	if tmp, ok := rawArgs["questionID"]; ok {
-		arg0, err = ec.unmarshalNID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, tmp)
+		arg0, err = ec.unmarshalNID2githubᚗcomᚋminskylabᚋcollectaᚋuuidᚐUUID(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -1523,7 +1523,7 @@ func (ec *executionContext) field_Query_isFirstQuestion_args(ctx context.Context
 	args := map[string]interface{}{}
 	var arg0 uuid.UUID
 	if tmp, ok := rawArgs["questionID"]; ok {
-		arg0, err = ec.unmarshalNID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, tmp)
+		arg0, err = ec.unmarshalNID2githubᚗcomᚋminskylabᚋcollectaᚋuuidᚐUUID(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -1537,7 +1537,7 @@ func (ec *executionContext) field_Query_lastQuestionOfSurvey_args(ctx context.Co
 	args := map[string]interface{}{}
 	var arg0 uuid.UUID
 	if tmp, ok := rawArgs["surveyID"]; ok {
-		arg0, err = ec.unmarshalNID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, tmp)
+		arg0, err = ec.unmarshalNID2githubᚗcomᚋminskylabᚋcollectaᚋuuidᚐUUID(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -1551,7 +1551,7 @@ func (ec *executionContext) field_Query_person_args(ctx context.Context, rawArgs
 	args := map[string]interface{}{}
 	var arg0 uuid.UUID
 	if tmp, ok := rawArgs["id"]; ok {
-		arg0, err = ec.unmarshalNID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, tmp)
+		arg0, err = ec.unmarshalNID2githubᚗcomᚋminskylabᚋcollectaᚋuuidᚐUUID(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -1565,7 +1565,7 @@ func (ec *executionContext) field_Query_question_args(ctx context.Context, rawAr
 	args := map[string]interface{}{}
 	var arg0 uuid.UUID
 	if tmp, ok := rawArgs["id"]; ok {
-		arg0, err = ec.unmarshalNID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, tmp)
+		arg0, err = ec.unmarshalNID2githubᚗcomᚋminskylabᚋcollectaᚋuuidᚐUUID(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -1579,7 +1579,7 @@ func (ec *executionContext) field_Query_surveyPercent_args(ctx context.Context, 
 	args := map[string]interface{}{}
 	var arg0 uuid.UUID
 	if tmp, ok := rawArgs["surveyID"]; ok {
-		arg0, err = ec.unmarshalNID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, tmp)
+		arg0, err = ec.unmarshalNID2githubᚗcomᚋminskylabᚋcollectaᚋuuidᚐUUID(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -1593,7 +1593,7 @@ func (ec *executionContext) field_Query_survey_args(ctx context.Context, rawArgs
 	args := map[string]interface{}{}
 	var arg0 uuid.UUID
 	if tmp, ok := rawArgs["id"]; ok {
-		arg0, err = ec.unmarshalNID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, tmp)
+		arg0, err = ec.unmarshalNID2githubᚗcomᚋminskylabᚋcollectaᚋuuidᚐUUID(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -1669,7 +1669,7 @@ func (ec *executionContext) _Account_id(ctx context.Context, field graphql.Colle
 	}
 	res := resTmp.(uuid.UUID)
 	fc.Result = res
-	return ec.marshalNID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, field.Selections, res)
+	return ec.marshalNID2githubᚗcomᚋminskylabᚋcollectaᚋuuidᚐUUID(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Account_type(ctx context.Context, field graphql.CollectedField, obj *ent.Account) (ret graphql.Marshaler) {
@@ -1870,7 +1870,7 @@ func (ec *executionContext) _Answer_id(ctx context.Context, field graphql.Collec
 	}
 	res := resTmp.(uuid.UUID)
 	fc.Result = res
-	return ec.marshalNID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, field.Selections, res)
+	return ec.marshalNID2githubᚗcomᚋminskylabᚋcollectaᚋuuidᚐUUID(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Answer_at(ctx context.Context, field graphql.CollectedField, obj *ent.Answer) (ret graphql.Marshaler) {
@@ -2034,7 +2034,7 @@ func (ec *executionContext) _Contact_id(ctx context.Context, field graphql.Colle
 	}
 	res := resTmp.(uuid.UUID)
 	fc.Result = res
-	return ec.marshalNID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, field.Selections, res)
+	return ec.marshalNID2githubᚗcomᚋminskylabᚋcollectaᚋuuidᚐUUID(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Contact_name(ctx context.Context, field graphql.CollectedField, obj *ent.Contact) (ret graphql.Marshaler) {
@@ -2337,7 +2337,7 @@ func (ec *executionContext) _Domain_id(ctx context.Context, field graphql.Collec
 	}
 	res := resTmp.(uuid.UUID)
 	fc.Result = res
-	return ec.marshalNID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, field.Selections, res)
+	return ec.marshalNID2githubᚗcomᚋminskylabᚋcollectaᚋuuidᚐUUID(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Domain_name(ctx context.Context, field graphql.CollectedField, obj *ent.Domain) (ret graphql.Marshaler) {
@@ -2643,7 +2643,7 @@ func (ec *executionContext) _Flow_id(ctx context.Context, field graphql.Collecte
 	}
 	res := resTmp.(uuid.UUID)
 	fc.Result = res
-	return ec.marshalNID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, field.Selections, res)
+	return ec.marshalNID2githubᚗcomᚋminskylabᚋcollectaᚋuuidᚐUUID(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Flow_state(ctx context.Context, field graphql.CollectedField, obj *ent.Flow) (ret graphql.Marshaler) {
@@ -2677,7 +2677,7 @@ func (ec *executionContext) _Flow_state(ctx context.Context, field graphql.Colle
 	}
 	res := resTmp.(uuid.UUID)
 	fc.Result = res
-	return ec.marshalNID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, field.Selections, res)
+	return ec.marshalNID2githubᚗcomᚋminskylabᚋcollectaᚋuuidᚐUUID(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Flow_stateTable(ctx context.Context, field graphql.CollectedField, obj *ent.Flow) (ret graphql.Marshaler) {
@@ -2745,7 +2745,7 @@ func (ec *executionContext) _Flow_initialState(ctx context.Context, field graphq
 	}
 	res := resTmp.(uuid.UUID)
 	fc.Result = res
-	return ec.marshalNID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, field.Selections, res)
+	return ec.marshalNID2githubᚗcomᚋminskylabᚋcollectaᚋuuidᚐUUID(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Flow_terminationState(ctx context.Context, field graphql.CollectedField, obj *ent.Flow) (ret graphql.Marshaler) {
@@ -2779,7 +2779,7 @@ func (ec *executionContext) _Flow_terminationState(ctx context.Context, field gr
 	}
 	res := resTmp.(uuid.UUID)
 	fc.Result = res
-	return ec.marshalNID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, field.Selections, res)
+	return ec.marshalNID2githubᚗcomᚋminskylabᚋcollectaᚋuuidᚐUUID(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Flow_pastState(ctx context.Context, field graphql.CollectedField, obj *ent.Flow) (ret graphql.Marshaler) {
@@ -2810,7 +2810,7 @@ func (ec *executionContext) _Flow_pastState(ctx context.Context, field graphql.C
 	}
 	res := resTmp.(uuid.UUID)
 	fc.Result = res
-	return ec.marshalOID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, field.Selections, res)
+	return ec.marshalOID2githubᚗcomᚋminskylabᚋcollectaᚋuuidᚐUUID(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Flow_inputs(ctx context.Context, field graphql.CollectedField, obj *ent.Flow) (ret graphql.Marshaler) {
@@ -2977,7 +2977,7 @@ func (ec *executionContext) _Input_id(ctx context.Context, field graphql.Collect
 	}
 	res := resTmp.(uuid.UUID)
 	fc.Result = res
-	return ec.marshalNID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, field.Selections, res)
+	return ec.marshalNID2githubᚗcomᚋminskylabᚋcollectaᚋuuidᚐUUID(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Input_kind(ctx context.Context, field graphql.CollectedField, obj *ent.Input) (ret graphql.Marshaler) {
@@ -3517,7 +3517,7 @@ func (ec *executionContext) _Person_id(ctx context.Context, field graphql.Collec
 	}
 	res := resTmp.(uuid.UUID)
 	fc.Result = res
-	return ec.marshalNID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, field.Selections, res)
+	return ec.marshalNID2githubᚗcomᚋminskylabᚋcollectaᚋuuidᚐUUID(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Person_name(ctx context.Context, field graphql.CollectedField, obj *ent.Person) (ret graphql.Marshaler) {
@@ -4313,7 +4313,7 @@ func (ec *executionContext) _Question_id(ctx context.Context, field graphql.Coll
 	}
 	res := resTmp.(uuid.UUID)
 	fc.Result = res
-	return ec.marshalNID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, field.Selections, res)
+	return ec.marshalNID2githubᚗcomᚋminskylabᚋcollectaᚋuuidᚐUUID(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Question_hash(ctx context.Context, field graphql.CollectedField, obj *ent.Question) (ret graphql.Marshaler) {
@@ -4681,7 +4681,7 @@ func (ec *executionContext) _Short_value(ctx context.Context, field graphql.Coll
 	}
 	res := resTmp.(uuid.UUID)
 	fc.Result = res
-	return ec.marshalNID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, field.Selections, res)
+	return ec.marshalNID2githubᚗcomᚋminskylabᚋcollectaᚋuuidᚐUUID(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Survey_id(ctx context.Context, field graphql.CollectedField, obj *ent.Survey) (ret graphql.Marshaler) {
@@ -4715,7 +4715,7 @@ func (ec *executionContext) _Survey_id(ctx context.Context, field graphql.Collec
 	}
 	res := resTmp.(uuid.UUID)
 	fc.Result = res
-	return ec.marshalNID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, field.Selections, res)
+	return ec.marshalNID2githubᚗcomᚋminskylabᚋcollectaᚋuuidᚐUUID(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Survey_tags(ctx context.Context, field graphql.CollectedField, obj *ent.Survey) (ret graphql.Marshaler) {
@@ -6319,7 +6319,7 @@ func (ec *executionContext) unmarshalInputSurveyDomain(ctx context.Context, obj 
 		switch k {
 		case "byID":
 			var err error
-			it.ByID, err = ec.unmarshalOID2ᚖgithubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
+			it.ByID, err = ec.unmarshalOID2ᚖgithubᚗcomᚋminskylabᚋcollectaᚋuuidᚐUUID(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -6409,7 +6409,7 @@ func (ec *executionContext) unmarshalInputSurveyTargetUsers(ctx context.Context,
 			}
 		case "whitelist":
 			var err error
-			it.Whitelist, err = ec.unmarshalOID2ᚕgithubᚗcomᚋgoogleᚋuuidᚐUUIDᚄ(ctx, v)
+			it.Whitelist, err = ec.unmarshalOID2ᚕgithubᚗcomᚋminskylabᚋcollectaᚋuuidᚐUUIDᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -8036,12 +8036,13 @@ func (ec *executionContext) marshalNFlow2ᚖgithubᚗcomᚋminskylabᚋcollecta�
 	return ec._Flow(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx context.Context, v interface{}) (uuid.UUID, error) {
-	return ec.unmarshalInputID(ctx, v)
+func (ec *executionContext) unmarshalNID2githubᚗcomᚋminskylabᚋcollectaᚋuuidᚐUUID(ctx context.Context, v interface{}) (uuid.UUID, error) {
+	var res uuid.UUID
+	return res, res.UnmarshalGQL(v)
 }
 
-func (ec *executionContext) marshalNID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx context.Context, sel ast.SelectionSet, v uuid.UUID) graphql.Marshaler {
-	return ec._ID(ctx, sel, &v)
+func (ec *executionContext) marshalNID2githubᚗcomᚋminskylabᚋcollectaᚋuuidᚐUUID(ctx context.Context, sel ast.SelectionSet, v uuid.UUID) graphql.Marshaler {
+	return v
 }
 
 func (ec *executionContext) marshalNInput2githubᚗcomᚋminskylabᚋcollectaᚋentᚐInput(ctx context.Context, sel ast.SelectionSet, v ent.Input) graphql.Marshaler {
@@ -8681,15 +8682,16 @@ func (ec *executionContext) marshalOFlow2ᚖgithubᚗcomᚋminskylabᚋcollecta�
 	return ec._Flow(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalOID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx context.Context, v interface{}) (uuid.UUID, error) {
-	return ec.unmarshalInputID(ctx, v)
+func (ec *executionContext) unmarshalOID2githubᚗcomᚋminskylabᚋcollectaᚋuuidᚐUUID(ctx context.Context, v interface{}) (uuid.UUID, error) {
+	var res uuid.UUID
+	return res, res.UnmarshalGQL(v)
 }
 
-func (ec *executionContext) marshalOID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx context.Context, sel ast.SelectionSet, v uuid.UUID) graphql.Marshaler {
-	return ec._ID(ctx, sel, &v)
+func (ec *executionContext) marshalOID2githubᚗcomᚋminskylabᚋcollectaᚋuuidᚐUUID(ctx context.Context, sel ast.SelectionSet, v uuid.UUID) graphql.Marshaler {
+	return v
 }
 
-func (ec *executionContext) unmarshalOID2ᚕgithubᚗcomᚋgoogleᚋuuidᚐUUIDᚄ(ctx context.Context, v interface{}) ([]uuid.UUID, error) {
+func (ec *executionContext) unmarshalOID2ᚕgithubᚗcomᚋminskylabᚋcollectaᚋuuidᚐUUIDᚄ(ctx context.Context, v interface{}) ([]uuid.UUID, error) {
 	var vSlice []interface{}
 	if v != nil {
 		if tmp1, ok := v.([]interface{}); ok {
@@ -8701,7 +8703,7 @@ func (ec *executionContext) unmarshalOID2ᚕgithubᚗcomᚋgoogleᚋuuidᚐUUID�
 	var err error
 	res := make([]uuid.UUID, len(vSlice))
 	for i := range vSlice {
-		res[i], err = ec.unmarshalNID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, vSlice[i])
+		res[i], err = ec.unmarshalNID2githubᚗcomᚋminskylabᚋcollectaᚋuuidᚐUUID(ctx, vSlice[i])
 		if err != nil {
 			return nil, err
 		}
@@ -8709,31 +8711,31 @@ func (ec *executionContext) unmarshalOID2ᚕgithubᚗcomᚋgoogleᚋuuidᚐUUID�
 	return res, nil
 }
 
-func (ec *executionContext) marshalOID2ᚕgithubᚗcomᚋgoogleᚋuuidᚐUUIDᚄ(ctx context.Context, sel ast.SelectionSet, v []uuid.UUID) graphql.Marshaler {
+func (ec *executionContext) marshalOID2ᚕgithubᚗcomᚋminskylabᚋcollectaᚋuuidᚐUUIDᚄ(ctx context.Context, sel ast.SelectionSet, v []uuid.UUID) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	ret := make(graphql.Array, len(v))
 	for i := range v {
-		ret[i] = ec.marshalNID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, sel, v[i])
+		ret[i] = ec.marshalNID2githubᚗcomᚋminskylabᚋcollectaᚋuuidᚐUUID(ctx, sel, v[i])
 	}
 
 	return ret
 }
 
-func (ec *executionContext) unmarshalOID2ᚖgithubᚗcomᚋgoogleᚋuuidᚐUUID(ctx context.Context, v interface{}) (*uuid.UUID, error) {
+func (ec *executionContext) unmarshalOID2ᚖgithubᚗcomᚋminskylabᚋcollectaᚋuuidᚐUUID(ctx context.Context, v interface{}) (*uuid.UUID, error) {
 	if v == nil {
 		return nil, nil
 	}
-	res, err := ec.unmarshalOID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, v)
+	res, err := ec.unmarshalOID2githubᚗcomᚋminskylabᚋcollectaᚋuuidᚐUUID(ctx, v)
 	return &res, err
 }
 
-func (ec *executionContext) marshalOID2ᚖgithubᚗcomᚋgoogleᚋuuidᚐUUID(ctx context.Context, sel ast.SelectionSet, v *uuid.UUID) graphql.Marshaler {
+func (ec *executionContext) marshalOID2ᚖgithubᚗcomᚋminskylabᚋcollectaᚋuuidᚐUUID(ctx context.Context, sel ast.SelectionSet, v *uuid.UUID) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
-	return ec._ID(ctx, sel, v)
+	return v
 }
 
 func (ec *executionContext) unmarshalOMap2map(ctx context.Context, v interface{}) (map[string]interface{}, error) {

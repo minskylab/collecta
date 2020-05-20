@@ -12,7 +12,7 @@ import (
 	"github.com/facebookincubator/ent/dialect"
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
-	"github.com/google/uuid"
+	"github.com/minskylab/collecta/uuid"
 )
 
 // ent aliases to avoid import conflict in user's code.

@@ -45,7 +45,7 @@ autobind:
 models:
   ID:
     model:
-      - github.com/google/uuid.UUID
+      - github.com/minskylab/collecta/uuid.UUID
   AccountType:
     model:
       - github.com/minskylab/collecta/ent/account.Type

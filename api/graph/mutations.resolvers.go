@@ -12,7 +12,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/google/uuid"
 	"github.com/microcosm-cc/bluemonday"
 	"github.com/minskylab/collecta/api/graph/generated"
 	"github.com/minskylab/collecta/api/graph/model"
@@ -26,6 +25,7 @@ import (
 	"github.com/minskylab/collecta/ent/person"
 	"github.com/minskylab/collecta/ent/question"
 	"github.com/minskylab/collecta/ent/survey"
+	"github.com/minskylab/collecta/uuid"
 	"golang.org/x/crypto/bcrypt"
 )
 

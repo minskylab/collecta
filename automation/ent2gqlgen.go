@@ -161,7 +161,7 @@ func generateGQLGenFromEntSchema(entSchemaPath string, gqlgenAPIPath string) {
 
 	id := strings.Repeat("  ", indent) + "ID:\n" +
 		strings.Repeat("  ", indent+1) + "model:\n" +
-		strings.Repeat("  ", indent+2) + "- github.com/google/uuid.UUID\n"
+		strings.Repeat("  ", indent+2) + "- github.com/minskylab/collecta/uuid.UUID\n"
 
 	if _, err = fmt.Fprint(yamlConfigBuffer, id); err != nil {
 		panic(errors.Wrap(err, "error at write buffer"))

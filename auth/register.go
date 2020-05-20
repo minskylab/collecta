@@ -4,7 +4,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/google/uuid"
+	"github.com/minskylab/collecta/uuid"
 	"github.com/markbates/goth"
 	"github.com/minskylab/collecta/ent"
 	"github.com/minskylab/collecta/ent/account"

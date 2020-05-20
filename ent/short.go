@@ -7,8 +7,8 @@ import (
 	"strings"
 
 	"github.com/facebookincubator/ent/dialect/sql"
-	"github.com/google/uuid"
 	"github.com/minskylab/collecta/ent/short"
+	"github.com/minskylab/collecta/uuid"
 )
 
 // Short is the model entity for the Short schema.

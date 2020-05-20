@@ -7,9 +7,9 @@ import (
 	"context"
 	"strings"
 
-	"github.com/google/uuid"
 	"github.com/minskylab/collecta/auth"
 	"github.com/minskylab/collecta/errors"
+	"github.com/minskylab/collecta/uuid"
 )
 
 // !!! WARNING !!!

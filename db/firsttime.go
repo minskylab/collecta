@@ -4,12 +4,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/google/uuid"
 	"github.com/minskylab/collecta/config"
 	"github.com/minskylab/collecta/ent"
 	"github.com/minskylab/collecta/ent/account"
 	"github.com/minskylab/collecta/ent/person"
 	"github.com/minskylab/collecta/errors"
+	"github.com/minskylab/collecta/uuid"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"golang.org/x/crypto/bcrypt"

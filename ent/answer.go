@@ -9,9 +9,9 @@ import (
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
-	"github.com/google/uuid"
 	"github.com/minskylab/collecta/ent/answer"
 	"github.com/minskylab/collecta/ent/question"
+	"github.com/minskylab/collecta/uuid"
 )
 
 // Answer is the model entity for the Answer schema.

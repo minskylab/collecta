@@ -3,7 +3,7 @@ package flows
 import (
 	"strings"
 
-	"github.com/google/uuid"
+	"github.com/minskylab/collecta/uuid"
 )
 
 const defaultSequentialProgram = `

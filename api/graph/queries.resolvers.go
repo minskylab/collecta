@@ -10,7 +10,6 @@ import (
 
 	"strings"
 
-	"github.com/google/uuid"
 	"github.com/minskylab/collecta/api/graph/generated"
 	"github.com/minskylab/collecta/api/graph/model"
 	"github.com/minskylab/collecta/ent"
@@ -18,6 +17,7 @@ import (
 	"github.com/minskylab/collecta/ent/flow"
 	"github.com/minskylab/collecta/ent/question"
 	"github.com/minskylab/collecta/ent/survey"
+	"github.com/minskylab/collecta/uuid"
 )
 
 func (r *queryResolver) Domain(ctx context.Context, id uuid.UUID) (*ent.Domain, error) {

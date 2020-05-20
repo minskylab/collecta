@@ -11,10 +11,10 @@ import (
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
 	"github.com/facebookincubator/ent/schema/field"
-	"github.com/google/uuid"
 	"github.com/minskylab/collecta/ent/answer"
 	"github.com/minskylab/collecta/ent/predicate"
 	"github.com/minskylab/collecta/ent/question"
+	"github.com/minskylab/collecta/uuid"
 )
 
 // AnswerQuery is the builder for querying Answer entities.

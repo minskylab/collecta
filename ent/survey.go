@@ -9,11 +9,11 @@ import (
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
-	"github.com/google/uuid"
 	"github.com/minskylab/collecta/ent/domain"
 	"github.com/minskylab/collecta/ent/flow"
 	"github.com/minskylab/collecta/ent/person"
 	"github.com/minskylab/collecta/ent/survey"
+	"github.com/minskylab/collecta/uuid"
 )
 
 // Survey is the model entity for the Survey schema.

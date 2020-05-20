@@ -7,9 +7,9 @@ import (
 	"strings"
 
 	"github.com/facebookincubator/ent/dialect/sql"
-	"github.com/google/uuid"
 	"github.com/minskylab/collecta/ent/account"
 	"github.com/minskylab/collecta/ent/person"
+	"github.com/minskylab/collecta/uuid"
 )
 
 // Account is the model entity for the Account schema.

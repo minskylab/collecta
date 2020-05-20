@@ -13,7 +13,6 @@ import (
 	"github.com/minskylab/collecta/ent"
 	"github.com/minskylab/collecta/ent/account"
 	"github.com/minskylab/collecta/ent/person"
-
 )
 
 func (r *accountResolver) Owner(ctx context.Context, obj *ent.Account) (*ent.Person, error) {

@@ -9,8 +9,8 @@ import (
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
-	"github.com/google/uuid"
 	"github.com/minskylab/collecta/ent/person"
+	"github.com/minskylab/collecta/uuid"
 )
 
 // Person is the model entity for the Person schema.

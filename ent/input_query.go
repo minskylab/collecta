@@ -11,10 +11,10 @@ import (
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
 	"github.com/facebookincubator/ent/schema/field"
-	"github.com/google/uuid"
 	"github.com/minskylab/collecta/ent/input"
 	"github.com/minskylab/collecta/ent/predicate"
 	"github.com/minskylab/collecta/ent/question"
+	"github.com/minskylab/collecta/uuid"
 )
 
 // InputQuery is the builder for querying Input entities.

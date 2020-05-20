@@ -8,8 +8,8 @@ import (
 	"strings"
 
 	"github.com/facebookincubator/ent/dialect/sql"
-	"github.com/google/uuid"
 	"github.com/minskylab/collecta/ent/domain"
+	"github.com/minskylab/collecta/uuid"
 )
 
 // Domain is the model entity for the Domain schema.

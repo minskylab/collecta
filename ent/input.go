@@ -8,9 +8,9 @@ import (
 	"strings"
 
 	"github.com/facebookincubator/ent/dialect/sql"
-	"github.com/google/uuid"
 	"github.com/minskylab/collecta/ent/input"
 	"github.com/minskylab/collecta/ent/question"
+	"github.com/minskylab/collecta/uuid"
 )
 
 // Input is the model entity for the Input schema.
