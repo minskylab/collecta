@@ -5,10 +5,9 @@ package graph
 
 import (
 	"context"
+	"strings"
 
 	"github.com/minskylab/collecta/errors"
-
-	"strings"
 
 	"github.com/minskylab/collecta/api/graph/generated"
 	"github.com/minskylab/collecta/api/graph/model"

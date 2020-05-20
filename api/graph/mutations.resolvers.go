@@ -5,12 +5,11 @@ package graph
 
 import (
 	"context"
-
-	"github.com/minskylab/collecta/errors"
-
 	"fmt"
 	"strings"
 	"time"
+
+	"github.com/minskylab/collecta/errors"
 
 	"github.com/microcosm-cc/bluemonday"
 	"github.com/minskylab/collecta/api/graph/generated"

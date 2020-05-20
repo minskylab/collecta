@@ -7,7 +7,7 @@ import (
 	"context"
 
 	"github.com/minskylab/collecta/errors"
-	
+
 	"github.com/minskylab/collecta/api/commons"
 	"github.com/minskylab/collecta/api/graph/generated"
 	"github.com/minskylab/collecta/ent"

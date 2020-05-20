@@ -5,10 +5,9 @@ package graph
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/minskylab/collecta/errors"
-
-	"fmt"
 
 	uuid1 "github.com/google/uuid"
 	"github.com/minskylab/collecta/api/commons"
