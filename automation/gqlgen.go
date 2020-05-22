@@ -36,7 +36,7 @@ func inflateGQLGen(gqlgenRoot string) {
 		api.AddPlugin(&p),
 	)
 	if err != nil {
-		_, _ = fmt.Fprintln(os.Stderr, err.Error())
+		// _, _ = fmt.Fprintln(os.Stderr, err.Error())
 		os.Exit(3)
 	}
 }

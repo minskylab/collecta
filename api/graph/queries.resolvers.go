@@ -6,6 +6,7 @@ package graph
 import (
 	"context"
 	"strings"
+	"time"
 
 	"github.com/minskylab/collecta/errors"
 
@@ -300,6 +301,102 @@ func (r *queryResolver) LastQuestionOfSurvey(ctx context.Context, surveyID uuid.
 		LastQuestion: currentQuestion,
 		Percent:      percent,
 	}, nil
+}
+
+func (r *queryResolver) NewSurveys(ctx context.Context) ([]*ent.Survey, error) {
+	userRequester := r.Auth.UserOfContext(ctx)
+	if userRequester == nil {
+		return nil, errors.New("unauthorized, please include a valid token in your header")
+	}
+
+
+	user, err := r.DB.Ent.Person.Get(ctx, userRequester.ID)
+	if err != nil {
+		return nil, errors.Wrap(err, "error at fetch person from ent")
+	}
+
+	surveys, err := user.QuerySurveys().Where(survey.DueDateGTE(time.Now())).All(ctx)
+	if err != nil {
+		return nil, errors.Wrap(err, "error at fetch all surveys of person")
+	}
+
+	filteredSurveys := make([]*ent.Survey, 0)
+	for _, s := range surveys {
+		f, err := s.QueryFlow().Only(ctx)
+		if err != nil {
+			return nil, errors.Wrap(err, "error at fetch flow of survey")
+		}
+
+		if f.InitialState == f.State {
+			filteredSurveys = append(filteredSurveys, s)
+		}
+	}
+
+	return filteredSurveys, nil
+}
+
+func (r *queryResolver) PendingSurveys(ctx context.Context) ([]*ent.Survey, error) {
+	userRequester := r.Auth.UserOfContext(ctx)
+	if userRequester == nil {
+		return nil, errors.New("unauthorized, please include a valid token in your header")
+	}
+
+
+	user, err := r.DB.Ent.Person.Get(ctx, userRequester.ID)
+	if err != nil {
+		return nil, errors.Wrap(err, "error at fetch person from ent")
+	}
+
+	surveys, err := user.QuerySurveys().Where(survey.DueDateGTE(time.Now())).All(ctx)
+	if err != nil {
+		return nil, errors.Wrap(err, "error at fetch all surveys of person")
+	}
+
+	filteredSurveys := make([]*ent.Survey, 0)
+	for _, s := range surveys {
+		f, err := s.QueryFlow().Only(ctx)
+		if err != nil {
+			return nil, errors.Wrap(err, "error at fetch flow of survey")
+		}
+
+		if f.InitialState != f.State {
+			filteredSurveys = append(filteredSurveys, s)
+		}
+	}
+
+	return filteredSurveys, nil
+}
+
+func (r *queryResolver) CompletedSurveys(ctx context.Context) ([]*ent.Survey, error) {
+	userRequester := r.Auth.UserOfContext(ctx)
+	if userRequester == nil {
+		return nil, errors.New("unauthorized, please include a valid token in your header")
+	}
+
+
+	user, err := r.DB.Ent.Person.Get(ctx, userRequester.ID)
+	if err != nil {
+		return nil, errors.Wrap(err, "error at fetch person from ent")
+	}
+
+	surveys, err := user.QuerySurveys().Where(survey.DueDateGTE(time.Now())).All(ctx)
+	if err != nil {
+		return nil, errors.Wrap(err, "error at fetch all surveys of person")
+	}
+
+	filteredSurveys := make([]*ent.Survey, 0)
+	for _, s := range surveys {
+		f, err := s.QueryFlow().Only(ctx)
+		if err != nil {
+			return nil, errors.Wrap(err, "error at fetch flow of survey")
+		}
+
+		if f.TerminationState == f.State || s.Done {
+			filteredSurveys = append(filteredSurveys, s)
+		}
+	}
+
+	return filteredSurveys, nil
 }
 
 // Query returns generated.QueryResolver implementation.

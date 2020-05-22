@@ -160,10 +160,13 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
+		CompletedSurveys     func(childComplexity int) int
 		Domain               func(childComplexity int, id uuid.UUID) int
 		IsFinalQuestion      func(childComplexity int, questionID uuid.UUID) int
 		IsFirstQuestion      func(childComplexity int, questionID uuid.UUID) int
 		LastQuestionOfSurvey func(childComplexity int, surveyID uuid.UUID) int
+		NewSurveys           func(childComplexity int) int
+		PendingSurveys       func(childComplexity int) int
 		Person               func(childComplexity int, id uuid.UUID) int
 		Profile              func(childComplexity int) int
 		Question             func(childComplexity int, id uuid.UUID) int
@@ -256,6 +259,9 @@ type QueryResolver interface {
 	IsFinalQuestion(ctx context.Context, questionID uuid.UUID) (bool, error)
 	SurveyPercent(ctx context.Context, surveyID uuid.UUID) (float64, error)
 	LastQuestionOfSurvey(ctx context.Context, surveyID uuid.UUID) (*model.LastSurveyState, error)
+	NewSurveys(ctx context.Context) ([]*ent.Survey, error)
+	PendingSurveys(ctx context.Context) ([]*ent.Survey, error)
+	CompletedSurveys(ctx context.Context) ([]*ent.Survey, error)
 }
 type QuestionResolver interface {
 	Answers(ctx context.Context, obj *ent.Question) ([]*ent.Answer, error)
@@ -768,6 +774,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Person.Username(childComplexity), true
 
+	case "Query.completedSurveys":
+		if e.complexity.Query.CompletedSurveys == nil {
+			break
+		}
+
+		return e.complexity.Query.CompletedSurveys(childComplexity), true
+
 	case "Query.domain":
 		if e.complexity.Query.Domain == nil {
 			break
@@ -815,6 +828,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.LastQuestionOfSurvey(childComplexity, args["surveyID"].(uuid.UUID)), true
+
+	case "Query.newSurveys":
+		if e.complexity.Query.NewSurveys == nil {
+			break
+		}
+
+		return e.complexity.Query.NewSurveys(childComplexity), true
+
+	case "Query.pendingSurveys":
+		if e.complexity.Query.PendingSurveys == nil {
+			break
+		}
+
+		return e.complexity.Query.PendingSurveys(childComplexity), true
 
 	case "Query.person":
 		if e.complexity.Query.Person == nil {
@@ -1320,6 +1347,12 @@ type Input {
     isFinalQuestion(questionID: ID!): Boolean!
     surveyPercent(surveyID: ID!): Float!
     lastQuestionOfSurvey(surveyID: ID!): LastSurveyState!
+
+    newSurveys: [Survey!]!
+    pendingSurveys: [Survey!]!
+    completedSurveys: [Survey!]!
+
+
 }
 `, BuiltIn: false},
 	&ast.Source{Name: "graph/schema/question.graphqls", Input: `type Question {
@@ -4211,6 +4244,108 @@ func (ec *executionContext) _Query_lastQuestionOfSurvey(ctx context.Context, fie
 	res := resTmp.(*model.LastSurveyState)
 	fc.Result = res
 	return ec.marshalNLastSurveyState2ᚖgithubᚗcomᚋminskylabᚋcollectaᚋapiᚋgraphᚋmodelᚐLastSurveyState(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_newSurveys(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Query",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().NewSurveys(rctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*ent.Survey)
+	fc.Result = res
+	return ec.marshalNSurvey2ᚕᚖgithubᚗcomᚋminskylabᚋcollectaᚋentᚐSurveyᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_pendingSurveys(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Query",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().PendingSurveys(rctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*ent.Survey)
+	fc.Result = res
+	return ec.marshalNSurvey2ᚕᚖgithubᚗcomᚋminskylabᚋcollectaᚋentᚐSurveyᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_completedSurveys(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Query",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().CompletedSurveys(rctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*ent.Survey)
+	fc.Result = res
+	return ec.marshalNSurvey2ᚕᚖgithubᚗcomᚋminskylabᚋcollectaᚋentᚐSurveyᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query___type(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -7243,6 +7378,48 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_lastQuestionOfSurvey(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "newSurveys":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_newSurveys(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "pendingSurveys":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_pendingSurveys(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "completedSurveys":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_completedSurveys(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}

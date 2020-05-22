@@ -14,4 +14,10 @@ type Query {
     isFinalQuestion(questionID: ID!): Boolean!
     surveyPercent(surveyID: ID!): Float!
     lastQuestionOfSurvey(surveyID: ID!): LastSurveyState!
+
+    newSurveys: [Survey!]!
+    pendingSurveys: [Survey!]!
+    completedSurveys: [Survey!]!
+
+
 }
