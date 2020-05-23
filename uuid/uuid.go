@@ -17,8 +17,8 @@ func New() UUID {
 	return UUID(uuid.New())
 }
 
-func (uid UUID) Value() (driver.Value, error) {
-	return uuid.UUID(uid).String(), nil
+func (uid *UUID) Value() (driver.Value, error) {
+	return uuid.UUID(*uid).String(), nil
 }
 
 func (uid UUID) String() string {
