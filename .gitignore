@@ -19,3 +19,4 @@ config.yml
 collectabin
 # collecta
 syncbin
+http
