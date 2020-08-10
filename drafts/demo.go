@@ -3,12 +3,12 @@ package drafts
 import (
 	"context"
 
-	"github.com/google/uuid"
 	"github.com/minskylab/collecta/api/graph/model"
 	"github.com/minskylab/collecta/collecta/commons"
 	"github.com/minskylab/collecta/collecta/surveys"
 	"github.com/minskylab/collecta/db"
 	"github.com/minskylab/collecta/ent"
+	"github.com/minskylab/collecta/uuid"
 	"github.com/pkg/errors"
 )
 
@@ -17,20 +17,20 @@ func generateUTECDemoSurvey(ctx context.Context, db *db.DB, domainID uuid.UUID, 
 		Title:       "Feedback | Teoría de Decisiones",
 		Description: "<br>{{.Name}}</br>, responde esta pequeña encuesta sobre tu clase de Teoría de Decisiones del día martes 10 de Marzo.",
 		Tags:        []string{"Teo1.01", "UTEC", "2020-1"},
-		Questions:   []*model.QuestionCreator{
+		Questions: []*model.QuestionCreator{
 			{
 				Title:       "Dinamicas en clase",
 				Description: "Selecciona las dinámicas que usó el profesor que aportaron a la clase.",
 				Kind:        model.InputTypeOption,
 				Multiple:    commons.PtrBool(true),
 				Anonymous:   commons.PtrBool(false),
-				Options:     commons.MapToPairs(map[string]string{
-							"rooms":  "Breakout Rooms",
-							"chat":   "Chat",
-							"game":   "Juegos-Simulación",
-							"kahoot": "Kahoot u otra encuesta",
-							"others": "Otra",
-						}),
+				Options: commons.MapToPairs(map[string]string{
+					"rooms":  "Breakout Rooms",
+					"chat":   "Chat",
+					"game":   "Juegos-Simulación",
+					"kahoot": "Kahoot u otra encuesta",
+					"others": "Otra",
+				}),
 			},
 			{
 				Title:       "Acerca de la conectividad",
@@ -48,12 +48,14 @@ func generateUTECDemoSurvey(ctx context.Context, db *db.DB, domainID uuid.UUID, 
 				Kind:        model.InputTypeText,
 			},
 		},
-		Target:      &model.SurveyTargetUsers{
+		Target: &model.SurveyTargetUsers{
 			TargetKind: model.SurveyAudenceKindClose,
-			Whitelist:  []string{userID.String()},
+			Whitelist: []uuid.UUID{
+				userID,
+			},
 		},
-		Metadata:    commons.MapToPairs(map[string]string{
-			"type": "example",
+		Metadata: commons.MapToPairs(map[string]string{
+			"type":      "example",
 			"classroom": "S001",
 		}),
 	}

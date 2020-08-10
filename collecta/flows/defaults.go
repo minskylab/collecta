@@ -20,7 +20,7 @@ forward := func(state, input) {
     return res
 }
 
-// Backward function calculates the next state of the system
+// Backward function calculates the previous state of the system
 backward := func(state, input) {
     res := state
     for i, v in questions {
@@ -36,6 +36,7 @@ backward := func(state, input) {
 next := forward(state, input)
 last := backward(state, input)
 `
+
 func defaultSequentialProgramFromQuestions(questions []string) string {
 	finalQuestions := make([]string, 0)
 	for _, q := range questions {
