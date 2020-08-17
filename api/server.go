@@ -9,6 +9,7 @@ import (
 	"github.com/minskylab/collecta/api/graph/generated"
 	"github.com/minskylab/collecta/auth"
 	"github.com/minskylab/collecta/db"
+	log "github.com/sirupsen/logrus"
 )
 
 type API struct {
@@ -36,6 +37,7 @@ func (api *API) RegisterGraphQLHandlers(withPlayground bool) {
 	srv.Use(extension.FixedComplexityLimit(500))
 
 	query := func(c *gin.Context) {
+		log.Warn("graphql request intercept | content-type: ", c.ContentType())
 		srv.ServeHTTP(c.Writer, c.Request)
 	}
 
