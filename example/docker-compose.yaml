@@ -5,7 +5,7 @@ services:
     links:
       - db
     environment:
-      DATABASE_URL: postgresql://postgres:example@db/collecta
+      DATABASE_URL: postgresql://postgres:example@db/collecta?sslmode=disable
     volumes:
       - $PWD/config:/etc/collecta
   db:
