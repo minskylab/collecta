@@ -6,6 +6,8 @@ services:
       - db
     environment:
       DATABASE_URL: postgresql://postgres:example@db/collecta
+    volumes:
+      - $PWD/config:/etc/collecta
   db:
     image: postgres
     restart: always
