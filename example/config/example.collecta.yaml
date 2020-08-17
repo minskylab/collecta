@@ -1,0 +1,6 @@
+google:
+  clientID: <your-google-oauth-clientid>
+  secret: <your-google-oauth-secret>
+auth:
+  jwtExpiration: 24h
+  jwtSecret: <your-jwt-secret>

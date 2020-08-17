@@ -2,6 +2,7 @@ version: "3"
 services:
   collecta:
     build: ../.
+    restart: always
     links:
       - db
     environment:
@@ -15,3 +16,16 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: example
       POSTGRES_DB: collecta
+
+  portal:
+    image: steveltn/https-portal:1
+    restart: always
+    ports:
+      - '80:80'
+      - '443:443'
+    links:
+      - collecta
+    environment:
+      DOMAINS: 'core.collecta.site -> http://collecta:8080'
+      STAGE: 'production' # Don't use production until staging works
+      # FORCE_RENEW: 'true'
