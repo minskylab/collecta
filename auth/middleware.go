@@ -6,6 +6,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/minskylab/collecta/ent"
+	"github.com/sirupsen/logrus"
 	"golang.org/x/net/context"
 )
 
@@ -15,6 +16,7 @@ const userCtxKey = "user"
 func (collectaAuth *Auth) Middleware() gin.HandlerFunc {
 	return func(c  *gin.Context) {
 		authHeader := c.GetHeader("Authorization")
+		logrus.Warn(authHeader)
 		if !strings.HasPrefix(authHeader,"Bearer") {
 			c.Next()
 			return
@@ -28,6 +30,7 @@ func (collectaAuth *Auth) Middleware() gin.HandlerFunc {
 			return
 		}
 
+		logrus.Warn("userRequester: ", userRequester)
 		// put it in context
 		ctx := context.WithValue(c.Request.Context(), userCtxKey, userRequester)
 

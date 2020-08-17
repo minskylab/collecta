@@ -309,7 +309,6 @@ func (r *queryResolver) NewSurveys(ctx context.Context) ([]*ent.Survey, error) {
 		return nil, errors.New("unauthorized, please include a valid token in your header")
 	}
 
-
 	user, err := r.DB.Ent.Person.Get(ctx, userRequester.ID)
 	if err != nil {
 		return nil, errors.Wrap(err, "error at fetch person from ent")
@@ -341,7 +340,6 @@ func (r *queryResolver) PendingSurveys(ctx context.Context) ([]*ent.Survey, erro
 		return nil, errors.New("unauthorized, please include a valid token in your header")
 	}
 
-
 	user, err := r.DB.Ent.Person.Get(ctx, userRequester.ID)
 	if err != nil {
 		return nil, errors.Wrap(err, "error at fetch person from ent")
@@ -372,7 +370,6 @@ func (r *queryResolver) CompletedSurveys(ctx context.Context) ([]*ent.Survey, er
 	if userRequester == nil {
 		return nil, errors.New("unauthorized, please include a valid token in your header")
 	}
-
 
 	user, err := r.DB.Ent.Person.Get(ctx, userRequester.ID)
 	if err != nil {

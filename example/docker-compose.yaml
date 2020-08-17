@@ -8,7 +8,8 @@ services:
       POSTGRES_PASSWORD: example
       POSTGRES_DB: collecta
   core:
-    image: minskylab/collecta-core
+    # image: minskylab/collecta-core
+    build: ../.
     restart: always
     links:
       - db
