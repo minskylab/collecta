@@ -18,7 +18,7 @@ type Account struct {
 func (Account) Fields() []ent.Field {
 	return []ent.Field{
 		field.UUID("id", uuid.UUID{}),
-		field.Enum("type").Values("Google", "Anonymous", "Email"),
+		// field.Enum("type").Values("Google", "Anonymous", "Email"),
 		field.String("sub").NotEmpty(),
 		field.String("remoteID").Unique(),
 		field.String("secret").Optional(),

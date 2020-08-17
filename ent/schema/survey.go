@@ -25,7 +25,7 @@ func (Survey) Fields() []ent.Field {
 		}).Immutable(),
 		field.String("title").NotEmpty(),
 		field.String("description").Optional(),
-		field.JSON("metadata", map[string]interface{}{}).Optional(),
+		// field.JSON("metadata", map[string]interface{}{}).Optional(),
 		field.Bool("done").Default(false).Optional(),
 		field.Bool("isPublic").Default(false).Optional(),
 	}

@@ -19,7 +19,7 @@ func (Question) Fields() []ent.Field {
 		field.String("hash"),
 		field.String("title").NotEmpty(),
 		field.String("description"),
-		field.JSON("metadata", map[string]interface{}{}).Optional(),
+		// field.JSON("metadata", map[string]interface{}{}).Optional(),
 		field.String("validator").Optional().Immutable(),
 		field.Bool("anonymous").Default(false),
 	}

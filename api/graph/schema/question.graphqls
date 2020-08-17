@@ -3,7 +3,6 @@ type Question {
     hash: String!
     title: String!
     description: String!
-    metadata: Map
     validator: String
     anonymous: Boolean!
     answers: [Answer!]!

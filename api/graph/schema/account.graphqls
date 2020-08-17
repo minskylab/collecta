@@ -1,12 +1,5 @@
-enum AccountType {
-    Google
-    Anonymous
-    Email
-}
-
 type Account {
     id: ID!
-    type: AccountType!
     sub: String!
     remoteID: String!
     secret: String

@@ -18,7 +18,7 @@ func (Contact) Fields() []ent.Field {
 		field.UUID("id", uuid.UUID{}),
 		field.String("name"),
 		field.String("value").NotEmpty(),
-		field.Enum("kind").Values("Email", "Phone").Default("Email"),
+		// field.Enum("kind").Values("Email", "Phone").Default("Email"),
 		field.Bool("principal"),
 		field.Bool("validated"),
 		field.Bool("fromAccount").Default(false),

@@ -46,9 +46,6 @@ models:
   ID:
     model:
       - github.com/minskylab/collecta/uuid.UUID
-  AccountType:
-    model:
-      - github.com/minskylab/collecta/ent/account.Type
   Account:
     model:
       - github.com/minskylab/collecta/ent.Account
@@ -61,9 +58,6 @@ models:
     fields:
       question:
         resolver: true
-  ContactKind:
-    model:
-      - github.com/minskylab/collecta/ent/contact.Kind
   Contact:
     model:
       - github.com/minskylab/collecta/ent.Contact
@@ -96,9 +90,6 @@ models:
     model:
       - github.com/minskylab/collecta/ent.IP
     fields:
-  InputKind:
-    model:
-      - github.com/minskylab/collecta/ent/input.Kind
   Input:
     model:
       - github.com/minskylab/collecta/ent.Input

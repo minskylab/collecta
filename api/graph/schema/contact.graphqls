@@ -1,13 +1,7 @@
-enum ContactKind {
-    Email
-    Phone
-}
-
 type Contact {
     id: ID!
     name: String!
     value: String!
-    kind: ContactKind!
     principal: Boolean!
     validated: Boolean!
     fromAccount: Boolean!

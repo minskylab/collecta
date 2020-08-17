@@ -1,15 +1,6 @@
-enum InputKind {
-    Text
-    Options
-    Satisfaction
-    Boolean
-}
-
 type Input {
     id: ID!
-    kind: InputKind!
     multiple: Boolean
     defaults: [String!]
-    options: Map
     question: Question
 }
