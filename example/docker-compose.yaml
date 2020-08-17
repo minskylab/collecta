@@ -1,0 +1,13 @@
+version: 3.8
+services:
+  collecta:
+    build: ../.
+    links:
+      - db
+    environment:
+      DATABASE_URL: postgresql://postgres:example@db/collecta
+  db:
+    image: postgres
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: example
