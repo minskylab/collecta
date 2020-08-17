@@ -1,14 +1,5 @@
 version: "3"
 services:
-  collecta:
-    build: ../.
-    restart: always
-    links:
-      - db
-    environment:
-      DATABASE_URL: postgresql://postgres:example@db/collecta?sslmode=disable
-    volumes:
-      - $PWD/config:/etc/collecta
   db:
     image: postgres
     restart: always
@@ -16,7 +7,20 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: example
       POSTGRES_DB: collecta
-
+  core:
+    image: minskylab/collecta-core
+    restart: always
+    links:
+      - db
+    environment:
+      DATABASE_URL: postgresql://postgres:example@db/collecta?sslmode=disable
+    volumes:
+      - $PWD/config:/etc/collecta
+  site:
+    image: minskylab/collecta-site
+    restart: always
+    links:
+      - core
   portal:
     image: steveltn/https-portal:1
     restart: always
@@ -24,8 +28,9 @@ services:
       - '80:80'
       - '443:443'
     links:
-      - collecta
+      - core
+      - site
     environment:
-      DOMAINS: 'core.collecta.site -> http://collecta:8080'
+      DOMAINS: 'core.collecta.site -> http://collecta:8080, utec.collecta.site -> http://site:3000'
       STAGE: 'production' # Don't use production until staging works
       # FORCE_RENEW: 'true'
